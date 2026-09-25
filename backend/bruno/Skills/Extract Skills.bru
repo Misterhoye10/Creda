@@ -1,0 +1,15 @@
+meta {
+  name: Extract Skills
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/skills/extract
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -6,6 +6,15 @@ from app.schemas.evidence import (
     EvidenceResponse,
     EvidenceListResponse
 )
+from app.schemas.skill import (
+    SkillBase,
+    SkillUpdate,
+    SkillResponse,
+    SkillDetailResponse,
+    SkillListResponse,
+    SkillExtractResponse,
+    EvidenceCitation
+)
 
 __all__ = [
     "UserBase",
@@ -20,5 +29,12 @@ __all__ = [
     "ProjectCreateRequest",
     "GitHubConnectRequest",
     "EvidenceResponse",
-    "EvidenceListResponse"
+    "EvidenceListResponse",
+    "SkillBase",
+    "SkillUpdate",
+    "SkillResponse",
+    "SkillDetailResponse",
+    "SkillListResponse",
+    "SkillExtractResponse",
+    "EvidenceCitation"
 ]

@@ -39,6 +39,11 @@ class Evidence(Base):
     )
 
     user = relationship("User", back_populates="evidence")
+    skill_links = relationship(
+        "SkillEvidence",
+        back_populates="evidence",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Evidence {self.type}: {self.title}>"

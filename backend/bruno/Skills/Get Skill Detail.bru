@@ -1,0 +1,15 @@
+meta {
+  name: Get Skill Detail
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/skills/{{skill_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
