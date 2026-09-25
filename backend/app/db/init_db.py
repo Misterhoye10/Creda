@@ -1,7 +1,7 @@
 import logging
 from app.db.base import Base
 from app.db.session import engine
-from app.models import User # noqa: F401
+from app.models import User, Evidence # noqa: F401
 
 logger = logging.getLogger("creda.init_db")
 

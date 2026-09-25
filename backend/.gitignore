@@ -28,3 +28,4 @@ wheels/
 htmlcov/
 *.db
 *.sqlite3
+uploads/

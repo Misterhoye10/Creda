@@ -1,5 +1,11 @@
 from app.schemas.user import UserBase, UserCreate, UserUpdate, UserResponse
 from app.schemas.auth import SignupRequest, LoginRequest, TokenResponse, TokenPayload, MessageResponse
+from app.schemas.evidence import (
+    ProjectCreateRequest,
+    GitHubConnectRequest,
+    EvidenceResponse,
+    EvidenceListResponse
+)
 
 __all__ = [
     "UserBase",
@@ -10,5 +16,9 @@ __all__ = [
     "LoginRequest",
     "TokenResponse",
     "TokenPayload",
-    "MessageResponse"
+    "MessageResponse",
+    "ProjectCreateRequest",
+    "GitHubConnectRequest",
+    "EvidenceResponse",
+    "EvidenceListResponse"
 ]

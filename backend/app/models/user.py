@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Integer, Text, DateTime
+from sqlalchemy.orm import relationship
 from app.db.base import Base
 
 
@@ -30,6 +31,12 @@ class User(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    evidence = relationship(
+        "Evidence",
+        back_populates="user",
+        cascade="all, delete-orphan"
     )
 
     def __repr__(self):
