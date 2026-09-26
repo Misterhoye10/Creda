@@ -449,3 +449,40 @@ export function PiggyVestLogo({ className = "h-5 w-auto" }: { className?: string
   );
 }
 
+/** ── 11. RELIANCE HEALTH / RELIANCE HMO ── */
+export function RelianceMark({ className = "w-5 h-5", size }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={size ? { width: size, height: size } : undefined}
+      aria-label="Reliance Health"
+    >
+      {/* Deep Navy Left and Bottom Cross Arms */}
+      <rect x="2" y="12" width="18" height="8" rx="4" fill="#0A3C5F" />
+      <rect x="12" y="12" width="8" height="18" rx="4" fill="#0A3C5F" />
+
+      {/* Sky Blue Top and Right Cross Arms */}
+      <rect x="12" y="2" width="8" height="18" rx="4" fill="#78C4F4" />
+      <rect x="12" y="12" width="18" height="8" rx="4" fill="#78C4F4" />
+
+      {/* Soft Overlap Blend in Center Square */}
+      <rect x="12" y="12" width="8" height="8" rx="2" fill="#3D7DAB" opacity="0.9" />
+    </svg>
+  );
+}
+
+export function RelianceLogo({ className = "h-5 w-auto" }: { className?: string }) {
+  return (
+    <div className={`inline-flex items-center gap-2 ${className}`}>
+      <RelianceMark className="w-5 h-5 flex-shrink-0" />
+      <span className="font-semibold text-sm tracking-tight text-[#0A3C5F] font-sans">
+        Reliance<span className="font-normal text-[#78C4F4]">HMO</span>
+      </span>
+    </div>
+  );
+}
+
+

@@ -15,6 +15,7 @@ import {
   KudaMark,
   AndelaMark,
   PiggyVestMark,
+  RelianceMark,
 } from "@/components/CompanyLogos";
 import {
   ShieldCheck,
@@ -421,12 +422,7 @@ export default function Home() {
               {
                 name: "Reliance Health",
                 category: "HealthTech Infra",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 7v10M7 12h10" strokeLinecap="round" />
-                  </svg>
-                ),
+                logo: <RelianceMark className="w-5 h-5" />,
               },
               /* Duplicate sequence for seamless 100% infinite loop */
               {
@@ -491,12 +487,7 @@ export default function Home() {
               {
                 name: "Reliance Health",
                 category: "HealthTech Infra",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 7v10M7 12h10" strokeLinecap="round" />
-                  </svg>
-                ),
+                logo: <RelianceMark className="w-5 h-5" />,
               },
             ].map((company, idx) => (
               <div
