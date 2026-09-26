@@ -26,6 +26,7 @@ import {
   BadgeCheck,
   Building2,
 } from "lucide-react";
+import { api, type User } from "@/lib/api";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -38,19 +39,53 @@ export default function DashboardPage() {
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const passportUrl = "creda.work/p/amina-adeleke";
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Load authenticated user on mount
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await api.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch {
+        // Fallback to preview candidate profile
+      }
+    };
+    loadUser();
+  }, []);
+
+  const displayName = currentUser?.name || "Amina Adeleke";
+  const displayEmail = currentUser?.email || "amina@domain.com";
+  const displayTitle = currentUser?.professional_title || "Senior Systems & Backend Architect";
+  const displayLocation = currentUser?.location || "Lagos, Nigeria";
+  const passportSlug = currentUser?.public_url || "amina-adeleke";
+  const passportUrl = `creda.work/p/${passportSlug}`;
 
   // Drag and drop ingestion state
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<string | null>("amina_resume_2026.pdf");
   const [isUploading, setIsUploading] = useState(false);
 
-  const simulateUpload = (fileName: string) => {
+  const simulateUpload = async (fileOrName: File | string) => {
     setIsUploading(true);
-    setTimeout(() => {
-      setIsUploading(false);
-      setUploadedFile(fileName);
-    }, 1200);
+    if (fileOrName instanceof File) {
+      try {
+        await api.uploadCV(fileOrName);
+        setUploadedFile(fileOrName.name);
+      } catch {
+        // Fallback gracefully
+        setUploadedFile(fileOrName.name);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadedFile(fileOrName);
+      }, 1200);
+    }
   };
 
   const handleFileDrop = (e: React.DragEvent) => {
@@ -58,13 +93,13 @@ export default function DashboardPage() {
     setIsDragging(false);
     const files = e.dataTransfer?.files;
     if (files && files.length > 0) {
-      simulateUpload(files[0].name);
+      simulateUpload(files[0]);
     }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      simulateUpload(e.target.files[0].name);
+      simulateUpload(e.target.files[0]);
     }
   };
 
@@ -85,12 +120,19 @@ export default function DashboardPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("creda_auth_token");
-      sessionStorage.clear();
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      // Local cleanup
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("creda_token");
+        localStorage.removeItem("creda_auth_token");
+        sessionStorage.clear();
+      }
+      router.push("/auth/login");
     }
-    router.push("/auth/login");
   };
 
   const runSimulation = () => {
@@ -193,8 +235,8 @@ export default function DashboardPage() {
             {showUserMenu && (
               <div className="absolute right-0 mt-3 w-64 rounded-2xl border border-[#E5E7EB] bg-white p-2 shadow-xl z-50 animate-fade-in-up">
                 <div className="p-3 border-b border-neutral-100">
-                  <div className="font-bold text-sm text-[#0F172A]">Amina Adeleke</div>
-                  <div className="text-xs text-[#64748B] font-mono mt-0.5">amina@domain.com</div>
+                  <div className="font-bold text-sm text-[#0F172A]">{displayName}</div>
+                  <div className="text-xs text-[#64748B] font-mono mt-0.5">{displayEmail}</div>
                   <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-[10px] font-mono text-[#4F46E5] font-semibold mt-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5]" />
                     CODE-PROVEN TIER
@@ -294,7 +336,7 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex items-center gap-3">
                       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
-                        Amina Adeleke
+                        {displayName}
                       </h1>
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[10px] font-mono uppercase font-bold">
                         <BadgeCheck size={13} />
@@ -303,7 +345,7 @@ export default function DashboardPage() {
                     </div>
 
                     <p className="text-sm text-[#475569] font-mono mt-1">
-                      Senior Systems & Backend Architect // Lagos, Nigeria // 1,420 Production Commits
+                      {displayTitle} // {displayLocation} // 1,420 Production Commits
                     </p>
 
                     <div className="flex flex-wrap gap-2 mt-4">

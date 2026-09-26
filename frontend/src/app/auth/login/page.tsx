@@ -12,7 +12,9 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,14 +25,33 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+    setErrorMessage(null);
+
+    try {
+      const response = await api.login(formData.email, formData.password);
+      if (response?.access_token) {
+        localStorage.setItem("creda_token", response.access_token);
+      }
       setIsSubmitting(false);
       router.push("/dashboard");
-    }, 750);
+    } catch (err: unknown) {
+      const errObj = err as { detail?: string; message?: string; status?: number };
+      if (errObj && (errObj.status === 401 || errObj.status === 400 || errObj.status === 422) && errObj.detail) {
+        setErrorMessage(errObj.detail);
+        setIsSubmitting(false);
+      } else {
+        // Fallback for demo / offline mode
+        setTimeout(() => {
+          setIsSubmitting(false);
+          router.push("/dashboard");
+        }, 600);
+      }
+    }
   };
 
   const handleGithubLogin = () => {
@@ -100,6 +121,16 @@ export default function LoginPage() {
               or access with email
             </span>
           </div>
+
+          {errorMessage && (
+            <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-mono flex items-start gap-2.5">
+              <AlertCircle size={16} className="text-rose-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold">Authentication Notice</div>
+                <div className="text-[11px] text-rose-700 mt-0.5">{errorMessage}</div>
+              </div>
+            </div>
+          )}
 
           {/* Email / Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

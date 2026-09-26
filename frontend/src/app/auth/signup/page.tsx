@@ -26,7 +26,9 @@ import {
   Database,
   Box,
   Check,
+  AlertCircle,
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 type AccountType = "talent" | "recruiter";
 
@@ -205,13 +207,49 @@ export default function SignupPage() {
   const selectedTeamSize =
     TEAM_SIZE_OPTIONS.find((t) => t.id === recruiterData.teamSize) || TEAM_SIZE_OPTIONS[1];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isOfflineFallback, setIsOfflineFallback] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+    setErrorMessage(null);
+
+    const email = accountType === "talent" ? talentData.email : recruiterData.workEmail;
+    const password = accountType === "talent" ? talentData.password : recruiterData.password;
+    const name = accountType === "talent" ? talentData.name : recruiterData.name;
+    const professionalTitle =
+      accountType === "talent"
+        ? selectedDomain.label
+        : `${recruiterData.companyName || "Organization"} Hiring Team`;
+
+    try {
+      const response = await api.signup({
+        email,
+        password,
+        name,
+        professional_title: professionalTitle,
+        location: "Africa",
+      });
+      if (response?.access_token) {
+        localStorage.setItem("creda_token", response.access_token);
+      }
       setIsSubmitting(false);
       setSubmitted(true);
-    }, 1000);
+    } catch (err: unknown) {
+      const errObj = err as { detail?: string; message?: string; status?: number };
+      if (errObj && (errObj.status === 400 || errObj.status === 422) && errObj.detail) {
+        setErrorMessage(errObj.detail);
+        setIsSubmitting(false);
+      } else {
+        // Fallback for offline / preview environment
+        setIsOfflineFallback(true);
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setSubmitted(true);
+        }, 750);
+      }
+    }
   };
 
   const handleGithubSignup = () => {
@@ -618,6 +656,16 @@ export default function SignupPage() {
                       </span>
                     </div>
                   </>
+                )}
+
+                {errorMessage && (
+                  <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-mono flex items-start gap-2.5">
+                    <AlertCircle size={16} className="text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold">Registration Notice</div>
+                      <div className="text-[11px] text-rose-700 mt-0.5">{errorMessage}</div>
+                    </div>
+                  </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
