@@ -34,9 +34,17 @@ export default function SecurityPage() {
               offline_verification: <span className="text-[#FBBF24]">public_key_verifiable(true)</span>
             </div>
           </div>
-          <p className="text-sm leading-relaxed text-[#475569]">
+          <p className="text-sm leading-relaxed text-[#475569] mb-3">
             This ensures that any recruiter, hiring manager, or partner institution can independently verify a developer’s passport integrity offline without depending on proprietary Creda servers.
           </p>
+          <div className="pt-2">
+            <Link
+              href="/verify"
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#4F46E5] hover:text-[#4338CA] hover:underline"
+            >
+              <span>Test live proof validation on the Cryptographic Inspector →</span>
+            </Link>
+          </div>
         </>
       ),
     },
@@ -231,6 +239,9 @@ export default function SecurityPage() {
           </div>
 
           <div className="flex items-center gap-6 text-xs font-mono text-[#64748B]">
+            <Link href="/verify" className="hover:text-[#0F172A] transition-colors">
+              Verify
+            </Link>
             <Link href="/privacy" className="hover:text-[#0F172A] transition-colors">
               Privacy
             </Link>

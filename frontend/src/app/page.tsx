@@ -168,7 +168,7 @@ export default function Home() {
               { href: "#protocol", label: "Protocol" },
               { href: "#tiers", label: "Trust Tiers" },
               { href: "#recruiters", label: "For Recruiters" },
-              { href: "#testimonials", label: "Outcomes" },
+              { href: "/verify", label: "Verify Proof" },
               { href: "#pricing", label: "Pricing" },
               { href: "#faq", label: "FAQ" },
             ].map((link) => (
@@ -1225,7 +1225,10 @@ export default function Home() {
             <span>ALL PROTOCOLS OPERATIONAL</span>
           </div>
 
-          <div className="flex items-center gap-8 text-xs font-mono text-[#64748B]">
+          <div className="flex items-center gap-7 text-xs font-mono text-[#64748B]">
+            <Link href="/verify" className="hover:text-[#0F172A] transition-colors duration-200">
+              Verify
+            </Link>
             <Link href="/privacy" className="hover:text-[#0F172A] transition-colors duration-200">
               Privacy
             </Link>

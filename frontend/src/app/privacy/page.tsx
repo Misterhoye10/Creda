@@ -214,6 +214,9 @@ export default function PrivacyPage() {
           </div>
 
           <div className="flex items-center gap-6 text-xs font-mono text-[#64748B]">
+            <Link href="/verify" className="hover:text-[#0F172A] transition-colors">
+              Verify
+            </Link>
             <Link href="/privacy" className="text-[#4F46E5] font-bold">
               Privacy
             </Link>
