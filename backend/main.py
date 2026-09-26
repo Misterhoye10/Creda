@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.core.exceptions import CredaException
+from app.core.middleware import SecurityHeadersMiddleware
 from app.db.init_db import init_db
 from app.api.v1.api import api_router
 
@@ -28,26 +31,67 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="""
-# Creda API — AI-Powered Skills Verification Platform
+# Creda API — AI-Powered Skills Verification & Professional Identity Platform
 
-Creda helps talent prove what they can actually do rather than relying solely on unverified CVs, degrees, or job titles.
+**StacStart Hackathon: Access & Inclusion Track**
 
-## Features:
-* **Authentication**: Secure signup, login, JWT token auth with 24-hour expiration.
-* **Evidence Management**: CV PDF parsing, GitHub repository analysis, and project proof.
-* **AI Skill Extraction**: OpenAI-driven skill discovery and confidence scoring.
-* **Job Matching**: AI gap analysis comparing candidates against job requirements.
-* **Public Skill Passport**: Shareable, verified talent profile links.
+Creda empowers talent to prove what they can actually do rather than relying solely on unverified CVs, degrees, or job titles.
+
+## Modules:
+* **Authentication**: Secure signup, login, JWT token auth with bcrypt password hashing.
+* **Evidence Management**: CV PDF parsing, GitHub repository analysis, and project evidence submission.
+* **AI Skill Extraction**: OpenAI-powered multi-evidence corroboration and confidence scoring (30% to 98%).
+* **Job Matching & Gap Analysis**: AI evaluation comparing verified skills against job requirements with tailored recommendations.
+* **Candidate Profile & Public Skill Passport**: Verifiable, shareable talent link with recruiter-ready proof citations.
     """,
     version=settings.VERSION,
     lifespan=lifespan,
     openapi_tags=[
         {
             "name": "Authentication",
-            "description": "User registration, authentication, JWT tokens, and profile retrieval."
+            "description": "User registration, authentication, JWT tokens, and identity management."
+        },
+        {
+            "name": "Evidence Management",
+            "description": "Evidence submission and parsing: CV uploads (PDF), GitHub analysis, and manual project proof."
+        },
+        {
+            "name": "Skills Verification",
+            "description": "AI extraction of verified skills from corroborated evidence with confidence scoring."
+        },
+        {
+            "name": "Job Matching & Gap Analysis",
+            "description": "AI matching engine evaluating candidate skills against job requirements and diagnosing gaps."
+        },
+        {
+            "name": "User Profile",
+            "description": "Candidate profile customization, social handles, public slug management, and skills summary."
+        },
+        {
+            "name": "Skill Passport",
+            "description": "Public unauthenticated recruiter view of verified talent passports with evidence citations."
+        },
+        {
+            "name": "System",
+            "description": "Health checks, root metadata, and platform status."
         }
     ]
 )
+
+# Security Headers Middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Global Exception Handler for Creda domain exceptions
+@app.exception_handler(CredaException)
+async def creda_exception_handler(request: Request, exc: CredaException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": True,
+            "message": exc.message,
+            "details": exc.details
+        }
+    )
 
 # CORS Configuration for frontend integration
 app.add_middleware(
@@ -66,6 +110,7 @@ app.add_middleware(
 
 # Central API Router (/api)
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
 
 
 @app.get("/", tags=["System"])
