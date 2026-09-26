@@ -6,7 +6,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base
 from app.db.session import get_db
-from app.models import User, Evidence, Skill, SkillEvidence # noqa: F401
+from app.models import User, Evidence, Skill, SkillEvidence, JobMatch # noqa: F401
 from main import app
 
 # In-memory SQLite database for fast, isolated tests

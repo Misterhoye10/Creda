@@ -1,0 +1,26 @@
+meta {
+  name: Match Job
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/jobs/match
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "job_title": "Senior Backend Engineer",
+    "job_description": "We are seeking a Backend Engineer with strong proficiency in Python and FastAPI. Experience with PostgreSQL and relational databases is required. Familiarity with React and modern frontend frameworks is a plus. Knowledge of AWS cloud infrastructure and Docker containerization is required."
+  }
+}

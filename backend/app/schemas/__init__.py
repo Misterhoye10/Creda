@@ -15,6 +15,12 @@ from app.schemas.skill import (
     SkillExtractResponse,
     EvidenceCitation
 )
+from app.schemas.job import (
+    JobMatchRequest,
+    SkillMatchItem,
+    JobMatchResponse,
+    JobMatchListResponse
+)
 
 __all__ = [
     "UserBase",
@@ -36,5 +42,9 @@ __all__ = [
     "SkillDetailResponse",
     "SkillListResponse",
     "SkillExtractResponse",
-    "EvidenceCitation"
+    "EvidenceCitation",
+    "JobMatchRequest",
+    "SkillMatchItem",
+    "JobMatchResponse",
+    "JobMatchListResponse"
 ]
