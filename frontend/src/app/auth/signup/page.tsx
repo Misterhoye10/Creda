@@ -24,6 +24,7 @@ import {
   Palette,
   Server,
   Database,
+  Box,
   Check,
 } from "lucide-react";
 
@@ -72,6 +73,13 @@ const DOMAIN_OPTIONS: DomainOption[] = [
     sublabel: "Pipelines, Analytics, dbt & Machine Learning",
     icon: Database,
     badge: "Pipeline Verified",
+  },
+  {
+    id: "3d-creative-engineering",
+    label: "3D & Creative Engineering",
+    sublabel: "React Three Fiber, WebGL, Three.js & GLSL Shaders",
+    icon: Box,
+    badge: "WebGL Audited",
   },
   {
     id: "cybersecurity",

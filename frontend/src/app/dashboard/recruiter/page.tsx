@@ -115,6 +115,22 @@ const CANDIDATES: Candidate[] = [
     availability: "2 Weeks Notice",
     slug: "fatima-al-hassan",
   },
+  {
+    id: "c5",
+    name: "Kofi Mensah",
+    avatar: "/testimonials/kofi.jpg",
+    title: "Lead 3D Web & Creative Systems Engineer",
+    location: "Accra, Ghana",
+    discipline: "creative3d",
+    score: 95.2,
+    tier: "Code-Proven Tier",
+    skills: ["React Three Fiber", "Three.js", "GLSL Shaders", "WebGL", "TypeScript"],
+    proofHighlight: "12 WebGL pipelines audited; zero GPU memory leaks; 60fps locked on mobile.",
+    reposAudited: 12,
+    commitsCount: "1,180 commits",
+    availability: "Immediately Available",
+    slug: "kofi-mensah",
+  },
 ];
 
 export default function RecruiterDashboardPage() {
@@ -263,8 +279,9 @@ export default function RecruiterDashboardPage() {
           {/* Discipline Filter Chips */}
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-neutral-100">
             {[
-              { id: "all", label: "All Disciplines (4)" },
+              { id: "all", label: "All Disciplines (5)" },
               { id: "software", label: "Software Engineering (1)" },
+              { id: "creative3d", label: "3D & Creative Eng (1)" },
               { id: "design", label: "Product & UI/UX Design (1)" },
               { id: "devops", label: "DevOps & Cloud (1)" },
               { id: "data", label: "Data & AI (1)" },
@@ -272,7 +289,7 @@ export default function RecruiterDashboardPage() {
               <button
                 key={chip.id}
                 onClick={() => setSelectedDiscipline(chip.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                   selectedDiscipline === chip.id
                     ? "bg-[#0F172A] text-white font-semibold shadow-xs"
                     : "bg-[#FAFAF8] text-[#64748B] border border-[#E5E7EB] hover:border-neutral-400 hover:text-[#0F172A]"

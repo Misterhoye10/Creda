@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
 import {
@@ -22,7 +23,18 @@ import {
   FileCheck,
   Check,
   ChevronDown,
+  Box,
 } from "lucide-react";
+
+const CryptographicSeal3D = dynamic(
+  () => import("@/components/3d/CryptographicSeal3D"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-neutral-100/80 animate-pulse border border-neutral-200" />
+    ),
+  }
+);
 
 const PROFILES: Record<
   string,
@@ -165,6 +177,44 @@ const PROFILES: Record<
         tier: "Top Strength Tier",
         icon: Database,
         auditNote: "Micro-animations, responsive layout tokens, and design handoff specs.",
+      },
+    ],
+  },
+  "kofi-mensah": {
+    name: "Kofi Mensah",
+    avatar: "/testimonials/kofi.jpg",
+    title: "Lead 3D Web & Creative Systems Engineer",
+    location: "Accra, Ghana // Global Remote",
+    trustIndex: 95.2,
+    badge: "TOP 4% AFRICAN TALENT",
+    gpgKey: "0x3D7A9F10E2C88B41",
+    skills: [
+      {
+        name: "React Three Fiber & Three.js Canvas",
+        score: 97,
+        repos: "12 Repositories",
+        commits: "540 commits",
+        tier: "Code-Proven Tier",
+        icon: Box,
+        auditNote: "Strict scene disposal, instanced geometry, and zero WebGL memory leaks.",
+      },
+      {
+        name: "Custom GLSL Shaders & Compute",
+        score: 94,
+        repos: "18 Shaders",
+        commits: "320 commits",
+        tier: "Code-Proven Tier",
+        icon: Terminal,
+        auditNote: "Raymarching, custom noise algorithms, depth textures, and post-processing passes.",
+      },
+      {
+        name: "WebGL 3D Performance & Optimization",
+        score: 92,
+        repos: "10 Systems",
+        commits: "60 FPS locked",
+        tier: "Top Strength Tier",
+        icon: Server,
+        auditNote: "Draco mesh compression, LOD orchestration, and responsive mobile DPR budgets.",
       },
     ],
   },
@@ -320,15 +370,26 @@ export default function PublicPassportPage() {
             </div>
 
             {/* Right: Verification Action & Overall Rating */}
-            <div className="lg:col-span-4 lg:border-l lg:border-[#E5E7EB] lg:pl-8 flex flex-col justify-center">
-              <div className="text-[11px] font-mono uppercase tracking-wider text-[#64748B] mb-1">
-                Creda Trust Index
+            <div className="lg:col-span-4 lg:border-l lg:border-[#E5E7EB] lg:pl-8 flex flex-col justify-center items-center lg:items-start">
+              {/* Interactive 3D Cryptographic Proof Seal (React Three Fiber) */}
+              <div className="w-full flex items-center justify-center mb-2">
+                <CryptographicSeal3D
+                  verified={Boolean(verifiedHash)}
+                  trustIndex={profile.trustIndex}
+                  className="w-32 h-32"
+                />
               </div>
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-4xl font-extrabold text-[#0F172A] tracking-tight">{profile.trustIndex}</span>
-                <span className="text-xs font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                  {profile.badge}
-                </span>
+
+              <div className="w-full">
+                <div className="text-[11px] font-mono uppercase tracking-wider text-[#64748B] mb-1">
+                  Creda Trust Index
+                </div>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-4xl font-extrabold text-[#0F172A] tracking-tight">{profile.trustIndex}</span>
+                  <span className="text-xs font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                    {profile.badge}
+                  </span>
+                </div>
               </div>
 
               {/* Live Hash Verification Button */}
