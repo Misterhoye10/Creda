@@ -1,0 +1,35 @@
+meta {
+  name: Update Profile
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/user/profile
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Kwame Mensah",
+    "professional_title": "Full Stack Engineer",
+    "location": "Accra, Ghana",
+    "years_experience": 4,
+    "bio": "Building robust, scalable fintech infrastructure across Africa. Passionate about Python, FastAPI, and Next.js.",
+    "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
+    "public_url": "kwame-mensah",
+    "github_url": "https://github.com/kwamemensah",
+    "linkedin_url": "https://linkedin.com/in/kwamemensah",
+    "website_url": "https://kwamemensah.dev",
+    "is_public": true
+  }
+}

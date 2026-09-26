@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Integer, Text, DateTime
+from sqlalchemy import Column, String, Integer, Text, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -23,6 +23,10 @@ class User(Base):
     bio = Column(Text, nullable=True)
     avatar_url = Column(String(255), nullable=True)
     public_url = Column(String(255), unique=True, index=True, nullable=True)
+    is_public = Column(Boolean, default=True, nullable=False)
+    github_url = Column(String(255), nullable=True)
+    linkedin_url = Column(String(255), nullable=True)
+    website_url = Column(String(255), nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)
