@@ -277,10 +277,10 @@ export default function PublicPassportPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
-      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between">
+      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center tracking-tight group">
-            <CredaLogo size={34} showTag={true} tagText="PASSPORT" />
+            <CredaLogo size={28} showTag={true} tagText="PASSPORT" />
           </Link>
 
           <div className="flex items-center gap-2.5">
@@ -312,7 +312,7 @@ export default function PublicPassportPage() {
       </header>
 
       {/* ── Main Content Container ──────────────────────────── */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 sm:p-10 my-4 sm:my-8 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
         
         {/* Primary Identity & Cryptographic Badge Card */}
         <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm relative overflow-hidden">

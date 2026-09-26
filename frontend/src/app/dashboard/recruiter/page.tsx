@@ -200,10 +200,10 @@ export default function RecruiterDashboardPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
       {/* ── Architectural Header ── */}
-      <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between transition-all">
+      <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between transition-all">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center tracking-tight group">
-            <CredaLogo size={34} showTag={true} tagText="RECRUITER" />
+            <CredaLogo size={28} showTag={true} tagText="RECRUITER" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 p-1 rounded-xl bg-neutral-200/60 border border-neutral-200 text-xs font-mono">
@@ -244,7 +244,7 @@ export default function RecruiterDashboardPage() {
       </header>
 
       {/* ── Main Architectural Content ──────────────────────── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-10 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 space-y-6">
         
         {/* Top Control Bar: Search & Discipline Filters */}
         <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-sm space-y-6 relative overflow-hidden">

@@ -414,10 +414,10 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between transition-all">
-        <div className="flex items-center gap-10">
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between transition-all">
+        <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center tracking-tight group">
-            <CredaLogo size={34} showTag={true} tagText="DASHBOARD" />
+            <CredaLogo size={28} showTag={true} tagText="DASHBOARD" />
           </Link>
 
           {/* Architectural Tab Switcher */}
@@ -611,11 +611,11 @@ export default function DashboardPage() {
       </header>
 
       {/* ── Main Architectural Content ──────────────────────── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-10 space-y-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
         
         {/* ── TAB 1: LEDGER OVERVIEW ─────────────────────────── */}
         {activeTab === "overview" && (
-          <div className="space-y-10 animate-fade-in-up">
+          <div className="space-y-8 animate-fade-in-up">
             
             {/* Primary Proof Document: Architectural Credential Card */}
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm relative overflow-hidden">

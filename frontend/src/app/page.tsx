@@ -143,13 +143,13 @@ export default function Home() {
 
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
       <nav className={`sticky top-0 z-50 w-full bg-[#FAFAF8]/95 backdrop-blur-md border-b border-[#E5E7EB] transition-all duration-300 ${scrolled ? 'nav-scrolled' : ''}`}>
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center tracking-tight">
-            <CredaLogo size={34} showTag={true} tagText="CRD" />
+            <CredaLogo size={28} showTag={true} tagText="CRD" />
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden lg:flex items-center gap-10 text-xs font-mono text-[#475569] uppercase tracking-wider font-medium">
+          <div className="hidden lg:flex items-center gap-8 text-xs font-mono text-[#475569] uppercase tracking-wider font-medium">
             {[
               { href: "#problem", label: "The Problem" },
               { href: "#protocol", label: "Protocol" },
@@ -187,16 +187,16 @@ export default function Home() {
       </nav>
 
       {/* ── Hero Section (Architectural Light Canvas) ──────── */}
-      <section ref={hero.ref} className="relative w-full pt-24 pb-28 px-6 sm:px-8 border-b border-[#E5E7EB]">
+      <section ref={hero.ref} className="relative w-full pt-14 sm:pt-18 pb-18 sm:pb-22 px-6 sm:px-8 border-b border-[#E5E7EB]">
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
           {/* Status Tag */}
-          <div className={`inline-flex items-center gap-2.5 px-4 py-1.5 rounded border border-neutral-300 bg-white text-xs font-mono text-[#475569] uppercase tracking-widest mb-10 shadow-xs reveal ${hero.inView ? 'revealed' : ''}`}>
+          <div className={`inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded border border-neutral-300 bg-white text-xs font-mono text-[#475569] uppercase tracking-widest mb-6 shadow-xs reveal ${hero.inView ? 'revealed' : ''}`}>
             <span className="w-2 h-2 rounded-full bg-[#4F46E5]" />
             AI-Powered Proof-of-Work Verification
           </div>
 
           {/* Editorial Display Headline */}
-          <h1 className={`text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#0F172A] mb-8 max-w-4xl leading-[1.12] reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '120ms' }}>
+          <h1 className={`text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#0F172A] mb-6 max-w-4xl leading-[1.12] reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '120ms' }}>
             Prove what you can{" "}
             <span className="font-serif italic font-normal text-[#4F46E5]">
               actually do.
@@ -204,7 +204,7 @@ export default function Home() {
           </h1>
 
           {/* Subheadline */}
-          <p className={`text-lg sm:text-xl text-[#475569] max-w-2xl mx-auto mb-12 leading-[1.75] font-normal reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '240ms' }}>
+          <p className={`text-base sm:text-lg text-[#475569] max-w-2xl mx-auto mb-8 leading-[1.7] font-normal reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '240ms' }}>
             Traditional CVs are filled with unproven claims. Creda analyzes your real
             GitHub commits, PR velocity, and repository syntax trees to issue a
             cryptographically verifiable <strong className="text-[#0F172A] font-semibold">Skill Passport</strong> that
@@ -212,7 +212,7 @@ export default function Home() {
           </p>
 
           {/* Action Row */}
-          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 w-full sm:w-auto reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '360ms' }}>
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 sm:mb-14 w-full sm:w-auto reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '360ms' }}>
             <Link href="/auth/signup" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
                 Claim Free Passport →

@@ -263,10 +263,10 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
-      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between">
+      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-14 sm:h-16 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center tracking-tight group">
-            <CredaLogo size={34} showTag={true} tagText={accountType === "talent" ? "TALENT" : "RECRUITER"} />
+            <CredaLogo size={26} showTag={true} tagText={accountType === "talent" ? "TALENT" : "RECRUITER"} />
           </Link>
           <div className="text-xs font-mono text-[#64748B] flex items-center gap-2">
             <span className="hidden sm:inline">Already registered?</span>
@@ -281,290 +281,13 @@ export default function SignupPage() {
       </header>
 
       {/* ── Main Content Container ──────────────────────────── */}
-      <main className="flex-1 flex items-center justify-center p-6 sm:p-10 my-4 sm:my-8">
-        <div className="w-full max-w-5xl rounded-3xl border border-[#E5E7EB] bg-white shadow-sm grid grid-cols-1 lg:grid-cols-12 relative">
+      <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-6 sm:py-8">
+        <div className="w-full max-w-xl rounded-3xl border border-[#E5E7EB] bg-white p-7 sm:p-10 shadow-sm relative overflow-hidden">
           {/* Structural Crosshairs */}
           <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute bottom-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute bottom-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
-
-          {/* ── Left Column: Value Prop & Live Architectural Preview ─────────────── */}
-          <div className="lg:col-span-5 p-8 sm:p-10 border-b lg:border-b-0 lg:border-r border-[#E5E7EB] bg-[#FAFAF8] flex flex-col justify-between relative rounded-t-3xl lg:rounded-tr-none lg:rounded-l-3xl">
-            <div>
-              {/* Editorial Title */}
-              {accountType === "talent" ? (
-                <>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[10px] font-mono font-semibold uppercase tracking-wider mb-4">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
-                    Live Passport Compilation
-                  </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A] mb-2 leading-tight">
-                    Turn your real work into{" "}
-                    <span className="font-serif italic font-normal text-[#4F46E5]">
-                      cryptographic proof.
-                    </span>
-                  </h1>
-                  <p className="text-xs text-[#64748B] font-mono leading-relaxed mb-6">
-                    Real-time verifiable skill passport generated from GitHub commits, PRs, and architectural artifacts.
-                  </p>
-
-                  {/* ── Live Interactive Passport Preview Card ── */}
-                  <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-xs relative overflow-hidden mb-6">
-                    {/* Corner Crosshairs */}
-                    <span className="absolute top-2 left-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-                    <span className="absolute top-2 right-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-                    <span className="absolute bottom-2 left-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-                    <span className="absolute bottom-2 right-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-
-                    {/* Status Header */}
-                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-neutral-100 text-[10px] font-mono">
-                      <span className="text-neutral-400 uppercase tracking-wider">CREDA // PASSPORT SPEC</span>
-                      <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        ACTIVE DRAFT
-                      </span>
-                    </div>
-
-                    {/* Dynamic Profile Identity */}
-                    <div className="flex items-center gap-3.5 mb-4">
-                      <div className="w-11 h-11 rounded-xl bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-xs tracking-wider shadow-2xs flex-shrink-0">
-                        {talentData.name.trim()
-                          ? talentData.name
-                              .trim()
-                              .split(" ")
-                              .map((w) => w[0])
-                              .join("")
-                              .slice(0, 2)
-                              .toUpperCase()
-                          : "CR"}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-bold text-[#0F172A] tracking-tight truncate">
-                          {talentData.name.trim() || "UNCLAIMED TALENT"}
-                        </div>
-                        <div className="text-[11px] font-mono text-[#64748B] truncate mt-0.5">
-                          {talentData.email.trim() || "awaiting credentials..."}
-                        </div>
-                      </div>
-                      <div className="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-mono text-[#4F46E5] font-semibold flex-shrink-0">
-                        {selectedDomain.badge}
-                      </div>
-                    </div>
-
-                    {/* Dynamic Domain Badge */}
-                    <div className="p-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] flex items-center justify-between text-xs mb-4">
-                      <div className="flex items-center gap-2 text-[#0F172A] font-semibold truncate">
-                        {(() => {
-                          const DomainIcon = selectedDomain.icon;
-                          return <DomainIcon size={14} className="text-[#4F46E5] flex-shrink-0" />;
-                        })()}
-                        <span className="truncate">{selectedDomain.label}</span>
-                      </div>
-                      <span className="text-[10px] font-mono text-[#64748B] flex-shrink-0">
-                        Level 1 Proof
-                      </span>
-                    </div>
-
-                    {/* Cryptographic Telemetry Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-mono bg-neutral-50/70 p-2.5 rounded-xl border border-neutral-200/60">
-                      <div>
-                        <div className="text-neutral-400 uppercase text-[9px]">GPG KEY ID</div>
-                        <div className="font-bold text-[#0F172A] mt-0.5 truncate">
-                          {talentData.name.trim()
-                            ? `4096R / ${(talentData.name.length * 1337).toString(16).slice(-4).toUpperCase()}`
-                            : "4096R / PENDING"}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-neutral-400 uppercase text-[9px]">PROOF HASH</div>
-                        <div className="font-bold text-[#0F172A] mt-0.5 truncate">
-                          0x{(talentData.name || "creda")
-                            .split("")
-                            .reduce((acc, c) => ((acc << 5) - acc + c.charCodeAt(0)) | 0, 0)
-                            .toString(16)
-                            .slice(-6)
-                            .padStart(6, "a7f2")}...
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-neutral-400 uppercase text-[9px]">AST AUDIT</div>
-                        <div className="text-emerald-700 font-semibold mt-0.5">Ready for Ingest</div>
-                      </div>
-                      <div>
-                        <div className="text-neutral-400 uppercase text-[9px]">DATA PRIVACY</div>
-                        <div className="text-[#0F172A] font-semibold mt-0.5">0% Persisted</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 3 Value Pillars */}
-                  <div className="space-y-2.5">
-                    {[
-                      {
-                        icon: GitBranch,
-                        title: "In-Memory AST Audit",
-                        desc: "Parse repositories and syntax trees with zero permanent code retention.",
-                      },
-                      {
-                        icon: ShieldCheck,
-                        title: "Global Recruiter Trust",
-                        desc: "Cryptographically verified proof accepted by elite hiring partners worldwide.",
-                      },
-                    ].map((item, idx) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={idx} className="flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-md bg-white border border-[#E5E7EB] flex items-center justify-center text-[#4F46E5] flex-shrink-0 mt-0.5 shadow-2xs">
-                            <Icon size={12} />
-                          </div>
-                          <div>
-                            <span className="text-xs font-bold text-[#0F172A]">{item.title}</span>
-                            <span className="text-[11px] text-[#64748B] font-mono ml-1.5 leading-relaxed">
-                              — {item.desc}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[10px] font-mono font-semibold uppercase tracking-wider mb-4">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
-                    Talent Pipeline Engine
-                  </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A] mb-2 leading-tight">
-                    Hire verified talent with{" "}
-                    <span className="font-serif italic font-normal text-[#4F46E5]">
-                      zero resume fraud.
-                    </span>
-                  </h1>
-                  <p className="text-xs text-[#64748B] font-mono leading-relaxed mb-6">
-                    Direct access to pre-vetted engineers and architects with verifiable AST code evidence and ATS sync.
-                  </p>
-
-                  {/* ── Live Interactive Recruiter Workspace Preview ── */}
-                  <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-xs relative overflow-hidden mb-6">
-                    <span className="absolute top-2 left-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-                    <span className="absolute top-2 right-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-                    <span className="absolute bottom-2 left-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-                    <span className="absolute bottom-2 right-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
-
-                    {/* Workspace Header */}
-                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-neutral-100 text-[10px] font-mono">
-                      <span className="text-neutral-400 uppercase tracking-wider">CREDA ENTERPRISE // INSTANCE</span>
-                      <span className="flex items-center gap-1.5 text-indigo-600 font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                        PIPELINE READY
-                      </span>
-                    </div>
-
-                    {/* Organization Banner */}
-                    <div className="flex items-center gap-3.5 mb-4">
-                      <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-mono font-bold text-xs tracking-wider shadow-2xs flex-shrink-0">
-                        {recruiterData.companyName.trim()
-                          ? recruiterData.companyName
-                              .trim()
-                              .split(" ")
-                              .map((w) => w[0])
-                              .join("")
-                              .slice(0, 2)
-                              .toUpperCase()
-                          : "HQ"}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-bold text-[#0F172A] tracking-tight truncate">
-                          {recruiterData.companyName.trim() || "YOUR ORGANIZATION"}
-                        </div>
-                        <div className="text-[11px] font-mono text-[#64748B] truncate mt-0.5">
-                          {recruiterData.workEmail.trim() || "team@organization.com"}
-                        </div>
-                      </div>
-                      <div className="px-2 py-0.5 rounded-md bg-neutral-100 border border-neutral-200 text-[10px] font-mono text-[#0F172A] font-semibold flex-shrink-0">
-                        {selectedTeamSize.label}
-                      </div>
-                    </div>
-
-                    {/* Live Talent Stream Sample */}
-                    <div className="space-y-1.5 mb-3">
-                      <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1">
-                        Live Verified Talent Stream
-                      </div>
-                      {[
-                        { name: "Adekunle O.", role: "Senior Distributed Eng", score: "98% AST", loc: "Lagos, NG" },
-                        { name: "Amina D.", role: "Lead Systems Architect", score: "96% AST", loc: "Nairobi, KE" },
-                        { name: "Kofi M.", role: "3D Web & Creative Eng", score: "99% AST", loc: "Accra, GH" },
-                      ].map((cand, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between p-2 rounded-lg bg-[#FAFAF8] border border-neutral-200/60 text-xs font-mono"
-                        >
-                          <div className="truncate pr-2">
-                            <span className="font-bold text-[#0F172A]">{cand.name}</span>
-                            <span className="text-[#64748B] text-[10px] ml-1.5">{cand.role}</span>
-                          </div>
-                          <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">
-                            {cand.score}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* ATS Sync Note */}
-                    <div className="text-[10px] font-mono text-[#64748B] text-center pt-1 border-t border-neutral-100">
-                      Syncs with Greenhouse • Lever • Ashby • Workday
-                    </div>
-                  </div>
-
-                  {/* Recruiter Guarantees */}
-                  <div className="space-y-2.5">
-                    {[
-                      {
-                        icon: Search,
-                        title: "Pre-Verified Talent Pool",
-                        desc: "Filter candidates by verified code proficiency, never keyword inflation.",
-                      },
-                      {
-                        icon: ShieldCheck,
-                        title: "1-Click ATS Export",
-                        desc: "Direct integration into your existing recruiting pipeline and workflows.",
-                      },
-                    ].map((item, idx) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={idx} className="flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-md bg-white border border-[#E5E7EB] flex items-center justify-center text-[#4F46E5] flex-shrink-0 mt-0.5 shadow-2xs">
-                            <Icon size={12} />
-                          </div>
-                          <div>
-                            <span className="text-xs font-bold text-[#0F172A]">{item.title}</span>
-                            <span className="text-[11px] text-[#64748B] font-mono ml-1.5 leading-relaxed">
-                              — {item.desc}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Bottom Proof Tagline */}
-            <div className="mt-8 pt-6 border-t border-neutral-200/80 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                {accountType === "talent" ? "100% Free for Talent" : "14-Day Free Evaluation"}
-              </span>
-              <span className="text-neutral-300">//</span>
-              <span>60s Setup • Zero Card Required</span>
-            </div>
-          </div>
-
-          {/* ── Right Column: Clean Registration Form ─────────── */}
-          <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center bg-white rounded-b-3xl lg:rounded-bl-none lg:rounded-r-3xl">
             {submitted ? (
               <div className="py-12 text-center space-y-4 animate-fade-in-up">
                 <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-[#4F46E5] flex items-center justify-center mx-auto shadow-xs">
@@ -591,15 +314,15 @@ export default function SignupPage() {
             ) : (
               <div>
                 {/* ── Architectural Role Switcher (Talent vs Recruiter) ── */}
-                <div className="mb-6">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] font-semibold mb-2">
+                <div className="mb-4">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] font-semibold mb-1.5">
                     Select Account Purpose
                   </div>
                   <div className="grid grid-cols-2 p-1 bg-[#FAFAF8] rounded-2xl border border-[#E5E7EB]">
                     <button
                       type="button"
                       onClick={() => setAccountType("talent")}
-                      className={`h-11 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                      className={`h-10 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
                         accountType === "talent"
                           ? "bg-white text-[#0F172A] shadow-xs border border-[#E5E7EB]"
                           : "text-[#64748B] hover:text-[#0F172A]"
@@ -611,7 +334,7 @@ export default function SignupPage() {
                     <button
                       type="button"
                       onClick={() => setAccountType("recruiter")}
-                      className={`h-11 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                      className={`h-10 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
                         accountType === "recruiter"
                           ? "bg-white text-[#0F172A] shadow-xs border border-[#E5E7EB]"
                           : "text-[#64748B] hover:text-[#0F172A]"
@@ -623,8 +346,8 @@ export default function SignupPage() {
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-[#0F172A] tracking-tight">
+                <div className="mb-4">
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
                     {accountType === "talent" ? "Create your passport" : "Create team workspace"}
                   </h2>
                   <p className="text-xs text-[#64748B] font-mono mt-1">
@@ -641,7 +364,7 @@ export default function SignupPage() {
                       type="button"
                       onClick={handleGithubSignup}
                       disabled={isSubmitting}
-                      className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-all shadow-xs flex items-center justify-center gap-3 cursor-pointer active:translate-y-0.5 disabled:opacity-75 mb-6 whitespace-nowrap flex-shrink-0"
+                      className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-all shadow-xs flex items-center justify-center gap-3 cursor-pointer active:translate-y-0.5 disabled:opacity-75 mb-4 whitespace-nowrap flex-shrink-0"
                     >
                       <svg className="w-4 h-4 fill-current flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                         <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -649,7 +372,7 @@ export default function SignupPage() {
                       <span className="whitespace-nowrap">Sign Up with GitHub</span>
                     </button>
 
-                    <div className="relative mb-6 flex items-center justify-center">
+                    <div className="relative mb-4 flex items-center justify-center">
                       <div className="w-full border-t border-[#E5E7EB]" />
                       <span className="absolute bg-white px-3 text-[10px] font-mono uppercase tracking-widest text-[#64748B]">
                         or register with email
@@ -1068,9 +791,16 @@ export default function SignupPage() {
                   </Link>
                   .
                 </p>
+
+                {/* Switch to Sign In */}
+                <div className="mt-6 pt-5 border-t border-neutral-100 text-center">
+                  <span className="text-xs text-[#64748B] font-mono">Already have a passport or account? </span>
+                  <Link href="/auth/login" className="text-xs font-mono font-semibold text-[#4F46E5] hover:underline">
+                    Sign In →
+                  </Link>
+                </div>
               </div>
             )}
-          </div>
         </div>
       </main>
 
