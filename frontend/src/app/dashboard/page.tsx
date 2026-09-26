@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
 import {
+  PaystackMark,
+  OPayMark,
+  FlutterwaveMark,
+  InterswitchMark,
+  ChipperCashMark,
+} from "@/components/CompanyLogos";
+import {
   ShieldCheck,
   GitBranch,
   Terminal,
@@ -407,7 +414,14 @@ export default function DashboardPage() {
     setSimulationResult(null);
     setTimeout(() => {
       setIsSimulating(false);
-      setSimulationResult(selectedJob === "paystack" ? 94 : selectedJob === "moniepoint" ? 91 : 88);
+      const scores: Record<string, number> = {
+        paystack: 94,
+        flutterwave: 88,
+        opay: 96,
+        interswitch: 92,
+        chippercash: 90,
+      };
+      setSimulationResult(scores[selectedJob] ?? 92);
     }, 750);
   };
 
@@ -1050,42 +1064,71 @@ export default function DashboardPage() {
               </div>
 
               {/* Preset Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5 mb-6">
                 {[
                   {
                     id: "paystack",
                     company: "Paystack",
                     role: "Senior Backend Systems Engineer",
-                    reqs: "Go, Concurrency, Distributed Systems",
-                  },
-                  {
-                    id: "moniepoint",
-                    company: "Moniepoint",
-                    role: "Staff Infrastructure Engineer",
-                    reqs: "PostgreSQL, Redis, Microservices",
+                    reqs: "Go, Concurrency, Distributed",
+                    logo: <PaystackMark className="w-3.5 h-3.5 flex-shrink-0" />,
                   },
                   {
                     id: "flutterwave",
                     company: "Flutterwave",
-                    role: "Core Payments Engineer",
+                    role: "Core Payments Switch Engineer",
                     reqs: "High Throughput, GPG, Security",
+                    logo: <FlutterwaveMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
+                  {
+                    id: "opay",
+                    company: "OPay",
+                    role: "Staff Infrastructure Architect",
+                    reqs: "High Concurrency, Kafka, Redis",
+                    logo: <OPayMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
+                  {
+                    id: "interswitch",
+                    company: "Interswitch",
+                    role: "Principal Transaction Systems Lead",
+                    reqs: "ISO 8583, Switching Rails, C++",
+                    logo: <InterswitchMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
+                  {
+                    id: "chippercash",
+                    company: "Chipper Cash",
+                    role: "Distributed Settlement Engineer",
+                    reqs: "Cross-Border Rails, Python, AWS",
+                    logo: <ChipperCashMark className="w-3.5 h-3.5 flex-shrink-0" />,
                   },
                 ].map((job) => (
                   <button
                     key={job.id}
                     onClick={() => {
                       setSelectedJob(job.id);
-                      setSimulationResult(job.id === "paystack" ? 94 : job.id === "moniepoint" ? 91 : 88);
+                      const scores: Record<string, number> = {
+                        paystack: 94,
+                        flutterwave: 88,
+                        opay: 96,
+                        interswitch: 92,
+                        chippercash: 90,
+                      };
+                      setSimulationResult(scores[job.id] ?? 92);
                     }}
-                    className={`p-5 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedJob === job.id
                         ? "border-[#4F46E5] bg-indigo-50/50 shadow-xs"
                         : "border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white"
                     }`}
                   >
-                    <div className="text-[11px] font-mono text-[#4F46E5] font-bold">{job.company}</div>
-                    <div className="text-sm font-bold text-[#0F172A] mt-1">{job.role}</div>
-                    <div className="text-xs text-[#64748B] font-mono mt-2">{job.reqs}</div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-md bg-white border border-[#E5E7EB] flex items-center justify-center shadow-2xs">
+                        {job.logo}
+                      </div>
+                      <span className="text-xs font-mono text-[#0F172A] font-bold">{job.company}</span>
+                    </div>
+                    <div className="text-xs font-bold text-[#0F172A] leading-snug line-clamp-1">{job.role}</div>
+                    <div className="text-[11px] text-[#64748B] font-mono mt-1.5 leading-tight line-clamp-1">{job.reqs}</div>
                   </button>
                 ))}
               </div>

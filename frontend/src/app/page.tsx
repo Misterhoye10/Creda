@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useInView, useCountUp, useScrolled } from "@/hooks/useAnimations";
 import { CredaLogo } from "@/components/CredaLogo";
 import {
+  PaystackMark,
+  OPayMark,
+  FlutterwaveMark,
+  InterswitchMark,
+  ChipperCashMark,
+} from "@/components/CompanyLogos";
+import {
   ShieldCheck,
   FileWarning,
   Clock,
@@ -350,13 +357,7 @@ export default function Home() {
               {
                 name: "Paystack",
                 category: "Fintech // Stripe",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <rect x="3" y="4" width="18" height="3" rx="1.5" />
-                    <rect x="3" y="10.5" width="13" height="3" rx="1.5" />
-                    <rect x="3" y="17" width="18" height="3" rx="1.5" />
-                  </svg>
-                ),
+                logo: <PaystackMark className="w-5 h-5" />,
               },
               {
                 name: "Moniepoint",
@@ -370,12 +371,7 @@ export default function Home() {
               {
                 name: "Flutterwave",
                 category: "Global Payments",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M4 12c1.8-4.2 6.2-7 11.2-7 2.1 0 4.1.5 5.8 1.4-1.2.6-2.5 1-3.8 1-3.8 0-7.2 2-9.1 5.1C7.2 14.8 6 17.5 5.5 20.5 4.9 17.8 4.5 15 4 12z" opacity="0.6" />
-                    <path d="M7 15.5c1.4-2.8 4.2-4.7 7.5-4.7 1.8 0 3.5.6 4.9 1.6-1 .8-2.2 1.3-3.4 1.3-2.6 0-4.9 1.4-6.2 3.5-.8 1.4-1.4 3-1.7 4.8-.6-2.2-.9-4.3-1.1-6.5z" />
-                  </svg>
-                ),
+                logo: <FlutterwaveMark className="w-5 h-5" />,
               },
               {
                 name: "Andela",
@@ -390,12 +386,7 @@ export default function Home() {
               {
                 name: "Chipper Cash",
                 category: "Cross-Border",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <circle cx="8" cy="12" r="6" fillOpacity="0.35" />
-                    <circle cx="16" cy="12" r="6" fillOpacity="0.85" />
-                  </svg>
-                ),
+                logo: <ChipperCashMark className="w-5 h-5" />,
               },
               {
                 name: "Kuda Bank",
@@ -410,13 +401,7 @@ export default function Home() {
               {
                 name: "Interswitch",
                 category: "Switching Rails",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.2" strokeLinecap="round" viewBox="0 0 24 24">
-                    <circle cx="7" cy="12" r="3" fill="currentColor" />
-                    <circle cx="17" cy="12" r="3" fill="currentColor" />
-                    <path d="M7 8c2.5-3.5 7.5-3.5 10 0M17 16c-2.5 3.5-7.5 3.5-10 0" />
-                  </svg>
-                ),
+                logo: <InterswitchMark className="w-5 h-5" />,
               },
               {
                 name: "PiggyVest",
@@ -432,12 +417,7 @@ export default function Home() {
               {
                 name: "OPay",
                 category: "SuperApp & Pay",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.8" />
-                    <circle cx="12" cy="12" r="3.5" />
-                  </svg>
-                ),
+                logo: <OPayMark className="w-5 h-5" />,
               },
               {
                 name: "Wave",
@@ -471,13 +451,7 @@ export default function Home() {
               {
                 name: "Paystack",
                 category: "Fintech // Stripe",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <rect x="3" y="4" width="18" height="3" rx="1.5" />
-                    <rect x="3" y="10.5" width="13" height="3" rx="1.5" />
-                    <rect x="3" y="17" width="18" height="3" rx="1.5" />
-                  </svg>
-                ),
+                logo: <PaystackMark className="w-5 h-5" />,
               },
               {
                 name: "Moniepoint",
@@ -491,12 +465,7 @@ export default function Home() {
               {
                 name: "Flutterwave",
                 category: "Global Payments",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M4 12c1.8-4.2 6.2-7 11.2-7 2.1 0 4.1.5 5.8 1.4-1.2.6-2.5 1-3.8 1-3.8 0-7.2 2-9.1 5.1C7.2 14.8 6 17.5 5.5 20.5 4.9 17.8 4.5 15 4 12z" opacity="0.6" />
-                    <path d="M7 15.5c1.4-2.8 4.2-4.7 7.5-4.7 1.8 0 3.5.6 4.9 1.6-1 .8-2.2 1.3-3.4 1.3-2.6 0-4.9 1.4-6.2 3.5-.8 1.4-1.4 3-1.7 4.8-.6-2.2-.9-4.3-1.1-6.5z" />
-                  </svg>
-                ),
+                logo: <FlutterwaveMark className="w-5 h-5" />,
               },
               {
                 name: "Andela",
@@ -511,12 +480,7 @@ export default function Home() {
               {
                 name: "Chipper Cash",
                 category: "Cross-Border",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <circle cx="8" cy="12" r="6" fillOpacity="0.35" />
-                    <circle cx="16" cy="12" r="6" fillOpacity="0.85" />
-                  </svg>
-                ),
+                logo: <ChipperCashMark className="w-5 h-5" />,
               },
               {
                 name: "Kuda Bank",
@@ -531,13 +495,7 @@ export default function Home() {
               {
                 name: "Interswitch",
                 category: "Switching Rails",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.2" strokeLinecap="round" viewBox="0 0 24 24">
-                    <circle cx="7" cy="12" r="3" fill="currentColor" />
-                    <circle cx="17" cy="12" r="3" fill="currentColor" />
-                    <path d="M7 8c2.5-3.5 7.5-3.5 10 0M17 16c-2.5 3.5-7.5 3.5-10 0" />
-                  </svg>
-                ),
+                logo: <InterswitchMark className="w-5 h-5" />,
               },
               {
                 name: "PiggyVest",
@@ -553,12 +511,7 @@ export default function Home() {
               {
                 name: "OPay",
                 category: "SuperApp & Pay",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.8" />
-                    <circle cx="12" cy="12" r="3.5" />
-                  </svg>
-                ),
+                logo: <OPayMark className="w-5 h-5" />,
               },
               {
                 name: "Wave",
