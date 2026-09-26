@@ -10,6 +10,11 @@ import {
   FlutterwaveMark,
   InterswitchMark,
   ChipperCashMark,
+  MoniepointMark,
+  LemFiMark,
+  KudaMark,
+  AndelaMark,
+  PiggyVestMark,
 } from "@/components/CompanyLogos";
 import {
   ShieldCheck,
@@ -362,11 +367,7 @@ export default function Home() {
               {
                 name: "Moniepoint",
                 category: "Business Banking",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.5 14.5h-2.2v-5.2l-1.8 3.5h-1l-1.8-3.5v5.2H7.5V7.5h2.1l2.4 4.6 2.4-4.6h2.1v9z" />
-                  </svg>
-                ),
+                logo: <MoniepointMark className="w-5 h-5" />,
               },
               {
                 name: "Flutterwave",
@@ -376,12 +377,7 @@ export default function Home() {
               {
                 name: "Andela",
                 category: "Global Talent",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.2" viewBox="0 0 24 24">
-                    <path d="M12 3L3.5 8V16L12 21L20.5 16V8L12 3Z" />
-                    <path d="M12 7.5L7 16H17L12 7.5Z" />
-                  </svg>
-                ),
+                logo: <AndelaMark className="w-5 h-5" />,
               },
               {
                 name: "Chipper Cash",
@@ -391,12 +387,7 @@ export default function Home() {
               {
                 name: "Kuda Bank",
                 category: "Digital Bank",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <rect x="2" y="2" width="20" height="20" rx="5" fillOpacity="0.12" stroke="currentColor" strokeWidth="1.8" />
-                    <path d="M8 6v12M8 12l6.5-6M9.5 10.5l5.5 7.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-                  </svg>
-                ),
+                logo: <KudaMark className="w-5 h-5" />,
               },
               {
                 name: "Interswitch",
@@ -406,13 +397,7 @@ export default function Home() {
               {
                 name: "PiggyVest",
                 category: "WealthTech",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-                    <rect x="3" y="5" width="18" height="14" rx="4" />
-                    <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2" />
-                    <path d="M12 9v6M9 12h6" strokeLinecap="round" />
-                  </svg>
-                ),
+                logo: <PiggyVestMark className="w-5 h-5" />,
               },
               {
                 name: "OPay",
@@ -431,11 +416,7 @@ export default function Home() {
               {
                 name: "LemFi",
                 category: "Diaspora Banking",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M4 4h5l6.5 12h4.5v4h-7L6.5 8H4V4z" />
-                  </svg>
-                ),
+                logo: <LemFiMark className="w-5 h-5" />,
               },
               {
                 name: "Reliance Health",
@@ -456,11 +437,7 @@ export default function Home() {
               {
                 name: "Moniepoint",
                 category: "Business Banking",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.5 14.5h-2.2v-5.2l-1.8 3.5h-1l-1.8-3.5v5.2H7.5V7.5h2.1l2.4 4.6 2.4-4.6h2.1v9z" />
-                  </svg>
-                ),
+                logo: <MoniepointMark className="w-5 h-5" />,
               },
               {
                 name: "Flutterwave",
@@ -470,12 +447,7 @@ export default function Home() {
               {
                 name: "Andela",
                 category: "Global Talent",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.2" viewBox="0 0 24 24">
-                    <path d="M12 3L3.5 8V16L12 21L20.5 16V8L12 3Z" />
-                    <path d="M12 7.5L7 16H17L12 7.5Z" />
-                  </svg>
-                ),
+                logo: <AndelaMark className="w-5 h-5" />,
               },
               {
                 name: "Chipper Cash",
@@ -485,12 +457,7 @@ export default function Home() {
               {
                 name: "Kuda Bank",
                 category: "Digital Bank",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <rect x="2" y="2" width="20" height="20" rx="5" fillOpacity="0.12" stroke="currentColor" strokeWidth="1.8" />
-                    <path d="M8 6v12M8 12l6.5-6M9.5 10.5l5.5 7.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-                  </svg>
-                ),
+                logo: <KudaMark className="w-5 h-5" />,
               },
               {
                 name: "Interswitch",
@@ -500,13 +467,7 @@ export default function Home() {
               {
                 name: "PiggyVest",
                 category: "WealthTech",
-                logo: (
-                  <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-                    <rect x="3" y="5" width="18" height="14" rx="4" />
-                    <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2" />
-                    <path d="M12 9v6M9 12h6" strokeLinecap="round" />
-                  </svg>
-                ),
+                logo: <PiggyVestMark className="w-5 h-5" />,
               },
               {
                 name: "OPay",
@@ -525,11 +486,7 @@ export default function Home() {
               {
                 name: "LemFi",
                 category: "Diaspora Banking",
-                logo: (
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M4 4h5l6.5 12h4.5v4h-7L6.5 8H4V4z" />
-                  </svg>
-                ),
+                logo: <LemFiMark className="w-5 h-5" />,
               },
               {
                 name: "Reliance Health",

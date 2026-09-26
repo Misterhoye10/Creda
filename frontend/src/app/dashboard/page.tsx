@@ -10,6 +10,11 @@ import {
   FlutterwaveMark,
   InterswitchMark,
   ChipperCashMark,
+  MoniepointMark,
+  LemFiMark,
+  KudaMark,
+  AndelaMark,
+  PiggyVestMark,
 } from "@/components/CompanyLogos";
 import {
   ShieldCheck,
@@ -416,10 +421,15 @@ export default function DashboardPage() {
       setIsSimulating(false);
       const scores: Record<string, number> = {
         paystack: 94,
+        moniepoint: 95,
         flutterwave: 88,
+        lemfi: 91,
         opay: 96,
         interswitch: 92,
         chippercash: 90,
+        kudabank: 93,
+        andela: 94,
+        piggyvest: 89,
       };
       setSimulationResult(scores[selectedJob] ?? 92);
     }, 750);
@@ -1074,11 +1084,25 @@ export default function DashboardPage() {
                     logo: <PaystackMark className="w-3.5 h-3.5 flex-shrink-0" />,
                   },
                   {
+                    id: "moniepoint",
+                    company: "Moniepoint",
+                    role: "Staff Infrastructure Architect",
+                    reqs: "PostgreSQL, Redis, Core Banking",
+                    logo: <MoniepointMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
+                  {
                     id: "flutterwave",
                     company: "Flutterwave",
                     role: "Core Payments Switch Engineer",
                     reqs: "High Throughput, GPG, Security",
                     logo: <FlutterwaveMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
+                  {
+                    id: "lemfi",
+                    company: "LemFi",
+                    role: "Cross-Border Settlement Lead",
+                    reqs: "Diaspora Rails, Microservices",
+                    logo: <LemFiMark className="w-3.5 h-3.5 flex-shrink-0" />,
                   },
                   {
                     id: "opay",
@@ -1101,6 +1125,27 @@ export default function DashboardPage() {
                     reqs: "Cross-Border Rails, Python, AWS",
                     logo: <ChipperCashMark className="w-3.5 h-3.5 flex-shrink-0" />,
                   },
+                  {
+                    id: "kudabank",
+                    company: "Kuda Bank",
+                    role: "Core Neobank Systems Engineer",
+                    reqs: "Java, Spring Boot, Microservices",
+                    logo: <KudaMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
+                  {
+                    id: "andela",
+                    company: "Andela",
+                    role: "Staff Distributed Systems Engineer",
+                    reqs: "Global Remote, TypeScript, Cloud",
+                    logo: <AndelaMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
+                  {
+                    id: "piggyvest",
+                    company: "PiggyVest",
+                    role: "Wealth & Savings Core Architect",
+                    reqs: "High Reliability, FinTech Ledger",
+                    logo: <PiggyVestMark className="w-3.5 h-3.5 flex-shrink-0" />,
+                  },
                 ].map((job) => (
                   <button
                     key={job.id}
@@ -1108,10 +1153,15 @@ export default function DashboardPage() {
                       setSelectedJob(job.id);
                       const scores: Record<string, number> = {
                         paystack: 94,
+                        moniepoint: 95,
                         flutterwave: 88,
+                        lemfi: 91,
                         opay: 96,
                         interswitch: 92,
                         chippercash: 90,
+                        kudabank: 93,
+                        andela: 94,
+                        piggyvest: 89,
                       };
                       setSimulationResult(scores[job.id] ?? 92);
                     }}
