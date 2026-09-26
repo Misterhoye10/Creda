@@ -1032,7 +1032,7 @@ export default function SignupPage() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs hover:shadow-md hover:shadow-indigo-500/20 active:translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-wait whitespace-nowrap flex-shrink-0"
+                      className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-wait whitespace-nowrap flex-shrink-0"
                     >
                       {isSubmitting ? (
                         <>

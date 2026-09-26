@@ -178,7 +178,7 @@ export default function Home() {
               Sign In
             </Link>
             <Link href="/auth/signup" className="flex-shrink-0">
-              <button className="px-5 py-2.5 rounded text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all duration-200 shadow-xs hover:shadow-indigo-500/20 active:translate-y-0.5 active:shadow-none whitespace-nowrap flex-shrink-0">
+              <button className="px-5 py-2.5 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap flex-shrink-0">
                 Claim Passport →
               </button>
             </Link>
@@ -214,12 +214,12 @@ export default function Home() {
           {/* Action Row */}
           <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-20 w-full sm:w-auto reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '360ms' }}>
             <Link href="/auth/signup" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto h-13 px-8 rounded text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all duration-200 shadow-md active:translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/20 whitespace-nowrap">
+              <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
                 Claim Free Passport →
               </button>
             </Link>
             <Link href="#ledger-preview" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto h-13 px-8 rounded text-xs font-mono uppercase font-semibold bg-white hover:bg-neutral-50 text-[#0F172A] border border-neutral-300 transition-all duration-200 shadow-xs hover:border-neutral-400 whitespace-nowrap">
+              <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-white hover:bg-neutral-50 text-[#0F172A] border border-neutral-300 btn-tactile-secondary cursor-pointer whitespace-nowrap">
                 Explore Sample Ledger ↓
               </button>
             </Link>
@@ -851,7 +851,7 @@ export default function Home() {
               </div>
               <div className="mt-8 pt-6 border-t border-neutral-100">
                 <Link href="/auth/signup">
-                  <button className="h-12 px-6 rounded text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all duration-200 shadow-xs hover:shadow-md active:translate-y-0.5 whitespace-nowrap">
+                  <button className="h-12 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
                     Claim Free Passport →
                   </button>
                 </Link>
@@ -887,7 +887,7 @@ export default function Home() {
               </div>
               <div className="mt-10 pt-6 border-t border-neutral-100">
                 <Link href="/auth/signup">
-                  <button className="h-12 px-6 rounded text-xs font-mono uppercase font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-all duration-200 shadow-xs hover:shadow-md active:translate-y-0.5 whitespace-nowrap">
+                  <button className="h-12 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white btn-tactile cursor-pointer whitespace-nowrap">
                     Request Recruiter Access →
                   </button>
                 </Link>
@@ -1098,7 +1098,7 @@ export default function Home() {
 
               <div className="pt-6 border-t border-neutral-100">
                 <Link href="/auth/signup" className="block">
-                  <button className="w-full h-12 rounded text-xs font-mono uppercase font-semibold border border-neutral-300 bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] text-[#0F172A] transition-all duration-200 shadow-xs active:translate-y-0.5 whitespace-nowrap">
+                  <button className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold border border-neutral-300 bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] text-[#0F172A] btn-tactile-secondary cursor-pointer whitespace-nowrap">
                     Claim Free Passport →
                   </button>
                 </Link>
@@ -1153,7 +1153,7 @@ export default function Home() {
 
               <div className="pt-6 border-t border-neutral-100">
                 <Link href="/auth/signup" className="block">
-                  <button className="w-full h-12 rounded text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all duration-200 shadow-md hover:shadow-indigo-500/25 active:translate-y-0.5 whitespace-nowrap">
+                  <button className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
                     Start 14-Day Team Trial →
                   </button>
                 </Link>
@@ -1294,7 +1294,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/auth/signup">
-              <button className="h-14 px-10 rounded text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-indigo-500/25 active:translate-y-0.5 whitespace-nowrap">
+              <button className="h-14 px-10 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
                 Claim Free Skill Passport →
               </button>
             </Link>
