@@ -834,22 +834,22 @@ export default function Home() {
                 <h3 className="text-2xl font-bold text-[#0F172A] mb-5 tracking-tight">
                   Stop writing CVs. Let your real work speak.
                 </h3>
-                <ul className="space-y-5 text-sm text-[#475569] leading-[1.7]">
+                <ul className="space-y-4 text-sm text-[#475569] leading-relaxed">
                   <li className="flex items-start gap-3.5">
                     <span className="text-[#4F46E5] font-mono font-bold mt-0.5">→</span>
-                    <span>Stand out against 1,000 generic applicants with an immutable, verifiable proof-of-work link.</span>
+                    <span><strong className="text-[#0F172A]">Immutable Proof-of-Work:</strong> Replace paper CVs with a shareable cryptographic passport link.</span>
                   </li>
                   <li className="flex items-start gap-3.5">
                     <span className="text-[#4F46E5] font-mono font-bold mt-0.5">→</span>
-                    <span>Verify code repositories, Figma design systems, or cloud architectures with objective evidence scores.</span>
+                    <span><strong className="text-[#0F172A]">Multi-Disciplinary Audit:</strong> Verify GitHub commits, Figma design tokens, or cloud configs.</span>
                   </li>
                   <li className="flex items-start gap-3.5">
                     <span className="text-[#4F46E5] font-mono font-bold mt-0.5">→</span>
-                    <span>Simulate job matches against any job description to discover verified strengths and skill gaps.</span>
+                    <span><strong className="text-[#0F172A]">Simulate Role Fit:</strong> Test verified skills against any engineering role with zero screening bias.</span>
                   </li>
                 </ul>
               </div>
-              <div className="mt-10 pt-6 border-t border-neutral-100">
+              <div className="mt-8 pt-6 border-t border-neutral-100">
                 <Link href="/auth/signup">
                   <button className="h-12 px-6 rounded text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all duration-200 shadow-xs hover:shadow-md active:translate-y-0.5 whitespace-nowrap">
                     Claim Free Passport →
@@ -870,18 +870,18 @@ export default function Home() {
                 <h3 className="text-2xl font-bold text-[#0F172A] mb-5 tracking-tight">
                   Zero resume fraud. 70% faster technical hiring.
                 </h3>
-                <ul className="space-y-5 text-sm text-[#475569] leading-[1.7]">
+                <ul className="space-y-4 text-sm text-[#475569] leading-relaxed">
                   <li className="flex items-start gap-3.5">
                     <span className="text-[#4F46E5] font-mono font-bold mt-0.5">→</span>
-                    <span>Search candidate pipelines by verified skill proficiency, not unproven keyword claims.</span>
+                    <span><strong className="text-[#0F172A]">Pre-Verified Pipeline:</strong> Search talent by code-proven capability, not keyword buzzwords.</span>
                   </li>
                   <li className="flex items-start gap-3.5">
                     <span className="text-[#4F46E5] font-mono font-bold mt-0.5">→</span>
-                    <span>Click directly into code evidence, commit audit trails, and architecture complexity scores.</span>
+                    <span><strong className="text-[#0F172A]">Direct Code Evidence:</strong> Inspect commit history, PR velocity, and syntax trees in seconds.</span>
                   </li>
                   <li className="flex items-start gap-3.5">
                     <span className="text-[#4F46E5] font-mono font-bold mt-0.5">→</span>
-                    <span>Export candidates directly to Greenhouse, Lever, and PDF with cryptographic integrity intact.</span>
+                    <span><strong className="text-[#0F172A]">1-Click ATS Sync:</strong> Export verified profiles directly into Greenhouse, Lever, or Ashby.</span>
                   </li>
                 </ul>
               </div>

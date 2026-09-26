@@ -276,24 +276,6 @@ export default function PublicPassportPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
-      {/* ── Top Status Strip (AgentLab Style) ─────────────── */}
-      <div className="w-full bg-[#0F172A] text-white border-b border-neutral-800 py-2.5 px-6 sm:px-10 text-xs font-mono">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[#818CF8] font-semibold">[ PUBLIC AUDIT NODE ]</span>
-            <span className="text-neutral-300 hidden md:inline">
-              TAMPER-PROOF MATHEMATICAL SKILL PASSPORT
-            </span>
-          </div>
-          <div className="flex items-center gap-4 text-[11px] text-neutral-400">
-            <span>SHA-256: <strong className="text-white font-mono">{passportHash.slice(0, 14)}...</strong></span>
-            <span className="hidden sm:inline text-neutral-600">//</span>
-            <span className="hidden sm:inline text-emerald-400">STATUS: VERIFIED IMMUTABLE</span>
-          </div>
-        </div>
-      </div>
-
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
       <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
@@ -427,16 +409,13 @@ export default function PublicPassportPage() {
         <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#E5E7EB]">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-1">
-                // 01 VERIFIED SKILL EVIDENCE
-              </span>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-                Cryptographic AST Evidence
+                Verified Skills & Evidence
               </h2>
             </div>
             <div className="text-xs font-mono text-[#64748B] flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>In-Memory Abstract Syntax Tree Audited</span>
+              <span>In-Memory Code Audit</span>
             </div>
           </div>
 
@@ -485,26 +464,23 @@ export default function PublicPassportPage() {
 
         {/* ── Section 3: Interactive Recruiter Job Match Simulator ── */}
         <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-1">
-                // 02 RECRUITER VERIFICATION ENGINE
-              </span>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-                Simulate Job Fit Against Candidate Proof
+                Simulate Role Fit
               </h2>
             </div>
             <button
               onClick={() => setShowJobTester(!showJobTester)}
               className="text-xs font-mono text-[#4F46E5] font-semibold hover:underline flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
-              <span>{showJobTester ? "Hide Custom Spec" : "Test Custom Role Spec"}</span>
+              <span>{showJobTester ? "Hide Spec" : "Test Custom Spec"}</span>
               <ChevronDown size={14} className={`transition-transform ${showJobTester ? "rotate-180" : ""}`} />
             </button>
           </div>
 
-          <p className="text-xs sm:text-sm text-[#475569] font-mono leading-relaxed mb-6">
-            Hiring teams can compare this candidate&apos;s cryptographic proof against their exact role requirements to evaluate immediate fit with zero screening overhead.
+          <p className="text-xs sm:text-sm text-[#64748B] font-mono leading-relaxed mb-6">
+            Compare this candidate&apos;s verified skills against role requirements to evaluate immediate fit.
           </p>
 
           <form onSubmit={handleRunMatchTest} className="space-y-4 mb-6">

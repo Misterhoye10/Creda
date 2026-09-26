@@ -224,22 +224,6 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
-      {/* ── Top Status Strip (AgentLab Style) ─────────────── */}
-      <div className="w-full bg-[#0F172A] text-white border-b border-neutral-800 py-2.5 px-6 sm:px-10 text-xs font-mono">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
-            <span className="text-[#818CF8] font-semibold">[ PROTOCOL V2.4 REGISTRATION ]</span>
-            <span className="text-neutral-300 hidden md:inline">
-              VERIFICATION ENGINE FOR AFRICAN TECH TALENT & GLOBAL HIRING TEAMS
-            </span>
-          </div>
-          <span className="text-neutral-400 text-[11px]">
-            60-SECOND ONBOARDING
-          </span>
-        </div>
-      </div>
-
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
       <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
@@ -268,57 +252,49 @@ export default function SignupPage() {
           <span className="absolute bottom-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
 
           {/* ── Left Column: Value Prop & Telemetry ─────────────── */}
+          {/* ── Left Column: Value Prop & Telemetry ─────────────── */}
           <div className="lg:col-span-5 p-8 sm:p-12 border-b lg:border-b-0 lg:border-r border-[#E5E7EB] bg-[#FAFAF8] flex flex-col justify-between relative rounded-t-3xl lg:rounded-tr-none lg:rounded-l-3xl">
             <div>
-              {/* Protocol Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-100 bg-indigo-50 text-[10px] font-mono text-[#4F46E5] font-bold uppercase tracking-widest mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5]" />
-                {accountType === "talent" ? "PROOF-OF-WORK PASSPORT" : "ENTERPRISE RECRUITER ENGINE"}
-              </div>
-
               {/* Editorial Title */}
               {accountType === "talent" ? (
                 <>
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A] mb-4 leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A] mb-3 leading-tight">
                     Turn your real work into{" "}
                     <span className="font-serif italic font-normal text-[#4F46E5]">
                       cryptographic proof.
                     </span>
                   </h1>
-                  <p className="text-xs sm:text-sm text-[#475569] font-mono leading-relaxed mb-8">
-                    Built for African software engineers, UI/UX designers, DevOps architects, and data teams who let authentic artifacts speak louder than keywords.
+                  <p className="text-xs sm:text-sm text-[#64748B] font-mono leading-relaxed mb-8">
+                    An objective proof-of-work passport for African engineers, designers, and cloud architects.
                   </p>
 
-                  {/* Talent Verification Sequence */}
-                  <div className="space-y-3.5">
+                  {/* Clean 3-Step Proof Chain */}
+                  <div className="space-y-4">
                     {[
                       {
                         icon: GitBranch,
-                        title: "Ingest Authentic Artifacts",
-                        desc: "Connect GitHub repos, Figma design system tokens, or architecture specs.",
+                        title: "Connect Real Work",
+                        desc: "Ingest GitHub commits, Figma design tokens, or cloud configs.",
                       },
                       {
                         icon: Terminal,
-                        title: "Multi-Disciplinary Verification",
-                        desc: "In-memory AST code analysis, UI component hierarchy, and commit velocity.",
+                        title: "In-Memory AST Audit",
+                        desc: "Automated syntax and complexity evaluation with zero code persisted.",
                       },
                       {
                         icon: ShieldCheck,
-                        title: "Cryptographic Skill Passport",
-                        desc: "Receive an immutable, tamper-proof passport link recruiters trust globally.",
+                        title: "Shareable Proof Link",
+                        desc: "An immutable cryptographic passport trusted by global recruiters.",
                       },
                     ].map((item, idx) => {
                       const Icon = item.icon;
                       return (
-                        <div
-                          key={idx}
-                          className="p-4 rounded-xl border border-[#E5E7EB] bg-white shadow-2xs flex items-start gap-3.5"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] flex-shrink-0 mt-0.5">
-                            <Icon size={16} />
+                        <div key={idx} className="flex items-start gap-3.5">
+                          <div className="w-8 h-8 rounded-lg bg-white border border-[#E5E7EB] flex items-center justify-center text-[#4F46E5] flex-shrink-0 mt-0.5 shadow-2xs">
+                            <Icon size={15} />
                           </div>
                           <div>
-                            <div className="text-xs font-bold text-[#0F172A] tracking-tight">
+                            <div className="text-xs font-bold text-[#0F172A]">
                               {item.title}
                             </div>
                             <div className="text-[11px] text-[#64748B] font-mono leading-relaxed mt-0.5">
@@ -332,46 +308,42 @@ export default function SignupPage() {
                 </>
               ) : (
                 <>
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A] mb-4 leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A] mb-3 leading-tight">
                     Hire verified talent with{" "}
                     <span className="font-serif italic font-normal text-[#4F46E5]">
-                      zero resume spam.
+                      zero resume fraud.
                     </span>
                   </h1>
-                  <p className="text-xs sm:text-sm text-[#475569] font-mono leading-relaxed mb-8">
-                    Stop sifting through fraudulent and AI-generated CVs. Inspect mathematically proven skill passports backed by actual code, designs, and architecture.
+                  <p className="text-xs sm:text-sm text-[#64748B] font-mono leading-relaxed mb-8">
+                    Direct access to pre-vetted engineers and architects with actual code and commit evidence.
                   </p>
 
-                  {/* Recruiter Value Sequence */}
-                  <div className="space-y-3.5">
+                  <div className="space-y-4">
                     {[
                       {
                         icon: Search,
-                        title: "Pre-Verified Talent Ledger",
-                        desc: "Direct access to top 5% African engineers, designers, and cloud architects.",
+                        title: "Pre-Verified Talent Pool",
+                        desc: "Filter candidates by verified code proficiency, not keyword claims.",
                       },
                       {
                         icon: Layers,
-                        title: "Deep Evidence Inspection",
-                        desc: "Audit actual syntax trees, test coverage, and design token consistency.",
+                        title: "Inspect Code Evidence",
+                        desc: "Click directly into commits, AST syntax trees, and test velocity.",
                       },
                       {
                         icon: ShieldCheck,
-                        title: "Automated Candidate Match Score",
-                        desc: "Run role specs against verified passports with instant cryptographic match telemetry.",
+                        title: "1-Click ATS Export",
+                        desc: "Sync verified profiles directly into Greenhouse, Lever, or Ashby.",
                       },
                     ].map((item, idx) => {
                       const Icon = item.icon;
                       return (
-                        <div
-                          key={idx}
-                          className="p-4 rounded-xl border border-[#E5E7EB] bg-white shadow-2xs flex items-start gap-3.5"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] flex-shrink-0 mt-0.5">
-                            <Icon size={16} />
+                        <div key={idx} className="flex items-start gap-3.5">
+                          <div className="w-8 h-8 rounded-lg bg-white border border-[#E5E7EB] flex items-center justify-center text-[#4F46E5] flex-shrink-0 mt-0.5 shadow-2xs">
+                            <Icon size={15} />
                           </div>
                           <div>
-                            <div className="text-xs font-bold text-[#0F172A] tracking-tight">
+                            <div className="text-xs font-bold text-[#0F172A]">
                               {item.title}
                             </div>
                             <div className="text-[11px] text-[#64748B] font-mono leading-relaxed mt-0.5">
@@ -390,10 +362,10 @@ export default function SignupPage() {
             <div className="mt-8 pt-6 border-t border-neutral-200/80 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                {accountType === "talent" ? "100% Free Forever for Talent" : "14-Day Free Evaluation"}
+                {accountType === "talent" ? "100% Free for Talent" : "14-Day Free Evaluation"}
               </span>
               <span className="text-neutral-300">//</span>
-              <span>Zero Data Resold</span>
+              <span>60s Setup</span>
             </div>
           </div>
 
@@ -459,12 +431,12 @@ export default function SignupPage() {
 
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-[#0F172A] tracking-tight">
-                    {accountType === "talent" ? "Claim Your Skill Passport" : "Set Up Recruiter Workspace"}
+                    {accountType === "talent" ? "Create your passport" : "Create team workspace"}
                   </h2>
                   <p className="text-xs text-[#64748B] font-mono mt-1">
                     {accountType === "talent"
-                      ? "Free for engineers, designers & architects • No credit card required"
-                      : "Start verifying candidates in under 60 seconds • 14-day free trial"}
+                      ? "Free forever • No credit card required • 60-second setup"
+                      : "14-day free trial • Instant candidate verification"}
                   </p>
                 </div>
 

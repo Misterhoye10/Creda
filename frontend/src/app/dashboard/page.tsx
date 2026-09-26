@@ -104,22 +104,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
-      {/* ── Top Status Strip (AgentLab Style) ─────────────── */}
-      <div className="w-full bg-[#0F172A] text-white border-b border-neutral-800 py-2.5 px-6 sm:px-10 text-xs font-mono">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
-            <span className="text-[#818CF8] font-semibold">[ PROTOCOL V2.4 LEDGER ]</span>
-            <span className="text-neutral-300 hidden md:inline">
-              14 REPOSITORIES AUDITED // AST COMPLEXITY CONFIRMED // GPG SIGNED
-            </span>
-          </div>
-          <span className="text-neutral-400 text-[11px]">
-            SHA-256: <strong className="text-white font-mono">7f8a92e1c409b3d</strong>
-          </span>
-        </div>
-      </div>
-
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
       <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between transition-all">
         <div className="flex items-center gap-10">
@@ -130,9 +114,9 @@ export default function DashboardPage() {
           {/* Architectural Tab Switcher */}
           <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-neutral-200/60 border border-neutral-200 text-xs font-mono">
             {[
-              { id: "overview", label: "Ledger Overview" },
-              { id: "evidence", label: "Evidence Ingestion" },
-              { id: "simulator", label: "Job Match Simulator" },
+              { id: "overview", label: "Overview" },
+              { id: "evidence", label: "Evidence" },
+              { id: "simulator", label: "Job Match" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -359,15 +343,12 @@ export default function DashboardPage() {
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
-                  <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-1">
-                    // 01 VERIFIED ENGINEERING CAPABILITIES
-                  </span>
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-                    AST-Audited Skill Breakdown
+                    Verified Skills
                   </h2>
                 </div>
                 <span className="text-xs font-mono text-[#64748B]">
-                  Evaluated in-memory from 14 repositories
+                  Audited from 14 repositories
                 </span>
               </div>
 
@@ -450,11 +431,8 @@ export default function DashboardPage() {
             {/* Evidence Ingestion Sources */}
             <div>
               <div className="mb-6">
-                <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-1">
-                  // 02 INGESTION TELEMETRY
-                </span>
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-                  Connected Evidence Sources
+                  Connected Evidence
                 </h2>
               </div>
 
@@ -693,14 +671,11 @@ export default function DashboardPage() {
           <div className="space-y-8 animate-fade-in-up">
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm">
               <div className="mb-8">
-                <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-1">
-                  // PROOF-OF-WORK BENCHMARK
-                </span>
                 <h2 className="text-2xl font-bold tracking-tight text-[#0F172A]">
-                  Simulate Job Description Match
+                  Simulate Role Fit
                 </h2>
                 <p className="text-xs text-[#64748B] font-mono mt-1">
-                  Test your verified skill ledger against real engineering job descriptions to discover strengths & screening bypasses.
+                  Test your verified skills against engineering role requirements.
                 </p>
               </div>
 

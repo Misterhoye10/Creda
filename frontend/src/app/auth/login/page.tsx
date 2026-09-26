@@ -43,22 +43,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
-      {/* ── Top Announcement / Status Strip ───────────────── */}
-      <div className="w-full bg-[#0F172A] text-white border-b border-neutral-800 py-2.5 px-6 sm:px-10 text-xs font-mono">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
-            <span className="text-[#818CF8] font-semibold">[ PASSPORT VERIFICATION GATEWAY ]</span>
-            <span className="text-neutral-300 hidden md:inline">
-              SECURE ACCESS TO CRYPTOGRAPHIC SKILL LEDGERS
-            </span>
-          </div>
-          <span className="text-neutral-400 text-[11px]">
-            SHA-256 LEDGER NODE
-          </span>
-        </div>
-      </div>
-
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
       <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
@@ -88,15 +72,11 @@ export default function LoginPage() {
 
           {/* Header Typography */}
           <div className="mb-8 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-100 bg-indigo-50 text-[10px] font-mono text-[#4F46E5] font-bold uppercase tracking-widest mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5]" />
-              AUTHENTICATED ACCESS
-            </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A] leading-tight">
-              Access your verified ledger.
+              Welcome back
             </h1>
-            <p className="text-xs sm:text-sm text-[#475569] font-mono mt-2 leading-relaxed">
-              Sign in to manage your Skill Passport, inspect candidate ledgers, or simulate technical job matches.
+            <p className="text-xs sm:text-sm text-[#64748B] font-mono mt-1.5">
+              Sign in to access your Skill Passport and candidate ledgers.
             </p>
           </div>
 
@@ -189,12 +169,11 @@ export default function LoginPage() {
                 {isSubmitting ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
-                    <span className="whitespace-nowrap">Verifying Credentials...</span>
+                    <span className="whitespace-nowrap">Signing In...</span>
                   </>
                 ) : (
                   <>
-                    <span className="whitespace-nowrap">Sign In to Passport</span>
-                    <ArrowRight size={14} className="flex-shrink-0" />
+                    <span className="whitespace-nowrap">Sign In →</span>
                   </>
                 )}
               </button>
@@ -205,7 +184,7 @@ export default function LoginPage() {
           <div className="mt-8 pt-6 border-t border-neutral-100 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
             <span className="flex items-center gap-1.5">
               <ShieldCheck size={13} className="text-[#4F46E5]" />
-              SHA-256 Sealed
+              Encrypted & Tamper-Proof
             </span>
             <span className="text-neutral-300">//</span>
             <span>Zero Code Persisted</span>

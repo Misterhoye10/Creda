@@ -174,24 +174,6 @@ export default function RecruiterDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
-      {/* ── Top Status Strip (AgentLab Style) ─────────────── */}
-      <div className="w-full bg-[#0F172A] text-white border-b border-neutral-800 py-2.5 px-6 sm:px-10 text-xs font-mono">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[#818CF8] font-semibold">[ RECRUITER VERIFICATION ENGINE ]</span>
-            <span className="text-neutral-300 hidden md:inline">
-              WORKSPACE: MONIEPOINT HIRING ORG // ATS SYNC ACTIVE
-            </span>
-          </div>
-          <div className="flex items-center gap-4 text-[11px] text-neutral-400">
-            <span>AUDITED PIPELINE: <strong className="text-white font-mono">4,820 CANDIDATES</strong></span>
-            <span className="hidden sm:inline text-neutral-600">//</span>
-            <span className="hidden sm:inline text-emerald-400">ZERO UNVERIFIED CLAIMS</span>
-          </div>
-        </div>
-      </div>
-
       {/* ── Architectural Header ── */}
       <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-20 flex items-center justify-between transition-all">
         <div className="flex items-center gap-8">
