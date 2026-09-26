@@ -240,7 +240,7 @@ export default function SecurityPage() {
             <Link href="/security" className="text-[#4F46E5] font-bold">
               Security
             </Link>
-            <Link href="https://github.com/Misterhoye10/Creda" target="_blank" className="hover:text-[#0F172A] transition-colors">
+            <Link href="https://github.com/creda-protocol" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F172A] transition-colors">
               GitHub
             </Link>
           </div>

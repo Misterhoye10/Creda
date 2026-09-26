@@ -196,7 +196,7 @@ export default function TermsPage() {
             <Link href="/security" className="hover:text-[#0F172A] transition-colors">
               Security
             </Link>
-            <Link href="https://github.com/Misterhoye10/Creda" target="_blank" className="hover:text-[#0F172A] transition-colors">
+            <Link href="https://github.com/creda-protocol" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F172A] transition-colors">
               GitHub
             </Link>
           </div>
