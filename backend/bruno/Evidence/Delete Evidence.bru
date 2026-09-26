@@ -1,0 +1,15 @@
+meta {
+  name: Delete Evidence
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/evidence/{{evidence_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

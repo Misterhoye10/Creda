@@ -1,0 +1,15 @@
+meta {
+  name: Get All Matches
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/jobs/matches
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

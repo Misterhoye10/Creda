@@ -1,0 +1,25 @@
+meta {
+  name: Connect GitHub
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/evidence/github
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "username": "Misterhoye10"
+  }
+}

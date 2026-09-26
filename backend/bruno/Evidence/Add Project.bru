@@ -1,0 +1,29 @@
+meta {
+  name: Add Project
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/evidence/project
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Creda Skill Passport",
+    "description": "AI-powered skill verification platform for African tech talent.",
+    "technologies": ["FastAPI", "React", "PostgreSQL", "OpenAI"],
+    "github_url": "https://github.com/Misterhoye10/Creda",
+    "live_url": "https://creda.app"
+  }
+}
