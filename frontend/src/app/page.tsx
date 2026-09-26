@@ -1226,13 +1226,13 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-8 text-xs font-mono text-[#64748B]">
-            <Link href="#" className="hover:text-[#0F172A] transition-colors duration-200">
+            <Link href="/privacy" className="hover:text-[#0F172A] transition-colors duration-200">
               Privacy
             </Link>
-            <Link href="#" className="hover:text-[#0F172A] transition-colors duration-200">
+            <Link href="/terms" className="hover:text-[#0F172A] transition-colors duration-200">
               Terms
             </Link>
-            <Link href="#" className="hover:text-[#0F172A] transition-colors duration-200">
+            <Link href="/security" className="hover:text-[#0F172A] transition-colors duration-200">
               Security
             </Link>
             <Link href="https://github.com/Misterhoye10/Creda" target="_blank" className="hover:text-[#0F172A] transition-colors duration-200 flex items-center gap-1.5">

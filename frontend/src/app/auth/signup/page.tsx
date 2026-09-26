@@ -782,11 +782,11 @@ export default function SignupPage() {
 
                 <p className="text-[11px] font-mono text-[#64748B] text-center mt-5 leading-relaxed">
                   By registering, you agree to Creda&apos;s{" "}
-                  <Link href="#" className="underline hover:text-[#0F172A] transition-colors">
+                  <Link href="/terms" className="underline hover:text-[#0F172A] transition-colors">
                     Protocol Terms
                   </Link>{" "}
                   and{" "}
-                  <Link href="#" className="underline hover:text-[#0F172A] transition-colors">
+                  <Link href="/privacy" className="underline hover:text-[#0F172A] transition-colors">
                     Privacy Policy
                   </Link>
                   .
