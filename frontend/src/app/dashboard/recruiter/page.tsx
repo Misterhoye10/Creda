@@ -200,10 +200,10 @@ export default function RecruiterDashboardPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowExportModal(true)}
-            className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all cursor-pointer"
+            className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
           >
-            <Download size={13} className="text-[#64748B]" />
-            <span>Export to ATS</span>
+            <Download size={13} className="text-[#64748B] flex-shrink-0" />
+            <span className="whitespace-nowrap">Export to ATS</span>
           </button>
 
           <div className="flex items-center gap-2 pl-3 border-l border-neutral-200 text-xs font-mono text-[#64748B]">
@@ -359,15 +359,15 @@ export default function RecruiterDashboardPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSelectedCandidate(candidate)}
-                    className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#4F46E5] transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#4F46E5] transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
                     Quick Audit
                   </button>
 
-                  <Link href={`/p/${candidate.slug}`} target="_blank">
-                    <button className="px-3.5 py-1.5 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                      <span>Passport</span>
-                      <ExternalLink size={12} />
+                  <Link href={`/p/${candidate.slug}`} target="_blank" className="flex-shrink-0">
+                    <button className="px-3.5 py-1.5 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0">
+                      <span className="whitespace-nowrap">Passport</span>
+                      <ExternalLink size={12} className="flex-shrink-0" />
                     </button>
                   </Link>
                 </div>
@@ -440,15 +440,15 @@ export default function RecruiterDashboardPage() {
             </div>
 
             <div className="pt-6 border-t border-[#E5E7EB] space-y-3">
-              <Link href={`/p/${selectedCandidate.slug}`} target="_blank" className="w-full block">
-                <button className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer">
-                  <span>Open Full Public Ledger</span>
-                  <ExternalLink size={14} />
+              <Link href={`/p/${selectedCandidate.slug}`} target="_blank" className="w-full block flex-shrink-0">
+                <button className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0">
+                  <span className="whitespace-nowrap">Open Full Public Ledger</span>
+                  <ExternalLink size={14} className="flex-shrink-0" />
                 </button>
               </Link>
               <button
                 onClick={() => handleExport("Greenhouse ATS")}
-                className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold border border-[#E5E7EB] hover:border-[#4F46E5] text-[#0F172A] bg-white transition-colors cursor-pointer"
+                className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold border border-[#E5E7EB] hover:border-[#4F46E5] text-[#0F172A] bg-white transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
               >
                 Send to Greenhouse Pipeline →
               </button>

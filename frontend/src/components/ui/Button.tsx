@@ -50,7 +50,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={`
-          inline-flex items-center justify-center font-medium
+          inline-flex items-center justify-center font-medium whitespace-nowrap flex-shrink-0
           rounded-[var(--radius-md)] cursor-pointer
           transition-all duration-[var(--duration-fast)]
           focus-ring

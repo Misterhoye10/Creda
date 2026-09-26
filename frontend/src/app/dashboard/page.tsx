@@ -137,7 +137,7 @@ export default function DashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.id
                     ? "bg-white text-[#0F172A] font-bold shadow-xs"
                     : "text-[#64748B] hover:text-[#0F172A]"
@@ -153,28 +153,28 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/recruiter"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5] text-xs font-mono text-[#64748B] hover:text-[#4F46E5] transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5] text-xs font-mono text-[#64748B] hover:text-[#4F46E5] transition-colors whitespace-nowrap flex-shrink-0"
           >
-            <Building2 size={13} />
-            <span>Recruiter View →</span>
+            <Building2 size={13} className="flex-shrink-0" />
+            <span className="whitespace-nowrap">Recruiter View →</span>
           </Link>
           {/* Public Link Share & View */}
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleCopy}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
               title="Copy public passport URL"
             >
               {copied ? (
                 <>
-                  <CheckCircle2 size={13} className="text-[#4F46E5]" />
-                  <span className="text-[#4F46E5] font-semibold">Copied</span>
+                  <CheckCircle2 size={13} className="text-[#4F46E5] flex-shrink-0" />
+                  <span className="text-[#4F46E5] font-semibold whitespace-nowrap">Copied</span>
                 </>
               ) : (
                 <>
-                  <Copy size={13} className="text-[#64748B]" />
-                  <span className="hidden sm:inline font-mono">creda.work/p/amina-adeleke</span>
-                  <span className="sm:hidden font-mono">Share</span>
+                  <Copy size={13} className="text-[#64748B] flex-shrink-0" />
+                  <span className="hidden sm:inline font-mono whitespace-nowrap">creda.work/p/amina-adeleke</span>
+                  <span className="sm:hidden font-mono whitespace-nowrap">Share</span>
                 </>
               )}
             </button>
@@ -182,11 +182,11 @@ export default function DashboardPage() {
             <Link
               href="/p/amina-adeleke"
               target="_blank"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-neutral-200 bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-neutral-200 bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all whitespace-nowrap flex-shrink-0"
               title="Open public passport in new tab"
             >
-              <span>View</span>
-              <ExternalLink size={12} />
+              <span className="whitespace-nowrap">View</span>
+              <ExternalLink size={12} className="flex-shrink-0" />
             </Link>
           </div>
 
@@ -560,9 +560,9 @@ export default function DashboardPage() {
                     AST complexity analysis and commit integrity audit runs automatically on push.
                   </p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer">
-                  <Plus size={14} />
-                  <span>Connect Repository</span>
+                <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0">
+                  <Plus size={14} className="flex-shrink-0" />
+                  <span className="whitespace-nowrap">Connect Repository</span>
                 </button>
               </div>
 
@@ -678,7 +678,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-6 py-2.5 rounded-xl text-xs font-mono uppercase font-semibold border border-[#E5E7EB] hover:border-[#4F46E5] hover:text-[#4F46E5] text-[#0F172A] bg-[#FAFAF8] hover:bg-white transition-all cursor-pointer"
+                    className="px-6 py-2.5 rounded-xl text-xs font-mono uppercase font-semibold border border-[#E5E7EB] hover:border-[#4F46E5] hover:text-[#4F46E5] text-[#0F172A] bg-[#FAFAF8] hover:bg-white transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
                     Select File From Device
                   </button>
@@ -749,17 +749,17 @@ export default function DashboardPage() {
               <button
                 onClick={runSimulation}
                 disabled={isSimulating}
-                className="h-12 px-6 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-75"
+                className="h-12 px-6 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-75 whitespace-nowrap flex-shrink-0"
               >
                 {isSimulating ? (
                   <>
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Analyzing Syntax Match...</span>
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+                    <span className="whitespace-nowrap">Analyzing Syntax Match...</span>
                   </>
                 ) : (
                   <>
-                    <span>Run Match Analysis</span>
-                    <Sparkles size={14} />
+                    <span className="whitespace-nowrap">Run Match Analysis</span>
+                    <Sparkles size={14} className="flex-shrink-0" />
                   </>
                 )}
               </button>

@@ -251,27 +251,28 @@ export default function PublicPassportPage() {
             <CredaLogo size={34} showTag={true} tagText="PASSPORT" />
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
             >
               {copied ? (
                 <>
                   <Check size={13} className="text-[#4F46E5]" />
-                  <span className="text-[#4F46E5] font-semibold">Link Copied</span>
+                  <span className="text-[#4F46E5] font-semibold whitespace-nowrap">Link Copied</span>
                 </>
               ) : (
                 <>
                   <Share2 size={13} className="text-[#64748B]" />
-                  <span>Share Ledger</span>
+                  <span className="whitespace-nowrap">Share Ledger</span>
                 </>
               )}
             </button>
 
-            <Link href="/auth/signup">
-              <button className="h-9 px-4 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer">
-                Claim Your Passport →
+            <Link href="/auth/signup" className="flex-shrink-0">
+              <button className="h-9 px-4 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex items-center gap-1.5">
+                <span>Request Interview</span>
+                <ArrowRight size={13} />
               </button>
             </Link>
           </div>
@@ -334,7 +335,7 @@ export default function PublicPassportPage() {
               <button
                 onClick={handleVerifyLedger}
                 disabled={isVerifying}
-                className={`w-full py-2.5 px-4 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`w-full py-2.5 px-4 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
                   verifiedHash
                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                     : "bg-[#0F172A] hover:bg-neutral-800 text-white"
@@ -342,18 +343,18 @@ export default function PublicPassportPage() {
               >
                 {isVerifying ? (
                   <>
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Auditing SHA-256 Hash...</span>
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+                    <span className="whitespace-nowrap">Auditing SHA-256 Hash...</span>
                   </>
                 ) : verifiedHash ? (
                   <>
-                    <CheckCircle2 size={14} className="text-emerald-600" />
-                    <span>Hash Validated (0 Alterations)</span>
+                    <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Hash Validated (SHA-256)</span>
                   </>
                 ) : (
                   <>
-                    <ShieldCheck size={14} />
-                    <span>Verify Cryptographic Authenticity</span>
+                    <ShieldCheck size={14} className="flex-shrink-0" />
+                    <span className="whitespace-nowrap">Verify Authenticity</span>
                   </>
                 )}
               </button>
@@ -434,7 +435,7 @@ export default function PublicPassportPage() {
             </div>
             <button
               onClick={() => setShowJobTester(!showJobTester)}
-              className="text-xs font-mono text-[#4F46E5] font-semibold hover:underline flex items-center gap-1.5 cursor-pointer"
+              className="text-xs font-mono text-[#4F46E5] font-semibold hover:underline flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <span>{showJobTester ? "Hide Custom Spec" : "Test Custom Role Spec"}</span>
               <ChevronDown size={14} className={`transition-transform ${showJobTester ? "rotate-180" : ""}`} />
@@ -457,17 +458,17 @@ export default function PublicPassportPage() {
               <button
                 type="submit"
                 disabled={isTestingMatch}
-                className="h-12 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
+                className="h-12 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer flex-shrink-0 whitespace-nowrap"
               >
                 {isTestingMatch ? (
                   <>
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Calculating Fit...</span>
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+                    <span className="whitespace-nowrap">Calculating Fit...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles size={14} />
-                    <span>Simulate Match</span>
+                    <Sparkles size={14} className="flex-shrink-0" />
+                    <span className="whitespace-nowrap">Simulate Match</span>
                   </>
                 )}
               </button>
@@ -478,7 +479,7 @@ export default function PublicPassportPage() {
           {testScore !== null && (
             <div className="p-6 rounded-2xl border border-indigo-100 bg-indigo-50/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-[#4F46E5] text-white flex items-center justify-center font-extrabold text-base font-mono">
+                <div className="w-12 h-12 rounded-xl bg-[#4F46E5] text-white flex items-center justify-center font-extrabold text-base font-mono flex-shrink-0">
                   {testScore}%
                 </div>
                 <div>
@@ -491,8 +492,8 @@ export default function PublicPassportPage() {
                 </div>
               </div>
 
-              <Link href="/auth/signup">
-                <button className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-colors cursor-pointer">
+              <Link href="/auth/signup" className="flex-shrink-0">
+                <button className="px-4 py-2.5 rounded-lg text-xs font-mono font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-colors cursor-pointer whitespace-nowrap">
                   Request Interview Access →
                 </button>
               </Link>
@@ -510,9 +511,9 @@ export default function PublicPassportPage() {
               Creda lets African engineers, designers, and cloud architects create proof-of-work passports in 60 seconds.
             </p>
           </div>
-          <Link href="/auth/signup">
-            <button className="h-11 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer flex-shrink-0">
-              Claim Your Free Passport →
+          <Link href="/auth/signup" className="flex-shrink-0">
+            <button className="h-11 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap">
+              Claim Free Passport →
             </button>
           </Link>
         </div>
