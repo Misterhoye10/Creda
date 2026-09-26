@@ -263,7 +263,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
-      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-14 sm:h-16 flex items-center justify-between">
+      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-4 sm:px-10 h-14 sm:h-16 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center tracking-tight group">
             <CredaLogo size={26} showTag={true} tagText={accountType === "talent" ? "TALENT" : "RECRUITER"} />
@@ -281,8 +281,8 @@ export default function SignupPage() {
       </header>
 
       {/* ── Main Content Container ──────────────────────────── */}
-      <main className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-6 sm:py-8">
-        <div className="w-full max-w-xl rounded-3xl border border-[#E5E7EB] bg-white p-7 sm:p-10 shadow-sm relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-start px-3 sm:px-6 py-6 sm:py-8">
+        <div className="w-full max-w-xl rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-10 shadow-sm relative overflow-hidden">
           {/* Structural Crosshairs */}
           <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>

@@ -277,32 +277,32 @@ export default function PublicPassportPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
-      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between">
+      <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-4 sm:px-10 h-16 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center tracking-tight group">
             <CredaLogo size={28} showTag={true} tagText="PASSPORT" />
           </Link>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
             >
               {copied ? (
                 <>
                   <Check size={13} className="text-[#4F46E5]" />
-                  <span className="text-[#4F46E5] font-semibold whitespace-nowrap">Link Copied</span>
+                  <span className="text-[#4F46E5] font-semibold whitespace-nowrap hidden xs:inline">Link Copied</span>
                 </>
               ) : (
                 <>
                   <Share2 size={13} className="text-[#64748B]" />
-                  <span className="whitespace-nowrap">Share Ledger</span>
+                  <span className="whitespace-nowrap hidden xs:inline">Share Ledger</span>
                 </>
               )}
             </button>
 
             <Link href="/auth/signup" className="flex-shrink-0">
-              <button className="h-9 px-4 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex items-center gap-1.5">
+              <button className="h-9 px-3 sm:px-4 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex items-center gap-1.5">
                 <span>Request Interview</span>
                 <ArrowRight size={13} />
               </button>
@@ -312,10 +312,10 @@ export default function PublicPassportPage() {
       </header>
 
       {/* ── Main Content Container ──────────────────────────── */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
         
         {/* Primary Identity & Cryptographic Badge Card */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm relative overflow-hidden">
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-8 lg:p-12 shadow-sm relative overflow-hidden">
           {/* Structural Crosshairs */}
           <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
@@ -406,7 +406,7 @@ export default function PublicPassportPage() {
         </div>
 
         {/* ── Section 2: Verified Skills & AST Proof Breakdown ── */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm">
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-8 lg:p-12 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#E5E7EB]">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
@@ -425,7 +425,7 @@ export default function PublicPassportPage() {
               return (
                 <div
                   key={idx}
-                  className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] flex flex-col justify-between"
+                  className="p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -463,7 +463,7 @@ export default function PublicPassportPage() {
         </div>
 
         {/* ── Section 3: Interactive Recruiter Job Match Simulator ── */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-8 sm:p-12 shadow-sm">
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-8 lg:p-12 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
@@ -539,7 +539,7 @@ export default function PublicPassportPage() {
         </div>
 
         {/* ── Section 4: Public Proof Protocol Notice ── */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-[#FAFAF8] p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+        <div className="rounded-3xl border border-[#E5E7EB] bg-[#FAFAF8] p-5 sm:p-8 lg:p-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
           <div>
             <h3 className="text-base font-bold text-[#0F172A] mb-1">
               Want to verify your own technical skills?

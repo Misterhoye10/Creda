@@ -142,8 +142,8 @@ export default function SecurityPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] selection:bg-[#4F46E5] selection:text-white flex flex-col justify-between">
       {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-4 sm:px-10 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3 sm:gap-6">
           <Link href="/" className="flex items-center tracking-tight">
             <CredaLogo size={28} showTag={true} tagText="SECURITY" />
           </Link>
@@ -157,7 +157,7 @@ export default function SecurityPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/auth/signup"
-            className="h-9 px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold transition-all shadow-xs flex items-center gap-1.5"
+            className="h-9 px-3 sm:px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold transition-all shadow-xs flex items-center gap-1.5"
           >
             <span>CLAIM PASSPORT</span>
             <ArrowUpRight size={13} />
@@ -166,39 +166,39 @@ export default function SecurityPage() {
       </header>
 
       {/* ── Hero Editorial Header ── */}
-      <section className="pt-16 pb-12 px-6 sm:px-10 border-b border-[#E5E7EB] bg-white">
+      <section className="pt-10 sm:pt-16 pb-8 sm:pb-12 px-4 sm:px-10 border-b border-[#E5E7EB] bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-200 bg-[#FAFAF8] text-[11px] font-mono font-bold text-[#4F46E5] mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
             [ PROTOCOL SECURITY ARCHITECTURE // {protocolVersion} ]
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#0F172A]">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#0F172A]">
             Cryptographic Security & Verification Proof
           </h1>
-          <p className="mt-4 text-base text-[#64748B] leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-[#64748B] leading-relaxed">
             How Creda utilizes asymmetric signatures, ephemeral MicroVMs, and Merkle tree roots to create tamper-evident technical passports without ever retaining private source code.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4 text-xs font-mono text-[#64748B] border-t border-[#E5E7EB] pt-4">
+          <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-mono text-[#64748B] border-t border-[#E5E7EB] pt-4">
             <div>SIGNATURE ALGORITHM: <span className="text-[#0F172A] font-bold">{signatureAlgorithm}</span></div>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <div>STORAGE MODEL: <span className="text-[#4F46E5] font-bold">ZERO-PERSISTENCE EPHEMERAL</span></div>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <div>SOC2 READINESS: <span className="text-[#0F172A] font-bold">ACTIVE</span></div>
           </div>
         </div>
       </section>
 
       {/* ── Main Content Grid ── */}
-      <main className="max-w-4xl mx-auto px-6 sm:px-10 py-12 flex-1 w-full">
-        <div className="space-y-10">
+      <main className="max-w-4xl mx-auto px-4 sm:px-10 py-8 sm:py-12 flex-1 w-full">
+        <div className="space-y-6 sm:space-y-10">
           {securityPillars.map((pillar) => {
             const Icon = pillar.icon;
             return (
               <div
                 key={pillar.id}
                 id={pillar.id}
-                className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs transition-all hover:border-[#CBD5E1]"
+                className="p-5 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs transition-all hover:border-[#CBD5E1]"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -221,7 +221,7 @@ export default function SecurityPage() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="py-12 px-6 sm:px-10 border-t border-[#E5E7EB] bg-white">
+      <footer className="py-8 sm:py-12 px-4 sm:px-10 border-t border-[#E5E7EB] bg-white">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center tracking-tight">

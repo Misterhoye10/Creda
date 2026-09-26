@@ -221,8 +221,8 @@ function VerifyContent() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] selection:bg-[#4F46E5] selection:text-white flex flex-col justify-between font-sans antialiased">
       {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-4 sm:px-10 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3 sm:gap-6">
           <Link href="/" className="flex items-center tracking-tight">
             <CredaLogo size={28} showTag={true} tagText="INSPECTOR" />
           </Link>
@@ -233,14 +233,15 @@ function VerifyContent() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-200 bg-white text-[11px] font-mono text-[#64748B]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
             <span>LEDGER: ONLINE (BLOCK 9,482,109)</span>
           </div>
+
           <Link
             href="/auth/signup"
-            className="h-9 px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold transition-all shadow-xs flex items-center gap-1.5"
+            className="h-9 px-3 sm:px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold transition-all shadow-xs flex items-center gap-1.5"
           >
             <span>CLAIM PASSPORT</span>
             <ArrowUpRight size={13} />
@@ -249,7 +250,7 @@ function VerifyContent() {
       </header>
 
       {/* ── Hero Search Section ── */}
-      <section className="pt-16 pb-12 px-6 sm:px-10 border-b border-[#E5E7EB] bg-white">
+      <section className="pt-10 sm:pt-16 pb-8 sm:pb-12 px-4 sm:px-10 border-b border-[#E5E7EB] bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-200 bg-[#FAFAF8] text-[11px] font-mono font-bold text-[#4F46E5] mb-4">
             <ShieldCheck size={13} />
@@ -325,9 +326,9 @@ function VerifyContent() {
       </section>
 
       {/* ── Main Verification Results ── */}
-      <main className="max-w-4xl mx-auto px-6 sm:px-10 py-12 flex-1 w-full">
+      <main className="max-w-4xl mx-auto px-4 sm:px-10 py-8 sm:py-12 flex-1 w-full">
         {notFound ? (
-          <div className="p-8 sm:p-12 rounded-3xl border border-red-200 bg-red-50/50 text-center">
+          <div className="p-6 sm:p-12 rounded-3xl border border-red-200 bg-red-50/50 text-center">
             <AlertCircle size={40} className="text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-red-950">Invalid Cryptographic Identifier</h2>
             <p className="mt-2 text-xs font-mono text-red-700 max-w-md mx-auto">
@@ -335,9 +336,9 @@ function VerifyContent() {
             </p>
           </div>
         ) : activeRecord ? (
-          <div className="space-y-8 animate-fade-in-up">
+          <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
             {/* Status Header Banner */}
-            <div className="p-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-xs flex-shrink-0">
                   <CheckCircle2 size={22} />
@@ -376,7 +377,7 @@ function VerifyContent() {
             </div>
 
             {/* Identity Card */}
-            <div className="p-6 sm:p-8 rounded-3xl border border-[#E5E7EB] bg-white shadow-xs">
+            <div className="p-4 sm:p-8 rounded-3xl border border-[#E5E7EB] bg-white shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-[#E5E7EB]">
                 <div className="flex items-center gap-4">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

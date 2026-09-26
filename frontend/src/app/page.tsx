@@ -82,6 +82,7 @@ if (typeof window !== "undefined") {
 
 export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const scrolled = useScrolled(20);
 
   const toggleFaq = (index: number) => {
@@ -183,7 +184,7 @@ export default function Home() {
           </div>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3 sm:gap-5">
             <Link
               href="/auth/login"
               className="text-xs font-mono uppercase text-[#475569] hover:text-[#0F172A] transition-colors font-medium hidden sm:block"
@@ -191,16 +192,69 @@ export default function Home() {
               Sign In
             </Link>
             <Link href="/auth/signup" className="flex-shrink-0">
-              <button className="px-5 py-2.5 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap flex-shrink-0">
+              <button className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap flex-shrink-0">
                 Claim Passport →
               </button>
             </Link>
+
+            {/* Mobile Menu Hamburger Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg border border-[#E5E7EB] bg-white text-[#0F172A] hover:bg-neutral-50 transition-colors flex-shrink-0 cursor-pointer"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-b border-[#E5E7EB] bg-white/98 backdrop-blur-xl px-6 py-6 animate-fade-in-up">
+            <div className="flex flex-col gap-3 text-xs font-mono uppercase tracking-wider font-medium text-[#475569]">
+              {[
+                { href: "#problem", label: "The Problem" },
+                { href: "#protocol", label: "Protocol" },
+                { href: "#tiers", label: "Trust Tiers" },
+                { href: "#recruiters", label: "For Recruiters" },
+                { href: "/verify", label: "Verify Proof" },
+                { href: "#pricing", label: "Pricing" },
+                { href: "#faq", label: "FAQ" },
+              ].map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2.5 hover:text-[#4F46E5] border-b border-neutral-100 transition-colors flex items-center justify-between"
+                >
+                  <span>{link.label}</span>
+                  <ArrowRight size={13} className="text-neutral-400" />
+                </Link>
+              ))}
+              <div className="pt-3 flex items-center justify-between gap-3">
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2.5 text-center rounded-lg border border-[#E5E7EB] text-xs font-mono uppercase font-semibold text-[#0F172A]"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2.5 text-center rounded-lg bg-[#4F46E5] text-xs font-mono uppercase font-semibold text-white"
+                >
+                  Claim Passport
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ── Hero Section (Architectural Light Canvas) ──────── */}
-      <section ref={hero.ref} className="relative w-full pt-14 sm:pt-18 pb-18 sm:pb-22 px-6 sm:px-8 border-b border-[#E5E7EB]">
+      <section ref={hero.ref} className="relative w-full pt-10 sm:pt-16 pb-14 sm:pb-22 px-4 sm:px-8 border-b border-[#E5E7EB]">
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
           {/* Status Tag */}
           <div className={`inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded border border-neutral-300 bg-white text-xs font-mono text-[#475569] uppercase tracking-widest mb-6 shadow-xs reveal ${hero.inView ? 'revealed' : ''}`}>
@@ -225,7 +279,7 @@ export default function Home() {
           </p>
 
           {/* Action Row */}
-          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 sm:mb-14 w-full sm:w-auto reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '360ms' }}>
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10 sm:mb-14 w-full sm:w-auto reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '360ms' }}>
             <Link href="/auth/signup" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
                 Claim Free Passport →
@@ -245,12 +299,12 @@ export default function Home() {
             className={`w-full max-w-4xl rounded-2xl border border-neutral-800 bg-[#0D1117] text-left overflow-hidden shadow-2xl relative reveal-scale ${ledger.inView ? 'revealed' : ''}`}
           >
             {/* Ledger Top Bar */}
-            <div className="px-6 py-3.5 border-b border-neutral-800 bg-[#070A0F] flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-neutral-400">
+            <div className="px-4 sm:px-6 py-3 border-b border-neutral-800 bg-[#070A0F] flex flex-wrap items-center justify-between gap-2.5 text-xs font-mono text-neutral-400">
               <div className="flex items-center gap-2">
                 <span className="text-[#818CF8] font-bold">● LEDGER ID:</span>
                 <span className="text-white font-medium">CRD-2026-9042</span>
-                <span className="text-neutral-600">|</span>
-                <span>SHA-256: e8b94f1c7d20a</span>
+                <span className="text-neutral-600 hidden sm:inline">|</span>
+                <span className="hidden sm:inline">SHA-256: e8b94f1c7d20a</span>
               </div>
               <div className="flex items-center gap-2 text-white">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
@@ -261,38 +315,38 @@ export default function Home() {
             </div>
 
             {/* Candidate Header */}
-            <div className="p-8 border-b border-neutral-800 flex flex-wrap items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-xl border border-neutral-700 bg-neutral-800 flex items-center justify-center font-mono font-bold text-xl text-white shadow-inner">
+            <div className="p-5 sm:p-8 border-b border-neutral-800 flex flex-wrap items-center justify-between gap-5 sm:gap-6">
+              <div className="flex items-center gap-4 sm:gap-5">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-neutral-700 bg-neutral-800 flex items-center justify-center font-mono font-bold text-lg sm:text-xl text-white shadow-inner flex-shrink-0">
                   AA
                 </div>
                 <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-xl font-bold text-white tracking-tight">Amina Adeleke</h3>
-                    <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded bg-neutral-800 border border-neutral-700 text-neutral-300">
-                      Lagos, Nigeria
+                  <div className="flex items-center gap-2.5">
+                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Amina Adeleke</h3>
+                    <span className="text-[9px] sm:text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-800 border border-neutral-700 text-neutral-300">
+                      Lagos, NG
                     </span>
                   </div>
                   <p className="text-xs text-neutral-400 font-mono mt-1">
-                    Senior Systems & Backend Engineer // 6 Years Production Experience
+                    Senior Systems & Backend Engineer // 6 Years Prod Exp
                   </p>
                 </div>
               </div>
 
               {/* Overall Trust Index — Animated Counter */}
-              <div className="flex items-center gap-4 px-5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
-                <div className="text-right">
+              <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 w-full sm:w-auto justify-between sm:justify-start">
+                <div className="text-left sm:text-right">
                   <div className="text-[10px] font-mono uppercase text-neutral-400 font-medium">Overall Trust Index</div>
                   <div className="text-xs font-mono font-bold text-[#818CF8]">Top 3% African Tech Talent</div>
                 </div>
-                <div className="text-3xl font-mono font-extrabold text-white pl-3 border-l border-neutral-800">
+                <div className="text-2xl sm:text-3xl font-mono font-extrabold text-white pl-3 border-l border-neutral-800">
                   {trustScore}<span className="text-xs font-normal text-neutral-400">%</span>
                 </div>
               </div>
             </div>
 
             {/* Verification Evidence Nodes (Oberon Style Grid) */}
-            <div className={`p-8 grid grid-cols-1 md:grid-cols-2 gap-5 reveal-stagger`}>
+            <div className={`p-4 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 reveal-stagger`}>
               {skills.map((skill, i) => (
                 <div
                   key={skill.name}
@@ -512,9 +566,9 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 2: The Problem (AgentLab Style) ────────── */}
-      <section ref={problem.ref} id="problem" className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
+      <section ref={problem.ref} id="problem" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
         <div className="max-w-6xl mx-auto">
-          <div className={`mb-20 reveal ${problem.inView ? 'revealed' : ''}`}>
+          <div className={`mb-12 sm:mb-20 reveal ${problem.inView ? 'revealed' : ''}`}>
             <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4">
               // 01 THE PROBLEM
             </span>
@@ -574,9 +628,9 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 3: The Protocol (Oberon Style) ─────────── */}
-      <section ref={protocol.ref} id="protocol" className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-[#F4F4F0]">
+      <section ref={protocol.ref} id="protocol" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-[#F4F4F0]">
         <div className="max-w-6xl mx-auto">
-          <div className={`mb-20 reveal ${protocol.inView ? 'revealed' : ''}`}>
+          <div className={`mb-12 sm:mb-20 reveal ${protocol.inView ? 'revealed' : ''}`}>
             <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4">
               // 02 THE VERIFICATION ENGINE
             </span>
@@ -637,9 +691,9 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 4: Trust Tiers (The Ledger Breakdown) ──── */}
-      <section ref={tiers.ref} id="tiers" className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-white">
+      <section ref={tiers.ref} id="tiers" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className={`mb-20 reveal ${tiers.inView ? 'revealed' : ''}`}>
+          <div className={`mb-12 sm:mb-20 reveal ${tiers.inView ? 'revealed' : ''}`}>
             <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4">
               // 03 THE TRUST TIERS
             </span>
@@ -711,9 +765,9 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 5: For Talent vs Recruiters ─────────────── */}
-      <section ref={audience.ref} id="recruiters" className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
+      <section ref={audience.ref} id="recruiters" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
         <div className="max-w-6xl mx-auto">
-          <div className={`mb-20 reveal ${audience.inView ? 'revealed' : ''}`}>
+          <div className={`mb-12 sm:mb-20 reveal ${audience.inView ? 'revealed' : ''}`}>
             <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4">
               // 04 BUILT FOR BOTH SIDES OF TECH
             </span>
@@ -799,9 +853,9 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 5: Verified Hiring Outcomes (Testimonials) ── */}
-      <section ref={testimonials.ref} id="testimonials" className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-white">
+      <section ref={testimonials.ref} id="testimonials" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className={`mb-20 reveal ${testimonials.inView ? 'revealed' : ''}`}>
+          <div className={`mb-12 sm:mb-20 reveal ${testimonials.inView ? 'revealed' : ''}`}>
             <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4">
               // 05 VERIFIED PROOF IN PRODUCTION
             </span>
@@ -944,9 +998,9 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 6: Transparent Protocol Pricing ─────────── */}
-      <section ref={pricing.ref} id="pricing" className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
+      <section ref={pricing.ref} id="pricing" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
         <div className="max-w-6xl mx-auto">
-          <div className={`mb-20 text-center reveal ${pricing.inView ? 'revealed' : ''}`}>
+          <div className={`mb-12 sm:mb-20 text-center reveal ${pricing.inView ? 'revealed' : ''}`}>
             <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4">
               // 06 TRANSPARENT PROTOCOL PRICING
             </span>
@@ -1119,9 +1173,9 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 7: Frequently Asked Questions ──────────── */}
-      <section ref={faq.ref} id="faq" className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-[#F4F4F0]">
+      <section ref={faq.ref} id="faq" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-[#F4F4F0]">
         <div className="max-w-4xl mx-auto">
-          <div className={`mb-20 text-center reveal ${faq.inView ? 'revealed' : ''}`}>
+          <div className={`mb-12 sm:mb-20 text-center reveal ${faq.inView ? 'revealed' : ''}`}>
             <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4">
               // 07 TRANSPARENCY & INTEGRITY
             </span>
@@ -1130,7 +1184,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             {[
               {
                 q: "Does Creda store or train on my private repository code?",
@@ -1159,7 +1213,7 @@ export default function Home() {
               >
                 <button
                   onClick={() => toggleFaq(i)}
-                  className="w-full p-8 text-left flex items-center justify-between gap-4 text-[#0F172A] hover:text-[#4F46E5] transition-colors duration-200 cursor-pointer"
+                  className="w-full p-5 sm:p-8 text-left flex items-center justify-between gap-4 text-[#0F172A] hover:text-[#4F46E5] transition-colors duration-200 cursor-pointer"
                 >
                   <span className="text-base sm:text-lg font-bold">{faqItem.q}</span>
                   <ChevronDown
@@ -1170,7 +1224,7 @@ export default function Home() {
                 {/* Smooth accordion animation */}
                 <div className={`accordion-content ${activeFaq === i ? 'open' : ''}`}>
                   <div className="accordion-inner">
-                    <div className="px-8 pb-8 text-sm text-[#475569] leading-[1.75] border-t border-neutral-100 pt-5">
+                    <div className="px-5 sm:px-8 pb-5 sm:pb-8 text-sm text-[#475569] leading-[1.75] border-t border-neutral-100 pt-5">
                       {faqItem.a}
                     </div>
                   </div>
@@ -1182,25 +1236,25 @@ export default function Home() {
       </section>
 
       {/* ── Chapter 7: Final CTA Banner (Framed Canvas) ────── */}
-      <section ref={cta.ref} className="py-32 px-6 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
-        <div className={`max-w-4xl mx-auto rounded-3xl border border-[#E5E7EB] bg-white p-12 sm:p-20 text-center shadow-lg relative overflow-hidden reveal-scale ${cta.inView ? 'revealed' : ''}`}>
-          <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-5">
+      <section ref={cta.ref} className="py-16 sm:py-24 lg:py-32 px-4 sm:px-8 border-b border-[#E5E7EB] bg-[#FAFAF8]">
+        <div className={`max-w-4xl mx-auto rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-14 lg:p-20 text-center shadow-lg relative overflow-hidden reveal-scale ${cta.inView ? 'revealed' : ''}`}>
+          <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-4 sm:mb-5">
             [ READY TO PROVE YOUR SKILLS? ]
           </span>
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#0F172A] mb-6 leading-[1.2]">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#0F172A] mb-4 sm:mb-6 leading-[1.2]">
             Turn your code into your most valuable credential.
           </h2>
-          <p className="text-base sm:text-lg text-[#475569] max-w-xl mx-auto mb-12 leading-[1.75] font-normal">
+          <p className="text-sm sm:text-base lg:text-lg text-[#475569] max-w-xl mx-auto mb-8 sm:mb-12 leading-[1.75] font-normal">
             Join thousands of African developers, designers, and engineers who are proving what they can actually do.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/auth/signup">
-              <button className="h-14 px-10 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <Link href="/auth/signup" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto h-13 sm:h-14 px-8 sm:px-10 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
                 Claim Free Skill Passport →
               </button>
             </Link>
           </div>
-          <p className="text-xs font-mono text-[#64748B] mt-8">
+          <p className="text-xs font-mono text-[#64748B] mt-6 sm:mt-8">
             Free Forever for Talent // 60-Second Setup // No Credit Card Required
           </p>
         </div>

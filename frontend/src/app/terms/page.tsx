@@ -95,8 +95,8 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] selection:bg-[#4F46E5] selection:text-white flex flex-col justify-between">
       {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-4 sm:px-10 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3 sm:gap-6">
           <Link href="/" className="flex items-center tracking-tight">
             <CredaLogo size={28} showTag={true} tagText="LEGAL" />
           </Link>
@@ -110,7 +110,7 @@ export default function TermsPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/auth/signup"
-            className="h-9 px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold transition-all shadow-xs flex items-center gap-1.5"
+            className="h-9 px-3 sm:px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold transition-all shadow-xs flex items-center gap-1.5"
           >
             <span>CLAIM PASSPORT</span>
             <ArrowUpRight size={13} />
@@ -119,39 +119,39 @@ export default function TermsPage() {
       </header>
 
       {/* ── Hero Editorial Header ── */}
-      <section className="pt-16 pb-12 px-6 sm:px-10 border-b border-[#E5E7EB] bg-white">
+      <section className="pt-10 sm:pt-16 pb-8 sm:pb-12 px-4 sm:px-10 border-b border-[#E5E7EB] bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-200 bg-[#FAFAF8] text-[11px] font-mono font-bold text-[#4F46E5] mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
             [ PROTOCOL TERMS // {protocolVersion} ]
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#0F172A]">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#0F172A]">
             Terms of Service & Talent Rights
           </h1>
-          <p className="mt-4 text-base text-[#64748B] leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-[#64748B] leading-relaxed">
             Transparent, developer-first principles. We believe talent verification must be free for practitioners, rigorous for employers, and uncompromised on intellectual property rights.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4 text-xs font-mono text-[#64748B] border-t border-[#E5E7EB] pt-4">
+          <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-mono text-[#64748B] border-t border-[#E5E7EB] pt-4">
             <div>EFFECTIVE DATE: <span className="text-[#0F172A] font-bold">{lastUpdated}</span></div>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <div>TALENT COST: <span className="text-[#4F46E5] font-bold">100% FREE FOREVER</span></div>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <div>ANTI-FRAUD: <span className="text-[#0F172A] font-bold">STRICTLY ENFORCED</span></div>
           </div>
         </div>
       </section>
 
       {/* ── Main Content Grid ── */}
-      <main className="max-w-4xl mx-auto px-6 sm:px-10 py-12 flex-1 w-full">
-        <div className="space-y-10">
+      <main className="max-w-4xl mx-auto px-4 sm:px-10 py-8 sm:py-12 flex-1 w-full">
+        <div className="space-y-6 sm:space-y-10">
           {sections.map((section) => {
             const Icon = section.icon;
             return (
               <div
                 key={section.id}
                 id={section.id}
-                className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs transition-all hover:border-[#CBD5E1]"
+                className="p-5 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs transition-all hover:border-[#CBD5E1]"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] shadow-2xs">
@@ -169,7 +169,7 @@ export default function TermsPage() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="py-12 px-6 sm:px-10 border-t border-[#E5E7EB] bg-white">
+      <footer className="py-8 sm:py-12 px-4 sm:px-10 border-t border-[#E5E7EB] bg-white">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center tracking-tight">
