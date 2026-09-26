@@ -377,12 +377,32 @@ export default function RecruiterDashboardPage() {
 
         {/* Empty Search State */}
         {filteredCandidates.length === 0 && (
-          <div className="py-16 text-center rounded-3xl border border-[#E5E7EB] bg-white p-8">
-            <Search size={32} className="text-[#64748B] mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-[#0F172A]">No Verified Candidates Found</h3>
-            <p className="text-xs font-mono text-[#64748B] max-w-sm mx-auto mt-1">
-              Try adjusting your search terms or lowering the minimum confidence threshold.
+          <div className="py-16 px-6 text-center rounded-3xl border border-[#E5E7EB] bg-white p-8 relative shadow-2xs">
+            <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
+            <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
+            <span className="absolute bottom-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
+            <span className="absolute bottom-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
+
+            <div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-[#64748B] mx-auto mb-4">
+              <Search size={22} />
+            </div>
+            <h3 className="text-lg font-bold text-[#0F172A] tracking-tight">No Verified Candidates Found</h3>
+            <p className="text-xs font-mono text-[#64748B] max-w-sm mx-auto mt-1.5 leading-relaxed">
+              No candidates currently match your search criteria or minimum AST confidence score threshold.
             </p>
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedDiscipline("all");
+                  setMinScore(85);
+                }}
+                className="h-10 px-5 rounded-xl border border-[#E5E7EB] hover:border-[#4F46E5] bg-[#FAFAF8] hover:bg-white text-xs font-mono font-semibold text-[#0F172A] hover:text-[#4F46E5] transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
+              >
+                Reset Search Filters
+              </button>
+            </div>
           </div>
         )}
       </main>
