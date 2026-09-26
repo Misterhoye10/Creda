@@ -40,7 +40,7 @@ interface Candidate {
   avatar: string;
   title: string;
   location: string;
-  discipline: "software" | "design" | "devops" | "data";
+  discipline: "software" | "design" | "devops" | "data" | "creative3d";
   score: number;
   tier: string;
   skills: string[];
