@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
+import { api, type User } from "@/lib/api";
 import {
   Search,
   Filter,
@@ -141,6 +142,23 @@ export default function RecruiterDashboardPage() {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportedStatus, setExportedStatus] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await api.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch {
+        // Fallback to demo workspace
+      }
+    };
+    loadUser();
+  }, []);
+
+  const orgName = currentUser?.name || "Enterprise Workspace";
 
   const filteredCandidates = CANDIDATES.filter((c) => {
     const matchesSearch =
@@ -164,12 +182,19 @@ export default function RecruiterDashboardPage() {
     }, 1500);
   };
 
-  const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.clear();
-      sessionStorage.clear();
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      // Local cleanup
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("creda_token");
+        localStorage.removeItem("creda_auth_token");
+        sessionStorage.clear();
+      }
+      router.push("/auth/login");
     }
-    router.push("/auth/login");
   };
 
   return (
@@ -206,7 +231,7 @@ export default function RecruiterDashboardPage() {
 
           <div className="flex items-center gap-2 pl-3 border-l border-neutral-200 text-xs font-mono text-[#64748B]">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="hidden sm:inline font-semibold text-[#0F172A]">Moniepoint</span>
+            <span className="hidden sm:inline font-semibold text-[#0F172A]">{orgName}</span>
             <button
               onClick={handleLogout}
               className="p-2 hover:text-rose-600 transition-colors ml-1 cursor-pointer"
