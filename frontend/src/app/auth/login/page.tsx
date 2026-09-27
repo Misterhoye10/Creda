@@ -37,6 +37,10 @@ export default function LoginPage() {
       if (response?.access_token) {
         localStorage.setItem("creda_token", response.access_token);
       }
+      if (response?.user) {
+        localStorage.setItem("creda_user", JSON.stringify(response.user));
+      }
+      localStorage.setItem("creda_user_email", formData.email);
       setIsSubmitting(false);
       router.push("/dashboard");
     } catch (err: unknown) {
@@ -46,6 +50,18 @@ export default function LoginPage() {
         setIsSubmitting(false);
       } else {
         // Fallback for demo / offline mode
+        localStorage.setItem("creda_user_email", formData.email);
+        const namePart = formData.email.split("@")[0];
+        const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        localStorage.setItem(
+          "creda_user",
+          JSON.stringify({
+            name: formattedName,
+            email: formData.email,
+            professional_title: "Backend Lead & Systems Engineer",
+            location: "Lagos, Nigeria",
+          })
+        );
         setTimeout(() => {
           setIsSubmitting(false);
           router.push("/dashboard");
@@ -56,6 +72,16 @@ export default function LoginPage() {
 
   const handleGithubLogin = () => {
     setIsSubmitting(true);
+    localStorage.setItem("creda_user_email", "hoye@creda.app");
+    localStorage.setItem(
+      "creda_user",
+      JSON.stringify({
+        name: "Hoye",
+        email: "hoye@creda.app",
+        professional_title: "Backend Lead & Systems Engineer",
+        location: "Lagos, Nigeria",
+      })
+    );
     setTimeout(() => {
       setIsSubmitting(false);
       router.push("/dashboard");

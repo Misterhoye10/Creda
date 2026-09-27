@@ -288,26 +288,64 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("creda_user");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && (parsed.name || parsed.email)) {
+            setCurrentUser((prev) => prev || (parsed as User));
+            setProfileForm((prev) => ({
+              ...prev,
+              name: parsed.name || prev.name,
+              professional_title: parsed.professional_title || prev.professional_title,
+              location: parsed.location || prev.location,
+              years_experience: parsed.years_experience || prev.years_experience,
+              bio: parsed.bio || prev.bio,
+              avatar_url: parsed.avatar_url || prev.avatar_url,
+              public_url: parsed.public_url || prev.public_url,
+            }));
+          }
+        }
+        const cachedEmail = localStorage.getItem("creda_user_email");
+        if (cachedEmail) {
+          const namePart = cachedEmail.split("@")[0];
+          const formatted = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+          setProfileForm((prev) => ({
+            ...prev,
+            name: prev.name || formatted,
+          }));
+        }
+      } catch {
+        // Safe parse
+      }
+    }
     loadDashboardData();
   }, []);
 
   const displayName =
     profileForm.name ||
     currentUser?.name ||
-    currentUser?.email?.split("@")[0] ||
-    "Verified Candidate";
+    (currentUser?.email ? currentUser.email.split("@")[0] : null) ||
+    (typeof window !== "undefined" && localStorage.getItem("creda_user_email")
+      ? localStorage.getItem("creda_user_email")!.split("@")[0]
+      : null) ||
+    "Hoye";
 
-  const displayEmail = currentUser?.email || "talent@creda.app";
+  const displayEmail =
+    currentUser?.email ||
+    (typeof window !== "undefined" ? localStorage.getItem("creda_user_email") : null) ||
+    "hoye@creda.app";
 
   const displayTitle =
     profileForm.professional_title ||
     currentUser?.professional_title ||
-    "Software & Systems Engineer";
+    "Backend Lead & Cryptographic Engineer";
 
   const displayLocation =
     profileForm.location ||
     currentUser?.location ||
-    "Lagos, Nigeria // Global Remote";
+    "Lagos, Nigeria";
 
   const displayAvatar =
     profileForm.avatar_url ||
