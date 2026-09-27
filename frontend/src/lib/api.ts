@@ -3,8 +3,13 @@
 // Standardized client connecting Next.js UI to FastAPI Backend
 // ==============================================================================
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const getApiBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const trimmed = envUrl.trim().replace(/\/+$/, "");
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface User {
   id: string;
@@ -132,7 +137,8 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const formattedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    const url = `${API_BASE_URL}${formattedEndpoint}`;
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -218,26 +224,8 @@ class ApiClient {
 
   // Public Passport Endpoint (no auth required)
   async getPublicPassport(identifier: string): Promise<SkillPassportResponse> {
-    const url = `${API_BASE_URL}/passport/${identifier}`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-      let err: any = {};
-      try {
-        err = await response.json();
-      } catch {
-        err = { message: response.statusText };
-      }
-      const error: any = new Error(err.detail || "Passport not found");
-      error.status = response.status;
-      error.detail = err.detail;
-      throw error;
-    }
-
-    return response.json();
+    const formattedId = encodeURIComponent(identifier.trim());
+    return this.request<SkillPassportResponse>(`/passport/${formattedId}`);
   }
 
   // Evidence Endpoints

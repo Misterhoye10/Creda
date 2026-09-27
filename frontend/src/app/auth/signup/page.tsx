@@ -404,7 +404,7 @@ export default function SignupPage() {
                       <input
                         type="text"
                         required
-                        placeholder={accountType === "talent" ? "e.g. Amina Adeleke" : "e.g. Tunde Balogun"}
+                        placeholder={accountType === "talent" ? "e.g. Alex Adeleke" : "e.g. Tunde Balogun"}
                         value={accountType === "talent" ? talentData.name : recruiterData.name}
                         onChange={(e) =>
                           accountType === "talent"
@@ -428,7 +428,7 @@ export default function SignupPage() {
                       <input
                         type="email"
                         required
-                        placeholder={accountType === "talent" ? "amina@domain.com" : "tunde@company.com"}
+                        placeholder={accountType === "talent" ? "talent@example.com" : "tunde@company.com"}
                         value={accountType === "talent" ? talentData.email : recruiterData.workEmail}
                         onChange={(e) =>
                           accountType === "talent"

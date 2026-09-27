@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
+import { api, type SkillPassportResponse } from "@/lib/api";
+
 import {
   ShieldCheck,
   GitBranch,
@@ -222,22 +224,106 @@ const PROFILES: Record<
 
 export default function PublicPassportPage() {
   const params = useParams();
-  const rawUsername = (params?.username as string) || "amina-adeleke";
+  const rawUsername = (params?.username as string) || "talent";
 
-  const profile =
-    PROFILES[rawUsername] || {
-      name: rawUsername
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" "),
-      avatar: "/testimonials/amina.jpg",
-      title: "Senior Technical Professional",
+  const [passportData, setPassportData] = useState<SkillPassportResponse | null>(null);
+  const [isLoadingPassport, setIsLoadingPassport] = useState(true);
+
+  useEffect(() => {
+    const loadPassport = async () => {
+      try {
+        const data = await api.getPublicPassport(rawUsername);
+        if (data) {
+          setPassportData(data);
+        }
+      } catch (err) {
+        console.log("Using static profile fallback:", err);
+      } finally {
+        setIsLoadingPassport(false);
+      }
+    };
+    loadPassport();
+  }, [rawUsername]);
+
+  const DEFAULT_FALLBACK_SKILLS = [
+    {
+      name: "Backend Architecture & APIs",
+      score: 92,
+      repos: "2 Sources",
+      commits: "Verified by Creda",
+      tier: "Advanced Tier",
+      icon: Terminal,
+      auditNote: "Audited from repository commits and verified code patterns.",
+    },
+    {
+      name: "Database Design & Optimization",
+      score: 88,
+      repos: "Schema Audited",
+      commits: "Verified by Creda",
+      tier: "Advanced Tier",
+      icon: Terminal,
+      auditNote: "Corroborated by schema migrations and query patterns.",
+    },
+    {
+      name: "System Security & Integrity",
+      score: 85,
+      repos: "Signed Audits",
+      commits: "Verified by Creda",
+      tier: "Intermediate Tier",
+      icon: Terminal,
+      auditNote: "Cryptographically verified with AST proof validation.",
+    },
+  ];
+
+  const profile = useMemo(() => {
+    if (passportData) {
+      const defaultName = passportData.name || rawUsername;
+      const initialsAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`;
+
+      return {
+        name: defaultName,
+        avatar: passportData.avatar_url || initialsAvatar,
+        title: passportData.professional_title || "Technical Engineer",
+        location: passportData.location || "Lagos, Nigeria // Global Remote",
+        trustIndex: passportData.average_confidence || 85.0,
+        badge: passportData.is_creda_verified ? "VERIFIED TALENT" : "CANDIDATE",
+        gpgKey: `0x${(passportData.id || "9B4E38F1C2D90A77").replace(/-/g, "").slice(0, 16).toUpperCase()}`,
+        skills: passportData.skills && passportData.skills.length > 0
+          ? passportData.skills.map((s) => ({
+              name: s.name,
+              score: s.confidence,
+              repos: `${s.evidence_count} Source(s)`,
+              commits: "Verified by Creda",
+              tier: `${s.level} Tier`,
+              icon: Terminal,
+              auditNote: s.citations?.[0]?.title
+                ? `Backed by ${s.citations[0].evidence_type}: ${s.citations[0].title}`
+                : "Corroborated by verified evidence ledger.",
+            }))
+          : DEFAULT_FALLBACK_SKILLS,
+      };
+    }
+
+    if (PROFILES[rawUsername]) {
+      return PROFILES[rawUsername];
+    }
+
+    const defaultName = rawUsername
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    return {
+      name: defaultName,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`,
+      title: "Technical Professional",
       location: "Lagos, Nigeria // Global Remote",
-      trustIndex: 94.0,
+      trustIndex: 90.0,
       badge: "VERIFIED TALENT",
       gpgKey: "0x9B4E38F1C2D90A77",
-      skills: PROFILES["amina-adeleke"].skills,
+      skills: DEFAULT_FALLBACK_SKILLS,
     };
+  }, [passportData, rawUsername]);
 
   const [copied, setCopied] = useState(false);
   const [verifiedHash, setVerifiedHash] = useState<boolean | null>(null);
@@ -247,7 +333,15 @@ export default function PublicPassportPage() {
   const [testScore, setTestScore] = useState<number | null>(null);
   const [isTestingMatch, setIsTestingMatch] = useState(false);
 
-  const passportHash = "7f8a92e1c409b3d90f23a1b8c4d5e6f7";
+  useEffect(() => {
+    if (profile.title) {
+      setJobTitleInput(profile.title);
+    }
+  }, [profile.title]);
+
+  const passportHash = passportData?.id
+    ? passportData.id.replace(/-/g, "")
+    : "7f8a92e1c409b3d90f23a1b8c4d5e6f7";
 
   const handleCopy = () => {
     if (typeof window !== "undefined") {
@@ -265,14 +359,26 @@ export default function PublicPassportPage() {
     }, 800);
   };
 
-  const handleRunMatchTest = (e: React.FormEvent) => {
+  const handleRunMatchTest = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsTestingMatch(true);
-    setTimeout(() => {
-      setIsTestingMatch(false);
+    try {
+      const matchRes = await api.matchJob(
+        jobTitleInput,
+        `Seeking a skilled professional in ${jobTitleInput} with strong engineering background.`
+      );
+      if (matchRes && typeof matchRes.match_percentage === "number") {
+        setTestScore(matchRes.match_percentage);
+      } else {
+        setTestScore(Math.round(profile.trustIndex));
+      }
+    } catch {
       setTestScore(Math.round(profile.trustIndex));
-    }, 700);
+    } finally {
+      setIsTestingMatch(false);
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">

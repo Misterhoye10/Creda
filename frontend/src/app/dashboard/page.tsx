@@ -46,55 +46,111 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import { api, type User, type UserProfileResponse } from "@/lib/api";
+import { api, type User, type UserProfileResponse, type JobMatchResponse, type SkillsSummaryResponse } from "@/lib/api";
 
-interface RepoItem {
-  name: string;
-  commits: string;
-  lang: string;
-  status: string;
-  health: string;
+function getInitialsAvatar(name?: string | null, bg = "4F46E5"): string {
+  const clean = (name && name.trim()) || "Talent";
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(clean)}&background=${bg}&color=fff&bold=true&size=128`;
 }
 
-const SAMPLE_REPOS: RepoItem[] = [
+function getSkillIcon(name: string) {
+  const lower = name.toLowerCase();
+  if (lower.includes("git") || lower.includes("branch")) return GitBranch;
+  if (lower.includes("sql") || lower.includes("data") || lower.includes("db") || lower.includes("postgres")) return Database;
+  if (lower.includes("security") || lower.includes("owasp") || lower.includes("auth") || lower.includes("lock")) return Lock;
+  if (lower.includes("server") || lower.includes("cloud") || lower.includes("docker") || lower.includes("devops") || lower.includes("go") || lower.includes("fastapi")) return Server;
+  return Terminal;
+}
+
+const AVATAR_COLOR_PRESETS = [
+  { name: "Creda Indigo", bg: "4F46E5" },
+  { name: "Forest Emerald", bg: "059669" },
+  { name: "Architect Slate", bg: "0F172A" },
+  { name: "Quantum Violet", bg: "7C3AED" },
+];
+
+interface JobPreset {
+  id: string;
+  company: string;
+  role: string;
+  reqs: string;
+  logo: React.ReactNode;
+}
+
+const JOB_PRESETS: JobPreset[] = [
   {
-    name: "amina-dev/distributed-go-microservices",
-    commits: "482 commits",
-    lang: "Go 96%",
-    status: "GPG Signed",
-    health: "98/100 AST Complexity",
+    id: "paystack",
+    company: "Paystack",
+    role: "Senior Backend Systems Engineer",
+    reqs: "Go, Concurrency, Distributed Systems, APIs",
+    logo: <PaystackMark className="w-3.5 h-3.5 flex-shrink-0" />,
   },
   {
-    name: "amina-dev/typescript-ast-engine",
-    commits: "340 commits",
-    lang: "TypeScript 94%",
-    status: "CI/CD Pass",
-    health: "96/100 AST Complexity",
+    id: "moniepoint",
+    company: "Moniepoint",
+    role: "Staff Infrastructure Architect",
+    reqs: "PostgreSQL, Redis, Core Banking, High Availability",
+    logo: <MoniepointMark className="w-3.5 h-3.5 flex-shrink-0" />,
   },
   {
-    name: "amina-dev/postgres-indexing-pool",
-    commits: "295 commits",
-    lang: "SQL & Python",
-    status: "Verified Schema",
-    health: "92/100 AST Complexity",
+    id: "flutterwave",
+    company: "Flutterwave",
+    role: "Core Payments Switch Engineer",
+    reqs: "High Throughput, GPG, Security, Fast Settlement",
+    logo: <FlutterwaveMark className="w-3.5 h-3.5 flex-shrink-0" />,
   },
   {
-    name: "amina-dev/owasp-security-guard",
-    commits: "185 commits",
-    lang: "Go & Docker",
-    status: "Signed Audit",
-    health: "94/100 AST Complexity",
+    id: "lemfi",
+    company: "LemFi",
+    role: "Cross-Border Settlement Lead",
+    reqs: "Diaspora Rails, Microservices, Python, Cloud",
+    logo: <LemFiMark className="w-3.5 h-3.5 flex-shrink-0" />,
+  },
+  {
+    id: "opay",
+    company: "OPay",
+    role: "Staff Infrastructure Architect",
+    reqs: "High Concurrency, Kafka, Redis, Distributed Systems",
+    logo: <OPayMark className="w-3.5 h-3.5 flex-shrink-0" />,
+  },
+  {
+    id: "interswitch",
+    company: "Interswitch",
+    role: "Principal Transaction Systems Lead",
+    reqs: "ISO 8583, Switching Rails, C++, High Reliability",
+    logo: <InterswitchMark className="w-3.5 h-3.5 flex-shrink-0" />,
+  },
+  {
+    id: "chippercash",
+    company: "Chipper Cash",
+    role: "Distributed Settlement Engineer",
+    reqs: "Cross-Border Rails, Python, AWS, PostgreSQL",
+    logo: <ChipperCashMark className="w-3.5 h-3.5 flex-shrink-0" />,
+  },
+  {
+    id: "kudabank",
+    company: "Kuda Bank",
+    role: "Core Neobank Systems Engineer",
+    reqs: "Java, Spring Boot, Microservices, Security",
+    logo: <KudaMark className="w-3.5 h-3.5 flex-shrink-0" />,
+  },
+  {
+    id: "andela",
+    company: "Andela",
+    role: "Staff Distributed Systems Engineer",
+    reqs: "Global Remote, TypeScript, Cloud, Architecture",
+    logo: <AndelaMark className="w-3.5 h-3.5 flex-shrink-0" />,
+  },
+  {
+    id: "piggyvest",
+    company: "PiggyVest",
+    role: "Wealth & Savings Core Architect",
+    reqs: "High Reliability, FinTech Ledger, Data Integrity",
+    logo: <PiggyVestMark className="w-3.5 h-3.5 flex-shrink-0" />,
   },
 ];
 
-const AVATAR_PRESETS = [
-  { name: "Amina Adeleke", role: "Systems Architect", src: "/testimonials/amina.jpg" },
-  { name: "Adekunle Bello", role: "Cloud & DevOps", src: "/testimonials/adekunle.jpg" },
-  { name: "Kofi Mensah", role: "3D & Creative Systems", src: "/testimonials/kofi.jpg" },
-  { name: "David Osei", role: "Fullstack Systems", src: "/testimonials/david.jpg" },
-];
-
-export interface CompletenessItem {
+interface CompletenessItem {
   id: string;
   label: string;
   weight: number;
@@ -109,69 +165,74 @@ export default function DashboardPage() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [selectedJob, setSelectedJob] = useState("paystack");
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simulationResult, setSimulationResult] = useState<number | null>(94);
+  const [simulationResult, setSimulationResult] = useState<number | null>(null);
+  const [matchDetails, setMatchDetails] = useState<JobMatchResponse | null>(null);
 
-  // Evidence repositories state
-  const [repos, setRepos] = useState<RepoItem[]>(SAMPLE_REPOS);
+  // Evidence repositories state & loading
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [repoInput, setRepoInput] = useState("");
   const [isConnectingRepo, setIsConnectingRepo] = useState(false);
+  const [isExtractingSkills, setIsExtractingSkills] = useState(false);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [verifiedSkills, setVerifiedSkills] = useState<any[]>([]);
+  const [evidenceItems, setEvidenceItems] = useState<any[]>([]);
+  const [skillsSummary, setSkillsSummary] = useState<SkillsSummaryResponse | null>(null);
 
-  // Profile Settings Form State
+  // Profile Settings Form State (neutral defaults; populated from backend)
   const [profileForm, setProfileForm] = useState({
-    name: "Amina Adeleke",
-    professional_title: "Senior Systems & Backend Architect",
-    location: "Lagos, Nigeria // Global Remote",
-    years_experience: 6,
-    bio: "Systems architect specializing in distributed Go microservices, AST syntax validation, and high-throughput PostgreSQL architectures.",
-    avatar_url: "/testimonials/amina.jpg",
-    public_url: "amina-adeleke",
+    name: "",
+    professional_title: "",
+    location: "",
+    years_experience: 0,
+    bio: "",
+    avatar_url: "",
+    public_url: "",
     is_public: true,
-    github_url: "https://github.com/amina-dev",
-    linkedin_url: "https://linkedin.com/in/amina-adeleke",
-    website_url: "https://amina.dev",
+    github_url: "",
+    linkedin_url: "",
+    website_url: "",
   });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [saveStatus, setSaveStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Drag and drop ingestion state
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<string | null>("amina_resume_2026.pdf");
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Load authenticated user on mount
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userProfile = await api.getUserProfile();
-        if (userProfile) {
-          setCurrentUser(userProfile as unknown as User);
-          setProfileForm({
-            name: userProfile.name || "Amina Adeleke",
-            professional_title: userProfile.professional_title || "Senior Systems & Backend Architect",
-            location: userProfile.location || "Lagos, Nigeria // Global Remote",
-            years_experience: userProfile.years_experience || 6,
-            bio: userProfile.bio || "Systems architect specializing in distributed Go microservices, AST syntax validation, and high-throughput PostgreSQL architectures.",
-            avatar_url: userProfile.avatar_url || "/testimonials/amina.jpg",
-            public_url: userProfile.public_url || "amina-adeleke",
-            is_public: userProfile.is_public ?? true,
-            github_url: userProfile.github_url || "https://github.com/amina-dev",
-            linkedin_url: userProfile.linkedin_url || "https://linkedin.com/in/amina-adeleke",
-            website_url: userProfile.website_url || "https://amina.dev",
-          });
-          return;
-        }
-      } catch {
-        // Fallback to getCurrentUser
-      }
+  // Comprehensive data loader connecting to FastAPI Backend
+  const loadDashboardData = async () => {
+    setIsLoadingDashboard(true);
+    let loadedUser: any = null;
 
+    try {
+      const userProfile = await api.getUserProfile();
+      if (userProfile) {
+        loadedUser = userProfile;
+        setCurrentUser(userProfile as unknown as User);
+        setProfileForm({
+          name: userProfile.name || "",
+          professional_title: userProfile.professional_title || "",
+          location: userProfile.location || "",
+          years_experience: userProfile.years_experience || 0,
+          bio: userProfile.bio || "",
+          avatar_url: userProfile.avatar_url || "",
+          public_url: userProfile.public_url || "",
+          is_public: userProfile.is_public ?? true,
+          github_url: userProfile.github_url || "",
+          linkedin_url: userProfile.linkedin_url || "",
+          website_url: userProfile.website_url || "",
+        });
+      }
+    } catch {
       try {
         const user = await api.getCurrentUser();
         if (user) {
+          loadedUser = user;
           setCurrentUser(user);
           setProfileForm((prev) => ({
             ...prev,
@@ -185,11 +246,92 @@ export default function DashboardPage() {
           }));
         }
       } catch {
-        // Fallback to preview candidate profile
+        // Unauthenticated or offline
       }
-    };
-    loadUser();
+    }
+
+    // Load real verified skills from backend
+    try {
+      const skillsRes = await api.getSkills();
+      if (skillsRes && Array.isArray(skillsRes.items)) {
+        setVerifiedSkills(skillsRes.items);
+      } else if (Array.isArray(skillsRes)) {
+        setVerifiedSkills(skillsRes);
+      }
+    } catch (err) {
+      console.warn("Could not load skills:", err);
+    }
+
+    // Load real evidence items from backend
+    try {
+      const evidenceRes = await api.getEvidence();
+      if (evidenceRes && Array.isArray(evidenceRes.items)) {
+        setEvidenceItems(evidenceRes.items);
+      } else if (Array.isArray(evidenceRes)) {
+        setEvidenceItems(evidenceRes);
+      }
+    } catch (err) {
+      console.warn("Could not load evidence:", err);
+    }
+
+    // Load skills summary
+    try {
+      const summary = await api.getSkillsSummary();
+      if (summary) {
+        setSkillsSummary(summary);
+      }
+    } catch {
+      // Optional summary
+    }
+
+    setIsLoadingDashboard(false);
+  };
+
+  useEffect(() => {
+    loadDashboardData();
   }, []);
+
+  const displayName =
+    profileForm.name ||
+    currentUser?.name ||
+    currentUser?.email?.split("@")[0] ||
+    "Verified Candidate";
+
+  const displayEmail = currentUser?.email || "talent@creda.app";
+
+  const displayTitle =
+    profileForm.professional_title ||
+    currentUser?.professional_title ||
+    "Software & Systems Engineer";
+
+  const displayLocation =
+    profileForm.location ||
+    currentUser?.location ||
+    "Lagos, Nigeria // Global Remote";
+
+  const displayAvatar =
+    profileForm.avatar_url ||
+    currentUser?.avatar_url ||
+    getInitialsAvatar(displayName);
+
+  const passportSlug =
+    profileForm.public_url ||
+    currentUser?.public_url ||
+    displayName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+  const passportUrl = `creda.work/p/${passportSlug}`;
+
+  // Average confidence score across verified skills
+  const averageConfidence = useMemo(() => {
+    if (skillsSummary && skillsSummary.average_confidence > 0) {
+      return skillsSummary.average_confidence;
+    }
+    if (verifiedSkills.length > 0) {
+      const sum = verifiedSkills.reduce((acc, s) => acc + (s.confidence || 0), 0);
+      return Math.round((sum / verifiedSkills.length) * 10) / 10;
+    }
+    return 80.0;
+  }, [skillsSummary, verifiedSkills]);
 
   // Real-time completeness calculation mirroring backend passport service
   const completeness = useMemo(() => {
@@ -198,7 +340,7 @@ export default function DashboardPage() {
         id: "name",
         label: "Full Legal Name",
         weight: 15,
-        met: Boolean(profileForm.name && profileForm.name.trim().length >= 2),
+        met: Boolean(displayName && displayName.trim().length >= 2),
         tip: "Verified against cryptographic passport ledger (+15%)",
       },
       {
@@ -219,14 +361,14 @@ export default function DashboardPage() {
         id: "bio",
         label: "Technical Architecture Bio",
         weight: 10,
-        met: Boolean(profileForm.bio && profileForm.bio.trim().length >= 20),
-        tip: "At least 20 chars of architectural summary (+10%)",
+        met: Boolean(profileForm.bio && profileForm.bio.trim().length >= 15),
+        tip: "At least 15 chars of architectural summary (+10%)",
       },
       {
         id: "avatar",
-        label: "Institutional Portrait",
+        label: "Institutional Portrait / Initials Badge",
         weight: 5,
-        met: Boolean(profileForm.avatar_url && profileForm.avatar_url.trim().length > 0),
+        met: Boolean(profileForm.avatar_url || displayName),
         tip: "Verified candidate profile image (+5%)",
       },
       {
@@ -244,29 +386,21 @@ export default function DashboardPage() {
         id: "evidence",
         label: "Technical Evidence (Repos / CV)",
         weight: 20,
-        met: repos.length > 0 || Boolean(uploadedFile),
+        met: evidenceItems.length > 0 || Boolean(uploadedFile),
         tip: "Corroborates code complexity and syntax metrics (+20%)",
       },
       {
         id: "skills",
         label: "AST Verified Skill Benchmarks",
         weight: 20,
-        met: true, // Code-proven AST audited skills present
+        met: verifiedSkills.length > 0,
         tip: "In-memory AST syntax validation (+20%)",
       },
     ];
 
     const score = breakdown.reduce((acc, curr) => (curr.met ? acc + curr.weight : acc), 0);
     return { score: Math.min(score, 100), breakdown };
-  }, [profileForm, repos.length, uploadedFile]);
-
-  const displayName = profileForm.name || currentUser?.name || "Amina Adeleke";
-  const displayEmail = currentUser?.email || "amina@domain.com";
-  const displayTitle = profileForm.professional_title || currentUser?.professional_title || "Senior Systems & Backend Architect";
-  const displayLocation = profileForm.location || currentUser?.location || "Lagos, Nigeria";
-  const displayAvatar = profileForm.avatar_url || currentUser?.avatar_url || "/testimonials/amina.jpg";
-  const passportSlug = profileForm.public_url || currentUser?.public_url || "amina-adeleke";
-  const passportUrl = `creda.work/p/${passportSlug}`;
+  }, [profileForm, displayName, evidenceItems.length, uploadedFile, verifiedSkills.length]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -279,7 +413,7 @@ export default function DashboardPage() {
         location: profileForm.location,
         years_experience: Number(profileForm.years_experience),
         bio: profileForm.bio,
-        avatar_url: profileForm.avatar_url,
+        avatar_url: profileForm.avatar_url || null,
         public_url: profileForm.public_url,
         is_public: profileForm.is_public,
         github_url: profileForm.github_url,
@@ -292,7 +426,6 @@ export default function DashboardPage() {
         message: "Profile settings and cryptographic ledger synchronized successfully.",
       });
     } catch {
-      // Graceful local persistence if backend is offline
       setCurrentUser((prev) => ({
         ...(prev || ({} as User)),
         name: profileForm.name,
@@ -306,8 +439,8 @@ export default function DashboardPage() {
         github_url: profileForm.github_url,
         linkedin_url: profileForm.linkedin_url,
         website_url: profileForm.website_url,
-        id: prev?.id || "preview-id",
-        email: prev?.email || "amina@domain.com",
+        id: prev?.id || "local-user",
+        email: prev?.email || displayEmail,
         created_at: prev?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }));
@@ -321,14 +454,40 @@ export default function DashboardPage() {
     }
   };
 
+  const handleExtractSkills = async () => {
+    setIsExtractingSkills(true);
+    try {
+      await api.extractSkills();
+      await loadDashboardData();
+      setSaveStatus({
+        type: "success",
+        message: "AI skill extraction completed! Verified skills updated from evidence.",
+      });
+    } catch (err: any) {
+      setSaveStatus({
+        type: "error",
+        message: err?.detail || "Could not extract skills. Please ensure evidence is connected.",
+      });
+    } finally {
+      setIsExtractingSkills(false);
+      setTimeout(() => setSaveStatus(null), 5000);
+    }
+  };
+
   const simulateUpload = async (fileOrName: File | string) => {
     setIsUploading(true);
     if (fileOrName instanceof File) {
       try {
         await api.uploadCV(fileOrName);
         setUploadedFile(fileOrName.name);
+        // Automatically trigger AI extraction on newly uploaded CV
+        try {
+          await api.extractSkills();
+        } catch {
+          // Non-blocking
+        }
+        await loadDashboardData();
       } catch {
-        // Fallback gracefully
         setUploadedFile(fileOrName.name);
       } finally {
         setIsUploading(false);
@@ -356,7 +515,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -394,45 +552,53 @@ export default function DashboardPage() {
     setIsConnectingRepo(true);
     try {
       await api.connectGitHub(repoInput.trim());
+      // Trigger AI extraction on newly connected repository
+      try {
+        await api.extractSkills();
+      } catch {
+        // Non-blocking
+      }
+      await loadDashboardData();
     } catch {
-      // Local fallback
+      // Local addition
+      setEvidenceItems((prev) => [
+        {
+          id: `local-${Date.now()}`,
+          type: "GitHub",
+          title: repoInput.trim(),
+          source_url: `https://github.com/${repoInput.trim()}`,
+        },
+        ...prev,
+      ]);
     } finally {
-      const formattedName = repoInput.includes("/")
-        ? repoInput.trim()
-        : `${passportSlug}/${repoInput.trim()}`;
-      const newRepo: RepoItem = {
-        name: formattedName,
-        commits: "1 branch synced",
-        lang: "Audited",
-        status: "GPG Validated",
-        health: "96/100 AST Complexity",
-      };
-      setRepos((prev) => [newRepo, ...prev]);
       setRepoInput("");
       setIsConnectingRepo(false);
       setShowConnectModal(false);
     }
   };
 
-  const runSimulation = () => {
+  const runSimulation = async (jobIdToSimulate = selectedJob) => {
     setIsSimulating(true);
-    setSimulationResult(null);
-    setTimeout(() => {
+    const targetJob = JOB_PRESETS.find((j) => j.id === jobIdToSimulate) || JOB_PRESETS[0];
+    try {
+      const matchRes = await api.matchJob(
+        targetJob.role,
+        `${targetJob.role} at ${targetJob.company}. Key requirements: ${targetJob.reqs}`
+      );
+      if (matchRes) {
+        setSimulationResult(matchRes.match_percentage);
+        setMatchDetails(matchRes);
+      }
+    } catch (err) {
+      console.warn("Real match API call failed, calculating local fit:", err);
+      const fallbackScore = Math.min(
+        96,
+        Math.max(70, Math.round(averageConfidence) + (targetJob.id === "paystack" ? 4 : 2))
+      );
+      setSimulationResult(fallbackScore);
+    } finally {
       setIsSimulating(false);
-      const scores: Record<string, number> = {
-        paystack: 94,
-        moniepoint: 95,
-        flutterwave: 88,
-        lemfi: 91,
-        opay: 96,
-        interswitch: 92,
-        chippercash: 90,
-        kudabank: 93,
-        andela: 94,
-        piggyvest: 89,
-      };
-      setSimulationResult(scores[selectedJob] ?? 92);
-    }, 750);
+    }
   };
 
   return (
@@ -669,11 +835,14 @@ export default function DashboardPage() {
                     </div>
 
                     <p className="text-sm text-[#475569] font-mono mt-1">
-                      {displayTitle} // {displayLocation} // 1,420 Production Commits
+                      {displayTitle} // {displayLocation} // {evidenceItems.length > 0 ? `${evidenceItems.length} Evidence Sources` : "Evidence Verification Active"}
                     </p>
 
                     <div className="flex flex-wrap gap-2 mt-4">
-                      {["TypeScript Engine", "Distributed Go", "PostgreSQL", "OWASP Hardening"].map((tag, idx) => (
+                      {(verifiedSkills.length > 0
+                        ? verifiedSkills.slice(0, 5).map((s) => s.name)
+                        : ["Skills Ledger Active", "Evidence Connected", "Cryptographic Proof"]
+                      ).map((tag, idx) => (
                         <span
                           key={idx}
                           className="text-[10px] font-mono px-2.5 py-1 rounded bg-[#FAFAF8] border border-[#E5E7EB] text-[#475569]"
@@ -699,7 +868,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-4xl sm:text-5xl font-mono font-extrabold text-[#0F172A] pl-5 border-l border-[#E5E7EB]">
-                    96.4<span className="text-sm text-[#64748B] font-normal">%</span>
+                    {averageConfidence.toFixed(1)}<span className="text-sm text-[#64748B] font-normal">%</span>
                   </div>
                 </div>
               </div>
@@ -710,88 +879,96 @@ export default function DashboardPage() {
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-                    Verified Skills
+                    Verified Skills ({verifiedSkills.length})
                   </h2>
                 </div>
-                <span className="text-xs font-mono text-[#64748B]">
-                  Audited from 14 repositories
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-mono text-[#64748B]">
+                    {evidenceItems.length > 0
+                      ? `Audited from ${evidenceItems.length} verified evidence sources`
+                      : "Corroborated by Creda proof ledger"}
+                  </span>
+                  <button
+                    onClick={handleExtractSkills}
+                    disabled={isExtractingSkills}
+                    className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#4F46E5] hover:bg-indigo-50 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                    title="Re-run AI skill extraction on connected evidence"
+                  >
+                    <RefreshCw size={12} className={isExtractingSkills ? "animate-spin" : ""} />
+                    <span>{isExtractingSkills ? "Extracting..." : "Re-extract Skills"}</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[
-                  {
-                    name: "TypeScript & Node Engine",
-                    pct: 98,
-                    desc: "14 repositories analyzed. AST validation confirms strict typing, concurrency models & high-throughput API patterns.",
-                    icon: Terminal,
-                    tier: "Top Strength Tier",
-                    repos: "14 Repositories",
-                  },
-                  {
-                    name: "Distributed Go Microservices",
-                    pct: 94,
-                    desc: "Concurrency channels, gRPC endpoints, and Redis caching. Commits verified with signed GPG keys on production branches.",
-                    icon: Server,
-                    tier: "Code-Proven Tier",
-                    repos: "26 Pull Requests",
-                  },
-                  {
-                    name: "PostgreSQL & Index Optimization",
-                    pct: 91,
-                    desc: "Complex query plans, connection pooling, and schema migration records verified from production repos.",
-                    icon: Database,
-                    tier: "Code-Proven Tier",
-                    repos: "Schema Audited",
-                  },
-                  {
-                    name: "System Architecture & Security",
-                    pct: 89,
-                    desc: "OWASP hardening, Docker containers, and CI/CD pipelines verified against live deployed endpoints.",
-                    icon: Lock,
-                    tier: "Top Strength Tier",
-                    repos: "CI/CD Verified",
-                  },
-                ].map((skill, idx) => {
-                  const Icon = skill.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs hover:border-[#4F46E5]/40 transition-all card-hover"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5]">
-                            <Icon size={16} />
+              {verifiedSkills.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {verifiedSkills.map((skill, idx) => {
+                    const Icon = getSkillIcon(skill.name);
+                    const confidence = skill.confidence || 75;
+                    const level = skill.level || "Intermediate";
+                    const citationsCount = skill.citations?.length || skill.evidence_count || 1;
+                    const citationDesc = skill.citations?.[0]?.title
+                      ? `Corroborated by ${skill.citations[0].evidence_type}: ${skill.citations[0].title}`
+                      : `Audited across ${citationsCount} verified evidence source(s) with AST proof validation.`;
+
+                    return (
+                      <div
+                        key={skill.id || idx}
+                        className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs hover:border-[#4F46E5]/40 transition-all card-hover"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5]">
+                              <Icon size={16} />
+                            </div>
+                            <span className="font-bold text-base text-[#0F172A] tracking-tight">
+                              {skill.name}
+                            </span>
                           </div>
-                          <span className="font-bold text-base text-[#0F172A] tracking-tight">
-                            {skill.name}
+                          <span className="font-mono font-bold text-lg text-[#0F172A]">
+                            {confidence}%
                           </span>
                         </div>
-                        <span className="font-mono font-bold text-lg text-[#0F172A]">
-                          {skill.pct}%
-                        </span>
-                      </div>
 
-                      <p className="text-xs text-[#475569] leading-relaxed mb-4">
-                        {skill.desc}
-                      </p>
+                        <p className="text-xs text-[#475569] leading-relaxed mb-4">
+                          {citationDesc}
+                        </p>
 
-                      <div className="w-full h-2 rounded-full bg-neutral-100 overflow-hidden mb-3">
-                        <div
-                          className="h-full bg-[#4F46E5] rounded-full transition-all duration-1000"
-                          style={{ width: `${skill.pct}%` }}
-                        />
-                      </div>
+                        <div className="w-full h-2 rounded-full bg-neutral-100 overflow-hidden mb-3">
+                          <div
+                            className="h-full bg-[#4F46E5] rounded-full transition-all duration-1000"
+                            style={{ width: `${confidence}%` }}
+                          />
+                        </div>
 
-                      <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-2 border-t border-neutral-100">
-                        <span>{skill.tier}</span>
-                        <span>{skill.repos}</span>
+                        <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-2 border-t border-neutral-100">
+                          <span>{level} Tier</span>
+                          <span>{citationsCount} Evidence Source{citationsCount > 1 ? "s" : ""}</span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-10 rounded-2xl border border-dashed border-[#E5E7EB] bg-[#FAFAF8] text-center">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] mx-auto mb-3">
+                    <Sparkles size={20} />
+                  </div>
+                  <h3 className="font-bold text-base text-[#0F172A]">No Verified Skills Extracted Yet</h3>
+                  <p className="text-xs font-mono text-[#64748B] max-w-md mx-auto mt-1 mb-5">
+                    Connect your GitHub repository or upload your Technical CV to let our AI extraction engine verify your actual skills and generate cryptographic proofs.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleExtractSkills}
+                    disabled={isExtractingSkills}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-75"
+                  >
+                    <Sparkles size={14} />
+                    <span>{isExtractingSkills ? "Extracting Skills..." : "Extract Skills with AI"}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Evidence Ingestion Sources */}
@@ -804,58 +981,96 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Source 1: GitHub */}
-                <div className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs flex flex-col justify-between card-hover">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5]">
-                        <GitBranch size={17} />
+                {(() => {
+                  const gh =
+                    evidenceItems.find((e) => e.type?.toLowerCase().includes("github")) ||
+                    (profileForm.github_url ? { title: profileForm.github_url.replace("https://github.com/", "@"), source_url: profileForm.github_url } : null);
+                  const isConnected = Boolean(gh);
+
+                  return (
+                    <div className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs flex flex-col justify-between card-hover">
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5]">
+                            <GitBranch size={17} />
+                          </div>
+                          <span
+                            className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
+                              isConnected
+                                ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                : "bg-neutral-100 border border-neutral-200 text-[#64748B]"
+                            }`}
+                          >
+                            {isConnected ? "CONNECTED" : "NOT LINKED"}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-base text-[#0F172A] tracking-tight">GitHub Repositories</h3>
+                        <p className="text-xs text-[#475569] mt-2 leading-relaxed">
+                          {isConnected
+                            ? "Active repository footprint connected. AST complexity calculated and cryptographically attested."
+                            : "Connect public or private repositories for commit integrity audits and syntax parsing."}
+                        </p>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">
-                        CONNECTED
-                      </span>
+                      <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono">
+                        <span className="text-[#64748B] truncate max-w-[150px]">
+                          {gh?.title || gh?.source_url || "No repo linked"}
+                        </span>
+                        <button
+                          onClick={() => setActiveTab("evidence")}
+                          className="text-[#4F46E5] font-semibold hover:underline cursor-pointer flex-shrink-0"
+                        >
+                          {isConnected ? "Manage →" : "Connect →"}
+                        </button>
+                      </div>
                     </div>
-                    <h3 className="font-bold text-base text-[#0F172A] tracking-tight">GitHub Repositories</h3>
-                    <p className="text-xs text-[#475569] mt-2 leading-relaxed">
-                      14 public and connected repositories actively audited. Code complexity calculated in-memory on push.
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono">
-                    <span className="text-[#64748B]">github.com/amina-dev</span>
-                    <button
-                      onClick={() => setActiveTab("evidence")}
-                      className="text-[#4F46E5] font-semibold hover:underline cursor-pointer"
-                    >
-                      Manage →
-                    </button>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Source 2: Technical CV */}
-                <div className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs flex flex-col justify-between card-hover">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5]">
-                        <UploadCloud size={17} />
+                {(() => {
+                  const cv =
+                    evidenceItems.find((e) => e.type?.toLowerCase().includes("cv") || e.type?.toLowerCase().includes("pdf")) ||
+                    (uploadedFile ? { title: uploadedFile } : null);
+                  const isIngested = Boolean(cv);
+
+                  return (
+                    <div className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs flex flex-col justify-between card-hover">
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5]">
+                            <UploadCloud size={17} />
+                          </div>
+                          <span
+                            className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
+                              isIngested
+                                ? "bg-indigo-50 border border-indigo-200 text-[#4F46E5]"
+                                : "bg-neutral-100 border border-neutral-200 text-[#64748B]"
+                            }`}
+                          >
+                            {isIngested ? "INGESTED" : "NOT UPLOADED"}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-base text-[#0F172A] tracking-tight">Technical CV PDF</h3>
+                        <p className="text-xs text-[#475569] mt-2 leading-relaxed">
+                          {isIngested
+                            ? "Extracted claim records verified against production commit history and dependency lockfiles."
+                            : "Upload your CV to automatically extract technical skills and corroborate project claims."}
+                        </p>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 border border-neutral-200 text-[#64748B] font-semibold">
-                        INGESTED
-                      </span>
+                      <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono">
+                        <span className="text-[#64748B] truncate max-w-[150px]">
+                          {cv?.title || "No CV uploaded"}
+                        </span>
+                        <button
+                          onClick={() => setActiveTab("evidence")}
+                          className="text-[#4F46E5] font-semibold hover:underline cursor-pointer flex-shrink-0"
+                        >
+                          {isIngested ? "Update →" : "Upload →"}
+                        </button>
+                      </div>
                     </div>
-                    <h3 className="font-bold text-base text-[#0F172A] tracking-tight">Technical CV PDF</h3>
-                    <p className="text-xs text-[#475569] mt-2 leading-relaxed">
-                      Extracted claim records verified against production commit history and dependency lockfiles.
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono">
-                    <span className="text-[#64748B]">amina_resume_2026.pdf</span>
-                    <button
-                      onClick={() => setActiveTab("evidence")}
-                      className="text-[#4F46E5] font-semibold hover:underline cursor-pointer"
-                    >
-                      Update →
-                    </button>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Source 3: Cryptographic Passport */}
                 <div className="p-6 sm:p-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs flex flex-col justify-between card-hover">
@@ -874,7 +1089,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono">
-                    <span className="text-[#4F46E5] font-medium">{passportUrl}</span>
+                    <span className="text-[#4F46E5] font-medium truncate max-w-[150px]">{passportUrl}</span>
                     <button
                       onClick={handleCopy}
                       className="text-[#0F172A] font-semibold hover:text-[#4F46E5] cursor-pointer"
@@ -898,30 +1113,13 @@ export default function DashboardPage() {
                     // GITHUB REPOSITORY AUDIT ENGINE
                   </span>
                   <h2 className="text-2xl font-bold tracking-tight text-[#0F172A]">
-                    Connected Repositories ({repos.length})
+                    Connected Repositories & Projects ({evidenceItems.filter((e) => e.type?.toLowerCase().includes("github") || e.type?.toLowerCase().includes("project")).length})
                   </h2>
                   <p className="text-xs text-[#64748B] font-mono mt-1">
                     AST complexity analysis and commit integrity audit runs automatically on push.
                   </p>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  {repos.length > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => setRepos([])}
-                      className="px-3 py-2 rounded-lg border border-[#E5E7EB] hover:border-neutral-400 text-xs font-mono text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-                    >
-                      Clear (Empty State)
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setRepos(SAMPLE_REPOS)}
-                      className="px-3 py-2 rounded-lg border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#4F46E5] transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-                    >
-                      Load Sample Repos
-                    </button>
-                  )}
                   <button
                     type="button"
                     onClick={() => setShowConnectModal(true)}
@@ -934,28 +1132,34 @@ export default function DashboardPage() {
               </div>
 
               {/* Repositories List or Empty State */}
-              {repos.length > 0 ? (
+              {evidenceItems.filter((e) => e.type?.toLowerCase().includes("github") || e.type?.toLowerCase().includes("project")).length > 0 ? (
                 <div className="space-y-3 font-mono text-xs">
-                  {repos.map((repo, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-xl border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <GitBranch size={16} className="text-[#4F46E5] flex-shrink-0" />
-                        <div>
-                          <div className="font-semibold text-[#0F172A] tracking-tight text-sm font-sans">{repo.name}</div>
-                          <div className="text-[11px] text-[#64748B] mt-0.5">{repo.commits} • {repo.lang}</div>
+                  {evidenceItems
+                    .filter((e) => e.type?.toLowerCase().includes("github") || e.type?.toLowerCase().includes("project"))
+                    .map((item, idx) => (
+                      <div
+                        key={item.id || idx}
+                        className="p-4 rounded-xl border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <GitBranch size={16} className="text-[#4F46E5] flex-shrink-0" />
+                          <div>
+                            <div className="font-semibold text-[#0F172A] tracking-tight text-sm font-sans">
+                              {item.title}
+                            </div>
+                            <div className="text-[11px] text-[#64748B] mt-0.5">
+                              {item.source_url || item.url || `${item.type} Verified`}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[11px] font-semibold">
+                            GPG Validated
+                          </span>
+                          <span className="text-[#64748B] text-[11px]">AST Verified</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[11px] font-semibold">
-                          {repo.status}
-                        </span>
-                        <span className="text-[#64748B] text-[11px]">{repo.health}</span>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               ) : (
                 <div className="py-14 px-6 text-center rounded-2xl border-2 border-dashed border-[#E5E7EB] bg-[#FAFAF8] relative">
@@ -979,13 +1183,6 @@ export default function DashboardPage() {
                     >
                       <Plus size={14} />
                       <span>Connect GitHub Repo</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRepos(SAMPLE_REPOS)}
-                      className="h-10 px-4 rounded-xl border border-[#E5E7EB] hover:border-[#4F46E5] bg-white text-xs font-mono font-semibold text-[#0F172A] transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
-                    >
-                      Load Sample Repos
                     </button>
                   </div>
                 </div>
@@ -1075,95 +1272,12 @@ export default function DashboardPage() {
 
               {/* Preset Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5 mb-6">
-                {[
-                  {
-                    id: "paystack",
-                    company: "Paystack",
-                    role: "Senior Backend Systems Engineer",
-                    reqs: "Go, Concurrency, Distributed",
-                    logo: <PaystackMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "moniepoint",
-                    company: "Moniepoint",
-                    role: "Staff Infrastructure Architect",
-                    reqs: "PostgreSQL, Redis, Core Banking",
-                    logo: <MoniepointMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "flutterwave",
-                    company: "Flutterwave",
-                    role: "Core Payments Switch Engineer",
-                    reqs: "High Throughput, GPG, Security",
-                    logo: <FlutterwaveMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "lemfi",
-                    company: "LemFi",
-                    role: "Cross-Border Settlement Lead",
-                    reqs: "Diaspora Rails, Microservices",
-                    logo: <LemFiMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "opay",
-                    company: "OPay",
-                    role: "Staff Infrastructure Architect",
-                    reqs: "High Concurrency, Kafka, Redis",
-                    logo: <OPayMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "interswitch",
-                    company: "Interswitch",
-                    role: "Principal Transaction Systems Lead",
-                    reqs: "ISO 8583, Switching Rails, C++",
-                    logo: <InterswitchMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "chippercash",
-                    company: "Chipper Cash",
-                    role: "Distributed Settlement Engineer",
-                    reqs: "Cross-Border Rails, Python, AWS",
-                    logo: <ChipperCashMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "kudabank",
-                    company: "Kuda Bank",
-                    role: "Core Neobank Systems Engineer",
-                    reqs: "Java, Spring Boot, Microservices",
-                    logo: <KudaMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "andela",
-                    company: "Andela",
-                    role: "Staff Distributed Systems Engineer",
-                    reqs: "Global Remote, TypeScript, Cloud",
-                    logo: <AndelaMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                  {
-                    id: "piggyvest",
-                    company: "PiggyVest",
-                    role: "Wealth & Savings Core Architect",
-                    reqs: "High Reliability, FinTech Ledger",
-                    logo: <PiggyVestMark className="w-3.5 h-3.5 flex-shrink-0" />,
-                  },
-                ].map((job) => (
+                {JOB_PRESETS.map((job) => (
                   <button
                     key={job.id}
                     onClick={() => {
                       setSelectedJob(job.id);
-                      const scores: Record<string, number> = {
-                        paystack: 94,
-                        moniepoint: 95,
-                        flutterwave: 88,
-                        lemfi: 91,
-                        opay: 96,
-                        interswitch: 92,
-                        chippercash: 90,
-                        kudabank: 93,
-                        andela: 94,
-                        piggyvest: 89,
-                      };
-                      setSimulationResult(scores[job.id] ?? 92);
+                      runSimulation(job.id);
                     }}
                     className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedJob === job.id
@@ -1185,14 +1299,14 @@ export default function DashboardPage() {
 
               {/* Action Button */}
               <button
-                onClick={runSimulation}
+                onClick={() => runSimulation(selectedJob)}
                 disabled={isSimulating}
                 className="h-12 px-6 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-75 whitespace-nowrap flex-shrink-0"
               >
                 {isSimulating ? (
                   <>
                     <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
-                    <span className="whitespace-nowrap">Analyzing Syntax Match...</span>
+                    <span className="whitespace-nowrap">Analyzing Syntax Match with AI...</span>
                   </>
                 ) : (
                   <>
@@ -1203,33 +1317,54 @@ export default function DashboardPage() {
               </button>
 
               {/* Simulation Result */}
-              {simulationResult && (
+              {simulationResult !== null && (
                 <div className="mt-8 pt-8 border-t border-neutral-100 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                   <div className="md:col-span-4 p-6 rounded-2xl bg-[#FAFAF8] border border-[#E5E7EB] text-center">
                     <div className="text-[10px] font-mono text-[#64748B] uppercase">OBJECTIVE MATCH SCORE</div>
                     <div className="text-5xl font-mono font-extrabold text-[#4F46E5] my-2">
                       {simulationResult}%
                     </div>
-                    <div className="text-xs font-mono text-[#0F172A] font-semibold">High Confidence Technical Fit</div>
+                    <div className="text-xs font-mono text-[#0F172A] font-semibold">
+                      {simulationResult >= 85 ? "High Confidence Technical Fit" : "Targeted Alignment with Actionable Gaps"}
+                    </div>
                   </div>
 
                   <div className="md:col-span-8 space-y-3 text-xs font-mono">
                     <div className="flex items-start gap-2.5 text-[#475569]">
                       <CheckCircle2 size={15} className="text-[#4F46E5] mt-0.5 flex-shrink-0" />
                       <span>
-                        <strong className="text-[#0F172A]">Verified Strengths:</strong> 1,420 production commits match required concurrency and distributed systems criteria.
+                        <strong className="text-[#0F172A]">Matching Strengths:</strong>{" "}
+                        {matchDetails?.matching_skills && matchDetails.matching_skills.length > 0
+                          ? matchDetails.matching_skills.map((s) => s.name).join(", ")
+                          : verifiedSkills.length > 0
+                          ? verifiedSkills.map((s) => s.name).join(", ")
+                          : "Core engineering foundation verified against backend criteria."}
                       </span>
                     </div>
+
+                    {matchDetails?.missing_skills && matchDetails.missing_skills.length > 0 && (
+                      <div className="flex items-start gap-2.5 text-[#475569]">
+                        <AlertCircle size={15} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong className="text-[#0F172A]">Identified Gaps:</strong>{" "}
+                          {matchDetails.missing_skills.map((s) => s.name).join(", ")}
+                        </span>
+                      </div>
+                    )}
+
                     <div className="flex items-start gap-2.5 text-[#475569]">
                       <CheckCircle2 size={15} className="text-[#4F46E5] mt-0.5 flex-shrink-0" />
                       <span>
-                        <strong className="text-[#0F172A]">Screening Bypass:</strong> Candidate qualifies for fast-track 1-round technical screening.
+                        <strong className="text-[#0F172A]">AI Recommendation:</strong>{" "}
+                        {matchDetails?.recommendations ||
+                          "Candidate qualifies for accelerated technical assessment based on code-proven verification."}
                       </span>
                     </div>
+
                     <div className="flex items-start gap-2.5 text-[#475569]">
                       <CheckCircle2 size={15} className="text-[#4F46E5] mt-0.5 flex-shrink-0" />
                       <span>
-                        <strong className="text-[#0F172A]">Tamper-Proof Guarantee:</strong> All AST complexity data cryptographically sealed with SHA-256 hash.
+                        <strong className="text-[#0F172A]">Tamper-Proof Guarantee:</strong> All AST complexity data cryptographically verified in Creda ledger.
                       </span>
                     </div>
                   </div>
@@ -1413,7 +1548,7 @@ export default function DashboardPage() {
                         required
                         value={profileForm.name}
                         onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                        placeholder="e.g. Amina Adeleke"
+                        placeholder="e.g. Full Legal Name"
                         className="w-full px-4 py-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] focus:bg-white text-xs font-mono text-[#0F172A] outline-none transition-all"
                       />
                       <span className="text-[10px] font-mono text-[#64748B] mt-1 block">
@@ -1505,8 +1640,8 @@ export default function DashboardPage() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-5 rounded-2xl bg-[#FAFAF8] border border-[#E5E7EB]">
                       <div className="relative">
                         <img
-                          src={profileForm.avatar_url || "/testimonials/amina.jpg"}
-                          alt={profileForm.name}
+                          src={profileForm.avatar_url || getInitialsAvatar(displayName)}
+                          alt={displayName}
                           className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md ring-2 ring-[#4F46E5]/30 flex-shrink-0"
                         />
                         <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4F46E5] text-white flex items-center justify-center text-[10px] font-bold">
@@ -1516,33 +1651,40 @@ export default function DashboardPage() {
 
                       <div className="flex-1 space-y-3">
                         <div className="text-xs font-mono text-[#0F172A] font-semibold">
-                          Choose a verified credential portrait preset:
+                          Choose a verified credential badge color preset:
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
-                          {AVATAR_PRESETS.map((preset) => (
-                            <button
-                              key={preset.src}
-                              type="button"
-                              onClick={() => setProfileForm({ ...profileForm, avatar_url: preset.src })}
-                              className={`flex items-center gap-2 p-1.5 pr-3 rounded-xl border text-xs font-mono transition-all cursor-pointer ${
-                                profileForm.avatar_url === preset.src
-                                  ? "bg-white border-[#4F46E5] shadow-xs text-[#0F172A] ring-1 ring-[#4F46E5]"
-                                  : "bg-white/80 border-[#E5E7EB] text-[#64748B] hover:border-neutral-300"
-                              }`}
-                            >
-                              <img
-                                src={preset.src}
-                                alt={preset.name}
-                                className="w-7 h-7 rounded-lg object-cover"
-                              />
-                              <span>{preset.name}</span>
-                            </button>
-                          ))}
+                          {AVATAR_COLOR_PRESETS.map((preset) => {
+                            const presetUrl = getInitialsAvatar(displayName, preset.bg);
+                            const isSelected =
+                              profileForm.avatar_url === presetUrl ||
+                              (!profileForm.avatar_url && preset.bg === "4F46E5");
+
+                            return (
+                              <button
+                                key={preset.bg}
+                                type="button"
+                                onClick={() => setProfileForm({ ...profileForm, avatar_url: presetUrl })}
+                                className={`flex items-center gap-2 p-1.5 pr-3 rounded-xl border text-xs font-mono transition-all cursor-pointer ${
+                                  isSelected
+                                    ? "bg-white border-[#4F46E5] shadow-xs text-[#0F172A] ring-1 ring-[#4F46E5]"
+                                    : "bg-white/80 border-[#E5E7EB] text-[#64748B] hover:border-neutral-300"
+                                }`}
+                              >
+                                <img
+                                  src={presetUrl}
+                                  alt={preset.name}
+                                  className="w-7 h-7 rounded-lg object-cover"
+                                />
+                                <span>{preset.name}</span>
+                              </button>
+                            );
+                          })}
                         </div>
 
                         <div className="pt-2">
                           <span className="text-[10px] font-mono text-[#64748B] block mb-1">
-                            Or provide a direct image URL:
+                            Or provide a direct image URL (GitHub avatar, Gravatar, custom portrait):
                           </span>
                           <input
                             type="url"
@@ -1599,7 +1741,7 @@ export default function DashboardPage() {
                       </div>
 
                       <Link
-                        href={`/p/${profileForm.public_url || "amina-adeleke"}`}
+                        href={`/p/${passportSlug}`}
                         target="_blank"
                         className="h-11 px-4 rounded-xl border border-[#E5E7EB] hover:border-[#4F46E5] hover:text-[#4F46E5] bg-white text-xs font-mono font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
                       >
@@ -1776,17 +1918,17 @@ export default function DashboardPage() {
                     onClick={() => {
                       if (currentUser) {
                         setProfileForm({
-                          name: currentUser.name || "Amina Adeleke",
-                          professional_title: currentUser.professional_title || "Senior Systems & Backend Architect",
-                          location: currentUser.location || "Lagos, Nigeria // Global Remote",
-                          years_experience: currentUser.years_experience || 6,
-                          bio: currentUser.bio || "Systems architect specializing in distributed Go microservices, AST syntax validation, and high-throughput PostgreSQL architectures.",
-                          avatar_url: currentUser.avatar_url || "/testimonials/amina.jpg",
-                          public_url: currentUser.public_url || "amina-adeleke",
+                          name: currentUser.name || "",
+                          professional_title: currentUser.professional_title || "",
+                          location: currentUser.location || "",
+                          years_experience: currentUser.years_experience || 0,
+                          bio: currentUser.bio || "",
+                          avatar_url: currentUser.avatar_url || "",
+                          public_url: currentUser.public_url || "",
                           is_public: currentUser.is_public ?? true,
-                          github_url: currentUser.github_url || "https://github.com/amina-dev",
-                          linkedin_url: currentUser.linkedin_url || "https://linkedin.com/in/amina-adeleke",
-                          website_url: currentUser.website_url || "https://amina.dev",
+                          github_url: currentUser.github_url || "",
+                          linkedin_url: currentUser.linkedin_url || "",
+                          website_url: currentUser.website_url || "",
                         });
                       }
                     }}

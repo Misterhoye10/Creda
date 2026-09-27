@@ -54,19 +54,19 @@ interface Candidate {
 const CANDIDATES: Candidate[] = [
   {
     id: "c1",
-    name: "Amina Adeleke",
-    avatar: "/testimonials/amina.jpg",
-    title: "Senior Backend & Distributed Systems Engineer",
+    name: "Hoye Adeleke",
+    avatar: "https://ui-avatars.com/api/?name=Hoye+Adeleke&background=4F46E5&color=fff&bold=true",
+    title: "Senior Backend & Distributed Systems Lead",
     location: "Lagos, Nigeria",
     discipline: "software",
     score: 96.4,
     tier: "Code-Proven Tier",
-    skills: ["Go", "TypeScript", "gRPC", "PostgreSQL", "Kafka"],
+    skills: ["Python", "FastAPI", "React", "PostgreSQL", "Git"],
     proofHighlight: "AST validated high-throughput endpoints; 14 repositories audited.",
     reposAudited: 14,
     commitsCount: "1,420 commits",
     availability: "Immediately Available",
-    slug: "amina-adeleke",
+    slug: "hoye",
   },
   {
     id: "c2",
@@ -103,7 +103,7 @@ const CANDIDATES: Candidate[] = [
   {
     id: "c4",
     name: "Fatima Al-Hassan",
-    avatar: "/testimonials/amina.jpg",
+    avatar: "https://ui-avatars.com/api/?name=Fatima+Al-Hassan&background=059669&color=fff&bold=true",
     title: "Senior Data & ML Pipeline Engineer",
     location: "Cairo, Egypt",
     discipline: "data",
