@@ -170,6 +170,15 @@ export default function DashboardPage() {
 
   // Evidence repositories state & loading
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showPortfolioModal, setShowPortfolioModal] = useState(false);
+  const [portfolioForm, setPortfolioForm] = useState({
+    title: "",
+    live_url: "",
+    github_url: "",
+    technologies: "",
+    description: "",
+  });
+  const [isSubmittingPortfolio, setIsSubmittingPortfolio] = useState(false);
   const [repoInput, setRepoInput] = useState("");
   const [isConnectingRepo, setIsConnectingRepo] = useState(false);
   const [isExtractingSkills, setIsExtractingSkills] = useState(false);
@@ -616,6 +625,57 @@ export default function DashboardPage() {
       setRepoInput("");
       setIsConnectingRepo(false);
       setShowConnectModal(false);
+    }
+  };
+
+  const handleAddPortfolio = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!portfolioForm.title.trim() || !portfolioForm.live_url.trim()) return;
+    setIsSubmittingPortfolio(true);
+    try {
+      const techArray = portfolioForm.technologies
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      await api.addProject({
+        title: portfolioForm.title.trim(),
+        live_url: portfolioForm.live_url.trim(),
+        github_url: portfolioForm.github_url.trim() || undefined,
+        technologies: techArray.length > 0 ? techArray : ["Web Architecture", "Frontend", "Fullstack"],
+        description: portfolioForm.description.trim() || "Live portfolio website showcasing engineering projects and technical architecture.",
+      });
+
+      // Automatically sync profile website_url if not set
+      if (!profileForm.website_url) {
+        try {
+          await api.updateUserProfile({ website_url: portfolioForm.live_url.trim() });
+          setProfileForm((prev) => ({ ...prev, website_url: portfolioForm.live_url.trim() }));
+        } catch {
+          // non-blocking
+        }
+      }
+
+      // Trigger skills extraction to audit portfolio technologies and award multi-evidence corroboration
+      try {
+        await api.extractSkills();
+      } catch {
+        // non-blocking
+      }
+
+      await loadDashboardData();
+      setShowPortfolioModal(false);
+      setPortfolioForm({
+        title: "",
+        live_url: "",
+        github_url: "",
+        technologies: "",
+        description: "",
+      });
+    } catch (err: any) {
+      alert(err?.message || "Failed to add portfolio website");
+    } finally {
+      setIsSubmittingPortfolio(false);
     }
   };
 
@@ -1197,6 +1257,14 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2.5">
                   <button
                     type="button"
+                    onClick={() => setShowPortfolioModal(true)}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono uppercase font-semibold border border-[#E5E7EB] hover:border-[#4F46E5] bg-white hover:bg-neutral-50 text-[#0F172A] transition-all shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0"
+                  >
+                    <Globe size={14} className="text-[#4F46E5] flex-shrink-0" />
+                    <span className="whitespace-nowrap">Add Portfolio / Live URL</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setShowConnectModal(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
@@ -1267,10 +1335,25 @@ export default function DashboardPage() {
                           className="p-4 rounded-xl border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                         >
                           <div className="flex items-center gap-3">
-                            <GitBranch size={16} className="text-[#4F46E5] flex-shrink-0" />
+                            {item.type?.toLowerCase().includes("project") ? (
+                              <Globe size={16} className="text-[#4F46E5] flex-shrink-0" />
+                            ) : (
+                              <GitBranch size={16} className="text-[#4F46E5] flex-shrink-0" />
+                            )}
                             <div>
-                              <div className="font-semibold text-[#0F172A] tracking-tight text-sm font-sans">
-                                {item.title}
+                              <div className="font-semibold text-[#0F172A] tracking-tight text-sm font-sans flex items-center gap-2">
+                                <span>{item.title}</span>
+                                {(item.source_url || item.url) && (
+                                  <a
+                                    href={(item.source_url || item.url).startsWith("http") ? (item.source_url || item.url) : `https://${item.source_url || item.url}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#4F46E5] hover:underline inline-flex items-center gap-1 text-[11px] font-mono font-normal"
+                                  >
+                                    <span>Visit Live</span>
+                                    <ExternalLink size={10} />
+                                  </a>
+                                )}
                               </div>
                               <div className="text-[11px] text-[#64748B] mt-0.5">
                                 {item.source_url || item.url || `${item.type} Verified`}
@@ -1279,7 +1362,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-[#4F46E5] text-[11px] font-semibold">
-                              GPG Validated
+                              {item.type?.toLowerCase().includes("project") ? "Live Verified" : "GPG Validated"}
                             </span>
                             <span className="text-[#64748B] text-[11px]">AST Verified</span>
                           </div>
@@ -1295,19 +1378,27 @@ export default function DashboardPage() {
                   <span className="absolute bottom-2 right-2 text-[9px] font-mono text-neutral-300 select-none">+</span>
 
                   <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] mx-auto mb-3">
-                    <GitBranch size={22} />
+                    <Globe size={22} />
                   </div>
-                  <h3 className="text-base font-bold text-[#0F172A] tracking-tight">No Repositories Linked Yet</h3>
+                  <h3 className="text-base font-bold text-[#0F172A] tracking-tight">No Code or Portfolio Linked Yet</h3>
                   <p className="text-xs font-mono text-[#64748B] max-w-sm mx-auto mt-1 leading-relaxed">
-                    Connect your public or private GitHub repository to trigger automated in-memory AST syntax parsing and commit integrity audits.
+                    Connect your GitHub profile or add your live portfolio website to trigger automated in-memory AST syntax parsing and multi-evidence corroboration.
                   </p>
-                  <div className="mt-5 flex items-center justify-center gap-3">
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowPortfolioModal(true)}
+                      className="h-10 px-4 rounded-xl border border-[#E5E7EB] hover:border-[#4F46E5] bg-white text-xs font-mono font-semibold text-[#0F172A] transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
+                    >
+                      <Globe size={14} className="text-[#4F46E5]" />
+                      <span>Add Live Portfolio</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => setShowConnectModal(true)}
                       className="h-10 px-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
                     >
-                      <Plus size={14} />
+                      <GitBranch size={14} />
                       <span>Connect GitHub</span>
                     </button>
                   </div>
@@ -2156,6 +2247,120 @@ export default function DashboardPage() {
                   className="px-5 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-75 whitespace-nowrap"
                 >
                   {isConnectingRepo ? "Auditing GitHub Telemetry..." : "Connect & Audit GitHub →"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Portfolio / Live Website Modal ──────────────────────── */}
+      {showPortfolioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-2xl relative">
+            <button
+              onClick={() => setShowPortfolioModal(false)}
+              className="absolute top-4 right-4 text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5]">
+                <Globe size={16} />
+              </div>
+              <span className="text-xs font-mono uppercase font-bold text-[#4F46E5]">
+                // LIVE PORTFOLIO & ARCHITECTURE EVIDENCE
+              </span>
+            </div>
+
+            <h3 className="text-xl font-bold text-[#0F172A] tracking-tight">Add Portfolio / Live Website</h3>
+            <p className="text-xs text-[#64748B] font-mono mt-1 mb-5 leading-relaxed">
+              Link your live engineering portfolio or deployed system. Creda audits listed technologies and unlocks multi-evidence corroboration (+10% to +18%).
+            </p>
+
+            <form onSubmit={handleAddPortfolio} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1">
+                  Portfolio / Project Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Personal Engineering Portfolio or Decentralized Ledger"
+                  value={portfolioForm.title}
+                  onChange={(e) => setPortfolioForm({ ...portfolioForm, title: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1">
+                  Live Portfolio Website URL *
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://yourportfolio.dev or https://app.domain.com"
+                  value={portfolioForm.live_url}
+                  onChange={(e) => setPortfolioForm({ ...portfolioForm, live_url: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1">
+                  GitHub Repository (Optional)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://github.com/username/portfolio"
+                  value={portfolioForm.github_url}
+                  onChange={(e) => setPortfolioForm({ ...portfolioForm, github_url: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1">
+                  Demonstrated Tech Stack (Comma-separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. React, TypeScript, Next.js, Tailwind CSS, FastAPI"
+                  value={portfolioForm.technologies}
+                  onChange={(e) => setPortfolioForm({ ...portfolioForm, technologies: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1">
+                  Architectural Summary / Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Brief summary of production features, architecture, and live benchmarks..."
+                  value={portfolioForm.description}
+                  onChange={(e) => setPortfolioForm({ ...portfolioForm, description: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPortfolioModal(false)}
+                  className="px-4 py-2 rounded-xl border border-[#E5E7EB] hover:bg-neutral-50 text-xs font-mono text-[#64748B] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingPortfolio}
+                  className="px-5 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-75 whitespace-nowrap"
+                >
+                  {isSubmittingPortfolio ? "Auditing Portfolio..." : "Submit & Audit Portfolio →"}
                 </button>
               </div>
             </form>
