@@ -17,7 +17,7 @@ from app.schemas.evidence import (
 from app.schemas.auth import MessageResponse
 from app.services.pdf_service import extract_text_from_pdf
 from app.services.storage_service import save_file, delete_file
-from app.services.github_service import fetch_github_profile_and_repos
+from app.services.github_service import fetch_github_profile_and_repos, get_github_client
 
 router = APIRouter(prefix="/evidence", tags=["Evidence Management"])
 
@@ -97,11 +97,26 @@ def connect_github(
     db: Session = Depends(get_db)
 ):
     raw_user = data.username.strip().lstrip("@")
-    # Normalize full GitHub URLs if candidate pasted a link
+    # Normalize full GitHub URLs if candidate pasted a link (e.g. https://github.com/octocat or github.com/octocat/repo)
     if "github.com/" in raw_user:
         raw_user = raw_user.split("github.com/")[-1].strip("/")
     # Handle username/repo syntax
-    username = raw_user.split("/")[0].strip()
+    if "/" in raw_user:
+        raw_user = raw_user.split("/")[0].strip()
+
+    # Handle email input (e.g. dev@example.com)
+    if "@" in raw_user and "." in raw_user:
+        try:
+            g = get_github_client()
+            matched_users = g.search_users(f"{raw_user} in:email")
+            if matched_users.totalCount > 0:
+                username = matched_users[0].login
+            else:
+                username = raw_user.split("@")[0].strip()
+        except Exception:
+            username = raw_user.split("@")[0].strip()
+    else:
+        username = raw_user
 
     if not username:
         raise HTTPException(

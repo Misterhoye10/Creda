@@ -360,6 +360,10 @@ export default function DashboardPage() {
   const passportUrl = `creda.work/p/${passportSlug}`;
 
   // Average confidence score across verified skills
+  const hasVerifiedSkills = Boolean(
+    (skillsSummary && skillsSummary.average_confidence > 0) || verifiedSkills.length > 0
+  );
+
   const averageConfidence = useMemo(() => {
     if (skillsSummary && skillsSummary.average_confidence > 0) {
       return skillsSummary.average_confidence;
@@ -368,7 +372,7 @@ export default function DashboardPage() {
       const sum = verifiedSkills.reduce((acc, s) => acc + (s.confidence || 0), 0);
       return Math.round((sum / verifiedSkills.length) * 10) / 10;
     }
-    return 80.0;
+    return 0.0;
   }, [skillsSummary, verifiedSkills]);
 
   // Real-time completeness calculation mirroring backend passport service
@@ -900,15 +904,46 @@ export default function DashboardPage() {
                     <div className="text-[10px] font-mono uppercase tracking-widest text-[#64748B] font-semibold">
                       OVERALL TRUST INDEX
                     </div>
-                    <div className="text-xs font-mono text-[#4F46E5] font-bold mt-0.5">
-                      Top 2% African Talent
-                    </div>
-                    <div className="text-[11px] font-mono text-[#64748B] mt-2">
-                      Zero synthetic inflation
-                    </div>
+                    {hasVerifiedSkills ? (
+                      <>
+                        <div className="text-xs font-mono text-[#4F46E5] font-bold mt-0.5">
+                          {averageConfidence >= 90
+                            ? "Top 2% African Talent"
+                            : averageConfidence >= 80
+                            ? "Top 5% African Talent"
+                            : averageConfidence >= 70
+                            ? "Top 15% Verified Talent"
+                            : "Verified Talent"}
+                        </div>
+                        <div className="text-[11px] font-mono text-[#64748B] mt-2">
+                          Zero synthetic inflation
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-xs font-mono text-amber-600 font-bold mt-0.5">
+                          Awaiting Code Audit
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowConnectModal(true)}
+                          className="text-[11px] font-mono text-[#4F46E5] hover:underline mt-2 font-semibold flex items-center gap-1 cursor-pointer"
+                        >
+                          Connect GitHub to Audit →
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="text-4xl sm:text-5xl font-mono font-extrabold text-[#0F172A] pl-5 border-l border-[#E5E7EB]">
-                    {averageConfidence.toFixed(1)}<span className="text-sm text-[#64748B] font-normal">%</span>
+                    {hasVerifiedSkills ? (
+                      <>
+                        {averageConfidence.toFixed(1)}<span className="text-sm text-[#64748B] font-normal">%</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[#94A3B8]">--</span><span className="text-sm text-[#94A3B8] font-normal">%</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1150,13 +1185,13 @@ export default function DashboardPage() {
               <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div>
                   <span className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold block mb-1">
-                    // GITHUB REPOSITORY AUDIT ENGINE
+                    // GITHUB & PROOF-OF-WORK AUDIT ENGINE
                   </span>
                   <h2 className="text-2xl font-bold tracking-tight text-[#0F172A]">
-                    Connected Repositories & Projects ({evidenceItems.filter((e) => e.type?.toLowerCase().includes("github") || e.type?.toLowerCase().includes("project")).length})
+                    Connected GitHub & Technical Evidence ({evidenceItems.filter((e) => e.type?.toLowerCase().includes("github") || e.type?.toLowerCase().includes("project")).length})
                   </h2>
                   <p className="text-xs text-[#64748B] font-mono mt-1">
-                    AST complexity analysis and commit integrity audit runs automatically on push.
+                    AST complexity analysis, language bytes, and commit integrity audit run automatically.
                   </p>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -1165,8 +1200,8 @@ export default function DashboardPage() {
                     onClick={() => setShowConnectModal(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
-                    <Plus size={14} className="flex-shrink-0" />
-                    <span className="whitespace-nowrap">Connect Repository</span>
+                    <GitBranch size={14} className="flex-shrink-0" />
+                    <span className="whitespace-nowrap">Connect GitHub</span>
                   </button>
                 </div>
               </div>
@@ -1273,7 +1308,7 @@ export default function DashboardPage() {
                       className="h-10 px-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
                     >
                       <Plus size={14} />
-                      <span>Connect GitHub Repo</span>
+                      <span>Connect GitHub</span>
                     </button>
                   </div>
                 </div>
@@ -2083,24 +2118,24 @@ export default function DashboardPage() {
                 <GitBranch size={16} />
               </div>
               <span className="text-xs font-mono uppercase font-bold text-[#4F46E5]">
-                // IN-MEMORY AST AUDIT
+                // GITHUB PROOF-OF-WORK AUDIT
               </span>
             </div>
 
-            <h3 className="text-xl font-bold text-[#0F172A] tracking-tight">Connect Repository</h3>
+            <h3 className="text-xl font-bold text-[#0F172A] tracking-tight">Connect GitHub</h3>
             <p className="text-xs text-[#64748B] font-mono mt-1 mb-6">
-              Enter your GitHub repo URL or handle/repository. No code is stored on our servers.
+              Enter your GitHub username, profile link, or email. Creda analyzes your public repositories, code depth, and commit telemetry.
             </p>
 
             <form onSubmit={handleConnectRepo} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
-                  Repository Identifier
+                  GitHub Username, Profile URL, or Email
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. username/distributed-systems"
+                  placeholder="e.g. octocat, https://github.com/octocat, or name@domain.com"
                   value={repoInput}
                   onChange={(e) => setRepoInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none"
@@ -2120,7 +2155,7 @@ export default function DashboardPage() {
                   disabled={isConnectingRepo}
                   className="px-5 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-75 whitespace-nowrap"
                 >
-                  {isConnectingRepo ? "Auditing Repository..." : "Run AST Handshake"}
+                  {isConnectingRepo ? "Auditing GitHub Telemetry..." : "Connect & Audit GitHub →"}
                 </button>
               </div>
             </form>
