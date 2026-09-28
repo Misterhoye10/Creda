@@ -228,6 +228,11 @@ class ApiClient {
     return this.request<SkillPassportResponse>(`/passport/${formattedId}`);
   }
 
+  // Public Passport Directory Endpoint (for recruiter discovery)
+  async getPublicPassportDirectory(limit: number = 50): Promise<any[]> {
+    return this.request<any[]>(`/passport/directory?limit=${limit}`);
+  }
+
   // Evidence Endpoints
   async uploadCV(file: File): Promise<any> {
     const formData = new FormData();

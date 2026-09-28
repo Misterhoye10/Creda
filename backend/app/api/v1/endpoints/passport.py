@@ -8,6 +8,18 @@ from app.services.passport import get_public_passport
 router = APIRouter(prefix="/passport", tags=["Skill Passport"])
 
 
+@router.get("/directory", summary="Public Candidate Passport Directory")
+def get_passport_directory(
+    limit: int = 50,
+    db: Session = Depends(get_db)
+):
+    """
+    Lists publicly discoverable candidate passports for recruiters and hiring managers.
+    """
+    from app.services.passport import get_public_passport_directory
+    return get_public_passport_directory(db=db, limit=limit)
+
+
 @router.get("/{identifier}", response_model=SkillPassportResponse)
 def get_public_skill_passport(
     identifier: str,

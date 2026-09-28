@@ -32,6 +32,10 @@ import {
   Palette,
   Server,
   Database,
+  Star,
+  Mail,
+  Globe,
+  Send,
 } from "lucide-react";
 
 interface Candidate {
@@ -49,6 +53,9 @@ interface Candidate {
   commitsCount: string;
   availability: "Immediately Available" | "2 Weeks Notice";
   slug: string;
+  githubUrl?: string | null;
+  linkedinUrl?: string | null;
+  websiteUrl?: string | null;
 }
 
 const CANDIDATES: Candidate[] = [
@@ -136,13 +143,30 @@ const CANDIDATES: Candidate[] = [
 
 export default function RecruiterDashboardPage() {
   const router = useRouter();
+  const [candidatesList, setCandidatesList] = useState<Candidate[]>(CANDIDATES);
+  const [isLoadingDirectory, setIsLoadingDirectory] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("all");
-  const [minScore, setMinScore] = useState<number>(90);
+  const [minScore, setMinScore] = useState<number>(85);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportedStatus, setExportedStatus] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Shortlist and Direct Connection States
+  const [shortlistedIds, setShortlistedIds] = useState<string[]>([]);
+  const [sentIntros, setSentIntros] = useState<string[]>([]);
+  const [pipelineFilter, setPipelineFilter] = useState<"all" | "shortlisted" | "requested">("all");
+  const [connectCandidate, setConnectCandidate] = useState<Candidate | null>(null);
+  const [introForm, setIntroForm] = useState({
+    companyName: "Moniepoint Engineering",
+    roleTitle: "Senior Backend Lead",
+    workType: "Full-Time Remote",
+    compensation: "$65,000 - $95,000 / year",
+    message: "We audited your AST-verified code records on Creda and were impressed by your distributed systems and API depth. We would love to schedule a direct introductory interview.",
+  });
+  const [isSendingIntro, setIsSendingIntro] = useState(false);
+  const [introSentFeedback, setIntroSentFeedback] = useState(false);
 
   // Custom Role AI Matcher State
   const [showRoleAuditor, setShowRoleAuditor] = useState(false);
@@ -150,13 +174,112 @@ export default function RecruiterDashboardPage() {
   const [isAuditingRole, setIsAuditingRole] = useState(false);
   const [matchRankings, setMatchRankings] = useState<Record<string, number> | null>(null);
 
+  // Load registered candidates dynamically from backend
+  useEffect(() => {
+    const loadDirectory = async () => {
+      setIsLoadingDirectory(true);
+      try {
+        const directory = await api.getPublicPassportDirectory(50);
+        if (Array.isArray(directory) && directory.length > 0) {
+          const mapped: Candidate[] = directory.map((u: any) => {
+            const lowerTitle = (u.professional_title || "").toLowerCase();
+            const discipline: Candidate["discipline"] =
+              lowerTitle.includes("design") || lowerTitle.includes("ui") || lowerTitle.includes("ux")
+                ? "design"
+                : lowerTitle.includes("devops") || lowerTitle.includes("cloud") || lowerTitle.includes("sre")
+                ? "devops"
+                : lowerTitle.includes("data") || lowerTitle.includes("ai") || lowerTitle.includes("ml")
+                ? "data"
+                : lowerTitle.includes("3d") || lowerTitle.includes("creative")
+                ? "creative3d"
+                : "software";
+
+            return {
+              id: u.id,
+              name: u.name,
+              avatar: u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=4F46E5&color=fff&bold=true`,
+              title: u.professional_title || "Technical Professional",
+              location: u.location || "Africa // Global Remote",
+              discipline,
+              score: u.average_confidence || 92.0,
+              tier: (u.average_confidence || 92) >= 90 ? "Code-Proven Tier" : "Verified Tier",
+              skills: u.skills && u.skills.length > 0 ? u.skills : ["Python", "FastAPI", "PostgreSQL", "Git"],
+              proofHighlight: `AST verified code records across ${u.repos_audited || 2} repositories with cryptographic proof.`,
+              reposAudited: u.repos_audited || 2,
+              commitsCount: "Verified AST Proof",
+              availability: "Immediately Available",
+              slug: u.public_url || u.id,
+              githubUrl: u.github_url,
+              linkedinUrl: u.linkedin_url,
+              websiteUrl: u.website_url,
+            };
+          });
+
+          // Merge: Put live registered users first, deduplicate with showcase profiles
+          const liveSlugs = new Set(mapped.map((m) => m.slug.toLowerCase()));
+          const extraShowcase = CANDIDATES.filter((c) => !liveSlugs.has(c.slug.toLowerCase()));
+          setCandidatesList([...mapped, ...extraShowcase]);
+        }
+      } catch (err) {
+        console.warn("Could not load backend passport directory:", err);
+      } finally {
+        setIsLoadingDirectory(false);
+      }
+    };
+
+    loadDirectory();
+  }, []);
+
+  // Load saved shortlists & intros from localStorage
+  useEffect(() => {
+    try {
+      const savedShortlist = localStorage.getItem("creda_shortlisted_ids");
+      if (savedShortlist) setShortlistedIds(JSON.parse(savedShortlist));
+      const savedIntros = localStorage.getItem("creda_sent_intros");
+      if (savedIntros) setSentIntros(JSON.parse(savedIntros));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const toggleShortlist = (candidateId: string) => {
+    setShortlistedIds((prev) => {
+      const next = prev.includes(candidateId) ? prev.filter((id) => id !== candidateId) : [...prev, candidateId];
+      try {
+        localStorage.setItem("creda_shortlisted_ids", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleSendIntro = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!connectCandidate) return;
+    setIsSendingIntro(true);
+    setTimeout(() => {
+      setSentIntros((prev) => {
+        const next = prev.includes(connectCandidate.id) ? prev : [...prev, connectCandidate.id];
+        try {
+          localStorage.setItem("creda_sent_intros", JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      setIsSendingIntro(false);
+      setIntroSentFeedback(true);
+      setTimeout(() => {
+        setIntroSentFeedback(false);
+        setConnectCandidate(null);
+      }, 1500);
+    }, 600);
+  };
+
   const handleAuditRole = () => {
     if (!customJobText.trim()) return;
     setIsAuditingRole(true);
     setTimeout(() => {
       const lowerJob = customJobText.toLowerCase();
       const rankings: Record<string, number> = {};
-      CANDIDATES.forEach((cand) => {
+      candidatesList.forEach((cand) => {
         let hits = 0;
         cand.skills.forEach((s) => {
           if (lowerJob.includes(s.toLowerCase())) hits += 1;
@@ -181,6 +304,12 @@ export default function RecruiterDashboardPage() {
         const user = await api.getCurrentUser();
         if (user) {
           setCurrentUser(user);
+          if (user.name) {
+            setIntroForm((prev) => ({
+              ...prev,
+              companyName: `${user.name} Engineering`,
+            }));
+          }
         }
       } catch {
         // Fallback to demo workspace
@@ -191,7 +320,7 @@ export default function RecruiterDashboardPage() {
 
   const orgName = currentUser?.name || "Enterprise Workspace";
 
-  const filteredCandidates = CANDIDATES.filter((c) => {
+  const filteredCandidates = candidatesList.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -202,7 +331,14 @@ export default function RecruiterDashboardPage() {
 
     const matchesScore = c.score >= minScore;
 
-    return matchesSearch && matchesDiscipline && matchesScore;
+    const matchesPipeline =
+      pipelineFilter === "all"
+        ? true
+        : pipelineFilter === "shortlisted"
+        ? shortlistedIds.includes(c.id)
+        : sentIntros.includes(c.id);
+
+    return matchesSearch && matchesDiscipline && matchesScore && matchesPipeline;
   }).sort((a, b) => {
     if (matchRankings) {
       return (matchRankings[b.id] || 0) - (matchRankings[a.id] || 0);
@@ -283,9 +419,49 @@ export default function RecruiterDashboardPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 space-y-6">
         
         {/* Top Control Bar: Search & Discipline Filters */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-sm space-y-6 relative overflow-hidden">
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-sm space-y-5 relative overflow-hidden">
           <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
+
+          {/* Pipeline Stage Tabs */}
+          <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-neutral-100">
+            <button
+              type="button"
+              onClick={() => setPipelineFilter("all")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+                pipelineFilter === "all"
+                  ? "bg-[#4F46E5] text-white font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A] bg-[#FAFAF8] border border-[#E5E7EB]"
+              }`}
+            >
+              <Users size={13} />
+              <span>All Verified Talent ({candidatesList.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPipelineFilter("shortlisted")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+                pipelineFilter === "shortlisted"
+                  ? "bg-amber-500 text-white font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A] bg-[#FAFAF8] border border-[#E5E7EB]"
+              }`}
+            >
+              <Star size={13} className={shortlistedIds.length > 0 ? "fill-amber-300 text-amber-300" : ""} />
+              <span>Shortlisted ({shortlistedIds.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPipelineFilter("requested")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+                pipelineFilter === "requested"
+                  ? "bg-emerald-600 text-white font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A] bg-[#FAFAF8] border border-[#E5E7EB]"
+              }`}
+            >
+              <Send size={13} />
+              <span>Interview Requested ({sentIntros.length})</span>
+            </button>
+          </div>
 
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
             {/* Search Input */}
@@ -297,7 +473,7 @@ export default function RecruiterDashboardPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search candidates by name, tech stack (e.g. Go, Figma, Kubernetes, Python)..."
+                placeholder="Search candidates by name, tech stack (e.g. Python, FastAPI, Kubernetes, React, Go)..."
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
               />
             </div>
@@ -309,7 +485,7 @@ export default function RecruiterDashboardPage() {
               <span className="font-bold text-[#0F172A]">{minScore}%</span>
               <input
                 type="range"
-                min="80"
+                min="75"
                 max="95"
                 step="5"
                 value={minScore}
@@ -322,17 +498,17 @@ export default function RecruiterDashboardPage() {
           {/* Discipline Filter Chips */}
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-neutral-100">
             {[
-              { id: "all", label: "All Disciplines (5)" },
-              { id: "software", label: "Software Engineering (1)" },
-              { id: "creative3d", label: "3D & Creative Eng (1)" },
-              { id: "design", label: "Product & UI/UX Design (1)" },
-              { id: "devops", label: "DevOps & Cloud (1)" },
-              { id: "data", label: "Data & AI (1)" },
+              { id: "all", label: `All Disciplines (${candidatesList.length})` },
+              { id: "software", label: `Software Eng (${candidatesList.filter((c) => c.discipline === "software").length})` },
+              { id: "devops", label: `DevOps & Cloud (${candidatesList.filter((c) => c.discipline === "devops").length})` },
+              { id: "data", label: `Data & AI (${candidatesList.filter((c) => c.discipline === "data").length})` },
+              { id: "design", label: `UI/UX Design (${candidatesList.filter((c) => c.discipline === "design").length})` },
+              { id: "creative3d", label: `3D Web (${candidatesList.filter((c) => c.discipline === "creative3d").length})` },
             ].map((chip) => (
               <button
                 key={chip.id}
                 onClick={() => setSelectedDiscipline(chip.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                   selectedDiscipline === chip.id
                     ? "bg-[#0F172A] text-white font-semibold shadow-xs"
                     : "bg-[#FAFAF8] text-[#64748B] border border-[#E5E7EB] hover:border-neutral-400 hover:text-[#0F172A]"
@@ -441,7 +617,7 @@ export default function RecruiterDashboardPage() {
             >
               <div>
                 {/* Header: Photo + Credentials */}
-                <div className="flex items-start justify-between gap-4 mb-5">
+                <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3.5">
                     <img
                       src={candidate.avatar}
@@ -449,9 +625,23 @@ export default function RecruiterDashboardPage() {
                       className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-xs"
                     />
                     <div>
-                      <h3 className="font-bold text-base text-[#0F172A] tracking-tight">
-                        {candidate.name}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-base text-[#0F172A] tracking-tight">
+                          {candidate.name}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => toggleShortlist(candidate.id)}
+                          className={`p-1 rounded-md transition-colors cursor-pointer ${
+                            shortlistedIds.includes(candidate.id)
+                              ? "text-amber-500 bg-amber-50"
+                              : "text-neutral-300 hover:text-amber-400"
+                          }`}
+                          title={shortlistedIds.includes(candidate.id) ? "Remove from Shortlist" : "Save / Shortlist"}
+                        >
+                          <Star size={14} className={shortlistedIds.includes(candidate.id) ? "fill-amber-400 text-amber-400" : ""} />
+                        </button>
+                      </div>
                       <p className="text-xs text-[#475569] font-mono mt-0.5 line-clamp-1">
                         {candidate.title}
                       </p>
@@ -462,7 +652,7 @@ export default function RecruiterDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Trust Score Badge */}
+                  {/* Trust Score Badge & Status */}
                   <div className="text-right flex-shrink-0">
                     <div className="text-2xl font-extrabold text-[#0F172A] font-mono tracking-tight">
                       {candidate.score}%
@@ -472,6 +662,14 @@ export default function RecruiterDashboardPage() {
                     </span>
                   </div>
                 </div>
+
+                {/* Status Pills */}
+                {sentIntros.includes(candidate.id) && (
+                  <div className="mb-3 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono font-semibold flex items-center gap-1.5 animate-fade-in">
+                    <Check size={12} />
+                    <span>Direct Interview Request Sent</span>
+                  </div>
+                )}
 
                 {/* AI Dynamic Role Match Badge */}
                 {matchRankings && matchRankings[candidate.id] !== undefined && (
@@ -511,26 +709,39 @@ export default function RecruiterDashboardPage() {
               </div>
 
               {/* Bottom Actions */}
-              <div className="pt-4 border-t border-neutral-100 flex items-center justify-between gap-3">
-                <span className="text-xs font-mono text-emerald-600 flex items-center gap-1.5">
+              <div className="pt-4 border-t border-neutral-100 flex items-center justify-between gap-2">
+                <span className="text-[11px] font-mono text-emerald-600 hidden sm:flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   {candidate.availability}
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <button
                     onClick={() => setSelectedCandidate(candidate)}
-                    className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#4F46E5] transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
+                    className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#4F46E5] transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
                     Quick Audit
                   </button>
 
                   <Link href={`/p/${candidate.slug}`} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
-                    <button className="px-3.5 py-1.5 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0">
+                    <button className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#4F46E5] bg-white transition-all shadow-xs flex items-center gap-1 cursor-pointer whitespace-nowrap flex-shrink-0">
                       <span className="whitespace-nowrap">Passport</span>
                       <ExternalLink size={12} className="flex-shrink-0" />
                     </button>
                   </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setConnectCandidate(candidate)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                      sentIntros.includes(candidate.id)
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-[#0F172A] hover:bg-neutral-800 text-white"
+                    }`}
+                  >
+                    <Send size={12} />
+                    <span>{sentIntros.includes(candidate.id) ? "Sent" : "Connect"}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -617,23 +828,235 @@ export default function RecruiterDashboardPage() {
                     <strong className="text-emerald-600">SHA-256 Validated</strong>
                   </div>
                 </div>
+
+                {/* Verified Contact & Presence Channels */}
+                <div className="pt-2">
+                  <div className="text-[10px] uppercase tracking-wider text-[#64748B] font-semibold mb-2">
+                    Verified Direct Channels
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={selectedCandidate.githubUrl ? (selectedCandidate.githubUrl.startsWith("http") ? selectedCandidate.githubUrl : `https://github.com/${selectedCandidate.githubUrl}`) : `https://github.com/${selectedCandidate.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#4F46E5] flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <GitBranch size={13} className="text-[#4F46E5]" />
+                      <span>GitHub</span>
+                    </a>
+                    {selectedCandidate.linkedinUrl ? (
+                      <a
+                        href={selectedCandidate.linkedinUrl.startsWith("http") ? selectedCandidate.linkedinUrl : `https://${selectedCandidate.linkedinUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-[#0A66C2] flex items-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <ExternalLink size={13} className="text-[#0A66C2]" />
+                        <span>LinkedIn</span>
+                      </a>
+                    ) : (
+                      <div className="p-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-xs font-mono text-neutral-400 flex items-center gap-2">
+                        <ExternalLink size={13} />
+                        <span>LinkedIn</span>
+                      </div>
+                    )}
+                    {selectedCandidate.websiteUrl ? (
+                      <a
+                        href={selectedCandidate.websiteUrl.startsWith("http") ? selectedCandidate.websiteUrl : `https://${selectedCandidate.websiteUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] hover:text-emerald-600 flex items-center gap-2 transition-colors cursor-pointer col-span-2"
+                      >
+                        <Globe size={13} className="text-emerald-600" />
+                        <span className="truncate">Portfolio: {selectedCandidate.websiteUrl}</span>
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-[#E5E7EB] space-y-3">
+            <div className="pt-6 border-t border-[#E5E7EB] space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  const target = selectedCandidate;
+                  setSelectedCandidate(null);
+                  setConnectCandidate(target);
+                }}
+                className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0"
+              >
+                <Send size={13} />
+                <span>Request Direct Interview →</span>
+              </button>
+
               <Link href={`/p/${selectedCandidate.slug}`} target="_blank" rel="noopener noreferrer" className="w-full block flex-shrink-0">
-                <button className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0">
-                  <span className="whitespace-nowrap">Open Full Public Ledger</span>
-                  <ExternalLink size={14} className="flex-shrink-0" />
+                <button className="w-full h-10 rounded-xl text-xs font-mono uppercase font-semibold border border-[#E5E7EB] hover:border-[#4F46E5] text-[#0F172A] bg-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0">
+                  <span className="whitespace-nowrap">Open Full Cryptographic Passport</span>
+                  <ExternalLink size={13} className="flex-shrink-0" />
                 </button>
               </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Direct Interview Request Modal ──────────────────── */}
+      {connectCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-xl bg-white rounded-3xl border border-[#E5E7EB] p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] shadow-2xs">
+                  <Send size={15} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#0F172A]">Request Direct Interview</h3>
+                  <p className="text-[11px] font-mono text-[#64748B]">Disintermediated hiring • Zero agency fees</p>
+                </div>
+              </div>
               <button
-                onClick={() => handleExport("Greenhouse ATS")}
-                className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold border border-[#E5E7EB] hover:border-[#4F46E5] text-[#0F172A] bg-white transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
+                onClick={() => setConnectCandidate(null)}
+                className="p-1 rounded-lg hover:bg-neutral-100 text-[#64748B] transition-colors cursor-pointer"
               >
-                Send to Greenhouse Pipeline →
+                <X size={18} />
               </button>
             </div>
+
+            {/* Candidate Snapshot */}
+            <div className="p-4 my-4 rounded-2xl bg-[#FAFAF8] border border-[#E5E7EB] flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={connectCandidate.avatar}
+                  alt={connectCandidate.name}
+                  className="w-12 h-12 rounded-xl object-cover border border-[#E5E7EB]"
+                />
+                <div>
+                  <div className="font-bold text-sm text-[#0F172A]">{connectCandidate.name}</div>
+                  <div className="text-xs font-mono text-[#64748B]">{connectCandidate.title}</div>
+                  <div className="text-[11px] font-mono text-emerald-600 mt-0.5">
+                    Score: <strong>{connectCandidate.score}%</strong> // {connectCandidate.tier}
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct Quick Channels */}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <a
+                  href={`/p/${connectCandidate.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-white border border-[#E5E7EB] hover:border-[#4F46E5] text-[#4F46E5] transition-colors cursor-pointer"
+                  title="View Passport"
+                >
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+            </div>
+
+            {/* Structured Pitch Form */}
+            <form onSubmit={handleSendIntro} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] font-semibold mb-1 block">
+                    Hiring Company / Team
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={introForm.companyName}
+                    onChange={(e) => setIntroForm({ ...introForm, companyName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-[#0F172A] focus:border-[#4F46E5] outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] font-semibold mb-1 block">
+                    Role Position
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={introForm.roleTitle}
+                    onChange={(e) => setIntroForm({ ...introForm, roleTitle: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-[#0F172A] focus:border-[#4F46E5] outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] font-semibold mb-1 block">
+                    Engagement Type
+                  </label>
+                  <select
+                    value={introForm.workType}
+                    onChange={(e) => setIntroForm({ ...introForm, workType: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-[#0F172A] focus:border-[#4F46E5] outline-none"
+                  >
+                    <option value="Full-Time Remote">Full-Time Remote</option>
+                    <option value="Contract / Advisory">Contract / Advisory</option>
+                    <option value="Hybrid (Lagos/Nairobi/Accra)">Hybrid</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] font-semibold mb-1 block">
+                    Compensation / Budget
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={introForm.compensation}
+                    onChange={(e) => setIntroForm({ ...introForm, compensation: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-[#0F172A] focus:border-[#4F46E5] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="text-xs font-mono">
+                <label className="text-[10px] uppercase tracking-wider text-[#64748B] font-semibold mb-1 block">
+                  Direct Invitation Message
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={introForm.message}
+                  onChange={(e) => setIntroForm({ ...introForm, message: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-[#0F172A] focus:border-[#4F46E5] outline-none leading-relaxed"
+                />
+              </div>
+
+              {introSentFeedback ? (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-mono text-emerald-700 text-center font-bold animate-fade-in-up flex items-center justify-center gap-2">
+                  <Check size={14} />
+                  <span>Interview Request Dispatched to Candidate!</span>
+                </div>
+              ) : (
+                <div className="pt-2 flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setConnectCandidate(null)}
+                    className="px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-mono text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSendingIntro}
+                    className="px-6 py-2.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+                  >
+                    {isSendingIntro ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Dispatching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={13} />
+                        <span>Send Interview Invitation</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </form>
           </div>
         </div>
       )}

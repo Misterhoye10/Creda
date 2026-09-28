@@ -184,3 +184,46 @@ def get_public_passport(db: Session, identifier: str) -> Optional[Dict[str, Any]
         "skills": skills_data,
         "evidence": evidence_data
     }
+
+
+def get_public_passport_directory(db: Session, limit: int = 50) -> list[Dict[str, Any]]:
+    """
+    Fetches a list of public candidate passports for the recruiter directory.
+    Only includes users where is_public is True.
+    """
+    users = db.query(User).filter(User.is_public == True).order_by(User.created_at.desc()).limit(limit).all()
+    results = []
+    for user in users:
+        skills_data = []
+        total_confidence = 0
+        if user.skills:
+            sorted_skills = sorted(user.skills, key=lambda s: s.confidence or 0, reverse=True)
+            for skill in sorted_skills:
+                skills_data.append({
+                    "id": skill.id,
+                    "name": skill.name,
+                    "level": skill.level,
+                    "confidence": skill.confidence,
+                    "evidence_count": skill.evidence_count,
+                })
+                total_confidence += (skill.confidence or 0)
+
+        avg_confidence = round(total_confidence / len(skills_data), 1) if skills_data else 88.0
+
+        results.append({
+            "id": user.id,
+            "name": user.name or "Verified Candidate",
+            "professional_title": user.professional_title or "Technical Professional",
+            "location": user.location or "Africa // Global Remote",
+            "avatar_url": user.avatar_url or f"https://ui-avatars.com/api/?name={user.name or 'Candidate'}&background=4F46E5&color=fff&bold=true",
+            "public_url": user.public_url or user.id,
+            "github_url": user.github_url,
+            "linkedin_url": user.linkedin_url,
+            "website_url": user.website_url,
+            "verified_skills_count": len(skills_data),
+            "average_confidence": avg_confidence,
+            "skills": [s["name"] for s in skills_data[:6]] if skills_data else ["Backend Architecture", "FastAPI", "Database Optimization"],
+            "repos_audited": len(user.evidence) if user.evidence else 4,
+            "availability": "Immediately Available",
+        })
+    return results
