@@ -1039,7 +1039,7 @@ export default function Home() {
                 <div className="py-6 space-y-3.5 text-xs text-[#475569] leading-relaxed">
                   {[
                     "Connect up to 4 GitHub/GitLab repositories",
-                    "Public cryptographic passport URL (creda.work/p/you)",
+                    "Public cryptographic passport URL (creda-khaki.vercel.app/p/you)",
                     "Tamper-proof SHA-256 verification hash",
                     "Unlimited job match simulations against real JDs",
                     "AST code complexity & syntax validation",

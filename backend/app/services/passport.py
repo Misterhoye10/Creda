@@ -103,9 +103,21 @@ def get_public_passport(db: Session, identifier: str) -> Optional[Dict[str, Any]
     Fetches sanitized public skill passport by candidate ID or custom slug.
     Returns None if user is not found or profile is marked private (is_public=False).
     """
+    from sqlalchemy import func
+    clean_id = identifier.strip().lower()
+
     user = db.query(User).filter(
-        or_(User.id == identifier, User.public_url == identifier)
+        or_(
+            func.lower(User.id) == clean_id,
+            func.lower(User.public_url) == clean_id,
+            func.lower(func.replace(User.name, " ", "-")) == clean_id,
+            func.lower(User.email).startswith(clean_id)
+        )
     ).first()
+
+    if not user:
+        unhyphenated = clean_id.replace("-", " ")
+        user = db.query(User).filter(func.lower(User.name) == unhyphenated).first()
 
     if not user:
         return None

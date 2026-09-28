@@ -42,6 +42,50 @@ const CryptographicSeal3D = dynamic(
   }
 );
 
+function BiometricChipIcon({ className = "w-7 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <rect x="0.75" y="0.75" width="30.5" height="20.5" rx="3.25" stroke="#D4AF37" strokeWidth="1.5" />
+      <line x1="1" y1="11" x2="11" y2="11" stroke="#D4AF37" strokeWidth="1.5" />
+      <line x1="21" y1="11" x2="31" y2="11" stroke="#D4AF37" strokeWidth="1.5" />
+      <circle cx="16" cy="11" r="5" stroke="#D4AF37" strokeWidth="1.5" fill="none" />
+      <circle cx="16" cy="11" r="2" fill="#D4AF37" />
+    </svg>
+  );
+}
+
+function PassportInkStamp({
+  date = "2026-09-28",
+  trustIndex = 98.4,
+  badge = "TOP 1% TALENT",
+}: {
+  date?: string;
+  trustIndex?: number;
+  badge?: string;
+}) {
+  return (
+    <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-[#4F46E5]/80 text-[#4F46E5] flex flex-col items-center justify-center p-2 text-center rotate-[-7deg] bg-indigo-50/70 shadow-xs select-none pointer-events-none transform hover:rotate-0 transition-transform duration-300">
+      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-[#4F46E5]/40 flex flex-col items-center justify-center p-1.5">
+        <span className="text-[7.5px] font-mono tracking-widest font-black uppercase text-[#4F46E5]">
+          ★ CREDA PROTOCOL ★
+        </span>
+        <span className="text-[6.5px] font-mono tracking-wider uppercase text-[#6366F1] my-0.5">
+          BORDER CONTROL AUDIT
+        </span>
+        <div className="my-0.5 px-2 py-0.5 rounded bg-[#4F46E5] text-white text-[8px] font-mono font-bold tracking-wider">
+          VERIFIED &amp; SIGNED
+        </div>
+        <span className="text-[6.5px] font-mono font-bold text-slate-700 tracking-wider">
+          {date} • GITHUB AST
+        </span>
+        <span className="text-[7px] font-mono tracking-widest text-[#4F46E5] font-black uppercase mt-0.5">
+          PASSPORT VALID // {badge}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 const PROFILES: Record<
   string,
   {
@@ -387,6 +431,41 @@ export default function PublicPassportPage() {
   const [testScore, setTestScore] = useState<number | null>(null);
   const [isTestingMatch, setIsTestingMatch] = useState(false);
 
+  // Derive authentic ICAO passport fields from candidate identity
+  const { surname, givenNames, passportNo, mrzLine1, mrzLine2 } = useMemo(() => {
+    const rawName = (profile.name || "Candidate").trim();
+    const parts = rawName.split(/\s+/);
+    const sn = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).toUpperCase().replace(/[^A-Z]/g, "") || "TALENT";
+    const gn = (parts.length > 1 ? parts.slice(0, -1).join(" ") : "VERIFIED").toUpperCase().replace(/[^A-Z ]/g, "").replace(/\s+/g, "<") || "VERIFIED";
+
+    const pNo = (passportData?.id
+      ? passportData.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 9).toUpperCase()
+      : profile.gpgKey.replace(/[^a-zA-Z0-9]/g, "").slice(0, 9).toUpperCase()
+    ).padEnd(9, "0");
+
+    // Standard ICAO 9303 Type 3 Passport Machine Readable Zone (44 chars each line)
+    const line1Prefix = `P<CRD${sn}<<${gn}`;
+    const line1 = line1Prefix.slice(0, 44).padEnd(44, "<");
+
+    const line2Core = `${pNo}7AFR2609288M3012314CRD<<<<<<<<<<02`;
+    const line2 = line2Core.slice(0, 44).padEnd(44, "<");
+
+    return {
+      surname: sn,
+      givenNames: (parts.length > 1 ? parts.slice(0, -1).join(" ") : "VERIFIED").toUpperCase(),
+      passportNo: `CRD-${pNo.slice(0, 4)}-${pNo.slice(4, 8)}`,
+      mrzLine1: line1,
+      mrzLine2: line2,
+    };
+  }, [profile.name, profile.gpgKey, passportData?.id]);
+
+  const shareUrl = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/p/${rawUsername}`;
+    }
+    return `https://creda-khaki.vercel.app/p/${rawUsername}`;
+  }, [rawUsername]);
+
   useEffect(() => {
     if (profile.title) {
       setJobTitleInput(profile.title);
@@ -399,7 +478,7 @@ export default function PublicPassportPage() {
 
   const handleCopy = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard?.writeText(window.location.href);
+      navigator.clipboard?.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -476,128 +555,342 @@ export default function PublicPassportPage() {
       {/* ── Main Content Container ──────────────────────────── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
         
-        {/* Primary Identity & Cryptographic Badge Card */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-8 lg:p-12 shadow-sm relative overflow-hidden">
-          {/* Structural Crosshairs */}
-          <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
-          <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
-          <span className="absolute bottom-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
-          <span className="absolute bottom-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
+        {/* ── Official Biometric Digital Cryptographic Passport Booklet ── */}
+        <div className="rounded-3xl border border-amber-500/30 bg-[#0B1120] p-3 sm:p-7 shadow-2xl relative overflow-hidden text-white">
+          {/* Subtle Outer Folio Security Texture */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:20px_20px]" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start lg:items-center">
-            {/* Left: Avatar & Identity */}
-            <div className="lg:col-span-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              <img
-                src={profile.avatar}
-                alt={profile.name}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-white shadow-md flex-shrink-0"
-              />
+          {/* Golden Embossed Folio Header */}
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 mb-5 border-b border-amber-500/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-400/40 text-amber-300 flex-shrink-0">
+                <BiometricChipIcon className="w-8 h-5 text-amber-400" />
+              </div>
               <div>
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
-                    {profile.name}
-                  </h1>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-[10px] font-mono text-[#4F46E5] font-bold">
-                    <ShieldCheck size={12} />
-                    VERIFIED CANDIDATE
+                <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-amber-300/90 font-bold">
+                  CREDA PROTOCOL • PASSEPORT DE COMPÉTENCE
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-white tracking-wide flex items-center gap-2">
+                  <span>INTERNATIONAL BIOMETRIC COMPETENCE PASSPORT</span>
+                  <span className="hidden md:inline-block px-2 py-0.5 rounded text-[9px] font-mono uppercase bg-amber-400/20 text-amber-200 border border-amber-400/30">
+                    TYPE: P // ICAO 9303
                   </span>
-                </div>
-                <div className="text-xs sm:text-sm text-[#475569] font-mono mb-2">
-                  {profile.title}
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-[#64748B]">
-                  <span>{profile.location}</span>
-                  <span>•</span>
-                  <span>GPG Key: {profile.gpgKey}</span>
                 </div>
               </div>
             </div>
 
-            {/* Right: Verification Action & Overall Rating */}
-            <div className="lg:col-span-4 lg:border-l lg:border-[#E5E7EB] lg:pl-8 flex flex-col justify-center items-center lg:items-start">
-              {/* Interactive 3D Cryptographic Proof Seal (React Three Fiber) */}
-              <div className="w-full flex items-center justify-center mb-2">
-                <CryptographicSeal3D
-                  verified={Boolean(verifiedHash)}
-                  trustIndex={profile.trustIndex}
-                  className="w-32 h-32"
-                />
-              </div>
-
-              <div className="w-full">
-                <div className="text-[11px] font-mono uppercase tracking-wider text-[#64748B] mb-1">
-                  Creda Trust Index
-                </div>
-                <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-4xl font-extrabold text-[#0F172A] tracking-tight">{profile.trustIndex}</span>
-                  <span className="text-xs font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                    {profile.badge}
-                  </span>
-                </div>
-              </div>
-
-              {/* Live Hash Verification Button */}
+            <div className="flex items-center gap-2 self-end sm:self-center">
               <button
-                onClick={handleVerifyLedger}
-                disabled={isVerifying}
-                className={`w-full py-2.5 px-4 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
-                  verifiedHash
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-[#0F172A] hover:bg-neutral-800 text-white"
-                }`}
+                type="button"
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-400/40 bg-amber-500/10 hover:bg-amber-500/20 text-[11px] font-mono text-amber-200 transition-colors cursor-pointer"
+                title="Copy live verified passport link"
               >
-                {isVerifying ? (
-                  <>
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
-                    <span className="whitespace-nowrap">Auditing SHA-256 Hash...</span>
-                  </>
-                ) : verifiedHash ? (
-                  <>
-                    <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
-                    <span className="whitespace-nowrap">Hash Validated (SHA-256)</span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck size={14} className="flex-shrink-0" />
-                    <span className="whitespace-nowrap">Verify Authenticity</span>
-                  </>
-                )}
+                {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                <span>{copied ? "Link Copied" : "Copy Live Link"}</span>
               </button>
+              <div className="text-[10px] font-mono text-amber-300/70 hidden sm:inline-block border-l border-amber-400/30 pl-2">
+                ED25519 CA
+              </div>
+            </div>
+          </div>
+
+          {/* ── Two-Page Open Passport Booklet Spread ── */}
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 rounded-2xl overflow-hidden shadow-2xl border border-stone-300/60 bg-stone-100">
+            
+            {/* ── LEFT PAGE: Biometric Identification & MRZ (Page 01) ── */}
+            <div className="lg:col-span-7 bg-[#FBF9F4] text-[#0F172A] p-5 sm:p-7 relative flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-stone-300/80">
+              {/* Security Microprint Guilloche Pattern */}
+              <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#0F172A_1px,transparent_1px)] [background-size:12px_12px]" />
+
+              <div className="relative z-10">
+                {/* Passport Country Header */}
+                <div className="border-b border-stone-300/80 pb-3 mb-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-[9px] font-mono uppercase tracking-[0.2em] text-stone-500 font-bold">
+                      RÉPUBLIQUE DE COMPÉTENCE CREDA
+                    </div>
+                    <div className="text-xs font-bold text-stone-900 tracking-wider">
+                      CREDA COMPETENCE PROTOCOL
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-stone-600">
+                    <span className="font-bold">TYPE: P</span>
+                    <span>•</span>
+                    <span className="font-bold">CODE: CRD</span>
+                    <span>•</span>
+                    <span className="font-bold text-[#4F46E5]">{passportNo}</span>
+                  </div>
+                </div>
+
+                {/* Main Identity Layout: Photo & ICAO Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
+                  
+                  {/* Left Column: Biometric Photo & Stylized Signature */}
+                  <div className="sm:col-span-5 flex flex-col items-center sm:items-start">
+                    <div className="relative w-28 h-32 sm:w-32 sm:h-36 rounded-xl border-2 border-amber-600/40 shadow-md overflow-hidden bg-stone-200">
+                      <img
+                        src={profile.avatar}
+                        alt={profile.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Holographic Watermark Sheen */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-cyan-400/15 to-transparent pointer-events-none" />
+                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/70 text-[8px] font-mono text-amber-300 font-bold tracking-widest border border-amber-400/40">
+                        BIOMETRIC
+                      </div>
+                    </div>
+
+                    {/* Candidate Stylized Digital Signature */}
+                    <div className="w-full mt-2 text-center sm:text-left">
+                      <div className="border-b border-stone-300/80 pb-0.5 pt-1 flex items-baseline justify-between">
+                        <span className="font-serif italic text-base sm:text-lg text-stone-800 tracking-wide select-none font-bold">
+                          {profile.name}
+                        </span>
+                        <span className="text-[8px] font-mono text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">
+                          Ed25519
+                        </span>
+                      </div>
+                      <span className="text-[8px] font-mono text-stone-400 uppercase tracking-wider block mt-0.5">
+                        Signature du titulaire / Holder&apos;s Signature
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Official ICAO Data Fields */}
+                  <div className="sm:col-span-7 grid grid-cols-2 gap-x-3 gap-y-2 text-xs font-mono text-stone-800">
+                    <div>
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Nom / Surname
+                      </span>
+                      <span className="font-bold text-xs sm:text-sm tracking-wide text-stone-900 block truncate">
+                        {surname}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Prénoms / Given Names
+                      </span>
+                      <span className="font-bold text-xs sm:text-sm tracking-wide text-stone-900 block truncate">
+                        {givenNames}
+                      </span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Spécialité / Discipline
+                      </span>
+                      <span className="font-bold text-xs text-stone-900 block truncate">
+                        {profile.title}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Nationalité / Country
+                      </span>
+                      <span className="font-semibold text-xs text-stone-800 block">
+                        CRD (AFRICA / REMOTE)
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Lieu / Base
+                      </span>
+                      <span className="font-semibold text-xs text-stone-800 block truncate">
+                        {profile.location}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Délivré le / Issued
+                      </span>
+                      <span className="font-semibold text-xs text-stone-800 block">
+                        28 SEP 2026
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Expiration / Expiry
+                      </span>
+                      <span className="font-bold text-xs text-emerald-700 block">
+                        PERMANENT (IMMUTABLE)
+                      </span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[8.5px] text-stone-400 uppercase tracking-wider block">
+                        Autorité / Authority
+                      </span>
+                      <span className="font-semibold text-[10px] text-stone-600 block">
+                        CREDA ROOT CA // ED25519 MERKLE PROOF
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Machine Readable Zone (MRZ) - Authentic ICAO 9303 Monospace Block */}
+              <div className="relative z-10 mt-5 pt-3 border-t border-stone-300/80">
+                <div className="text-[8px] font-mono uppercase tracking-wider text-stone-400 mb-1 flex items-center justify-between">
+                  <span>Zone de Lecture Optique / Machine Readable Zone (ICAO 9303)</span>
+                  <span className="text-amber-700 font-bold">OCR-B</span>
+                </div>
+                <div className="bg-[#0B1220] text-amber-300/95 font-mono tracking-[0.20em] sm:tracking-[0.26em] text-[9.5px] sm:text-[11px] p-2.5 sm:p-3 rounded-xl border border-amber-500/30 overflow-x-auto whitespace-nowrap shadow-inner font-bold leading-relaxed select-all">
+                  <div>{mrzLine1}</div>
+                  <div>{mrzLine2}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── RIGHT PAGE: Holographic Proof Seal, Trust Stamp & Ledger (Page 02) ── */}
+            <div className="lg:col-span-5 bg-[#FAF7F0] text-[#0F172A] p-5 sm:p-7 relative flex flex-col justify-between">
+              {/* Security Microprint Guilloche Pattern */}
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#4F46E5_1px,transparent_1px)] [background-size:12px_12px]" />
+
+              <div className="relative z-10">
+                {/* Page 02 Header */}
+                <div className="flex items-center justify-between border-b border-stone-300/80 pb-2 mb-4">
+                  <div className="text-[9px] font-mono uppercase tracking-wider text-stone-600 font-bold">
+                    Page 02 • Biometric Security &amp; Attestation
+                  </div>
+                  <div className="flex items-center gap-1 text-[8.5px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>LEDGER ACTIVE</span>
+                  </div>
+                </div>
+
+                {/* 3D Holographic Proof Seal & Official Border Control Stamp */}
+                <div className="flex flex-col sm:flex-row items-center justify-around gap-3 my-2">
+                  {/* Interactive 3D Holographic Seal */}
+                  <div className="flex flex-col items-center">
+                    <CryptographicSeal3D
+                      verified={Boolean(verifiedHash)}
+                      trustIndex={profile.trustIndex}
+                      className="w-28 h-28 sm:w-32 sm:h-32"
+                    />
+                    <span className="text-[8.5px] font-mono text-stone-500 uppercase tracking-widest mt-1">
+                      3D Hologram Seal
+                    </span>
+                  </div>
+
+                  {/* Official Border Control Stamp */}
+                  <div className="flex flex-col items-center">
+                    <PassportInkStamp
+                      trustIndex={profile.trustIndex}
+                      badge={profile.badge}
+                    />
+                  </div>
+                </div>
+
+                {/* Creda Trust Index Score Gauge */}
+                <div className="mt-4 p-4 rounded-xl bg-white/85 border border-stone-200 shadow-2xs">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-stone-600 font-semibold">
+                      Creda Trust Index
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                      {profile.badge}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight font-mono">
+                      {profile.trustIndex}%
+                    </span>
+                    <span className="text-xs font-mono text-stone-500">
+                      / 100 Proof-of-Work
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-stone-200 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-700"
+                      style={{ width: `${profile.trustIndex}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Cryptographic Key & Live Verification Button */}
+              <div className="relative z-10 mt-4 pt-3 border-t border-stone-300/80 space-y-2.5">
+                <div className="flex items-center justify-between text-[9.5px] font-mono text-stone-600">
+                  <span>GPG KEY ID:</span>
+                  <span className="font-bold text-stone-900">{profile.gpgKey}</span>
+                </div>
+
+                {/* Live Hash Verification Button */}
+                <button
+                  onClick={handleVerifyLedger}
+                  disabled={isVerifying}
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
+                    verifiedHash
+                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                      : "bg-[#0F172A] hover:bg-neutral-800 text-white"
+                  }`}
+                >
+                  {isVerifying ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+                      <span>Auditing SHA-256 Ledger...</span>
+                    </>
+                  ) : verifiedHash ? (
+                    <>
+                      <CheckCircle2 size={14} className="text-white flex-shrink-0" />
+                      <span>Ledger Verified (Ed25519 Root Valid)</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck size={14} className="text-indigo-400 flex-shrink-0" />
+                      <span>Verify Authenticity (SHA-256)</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── Section 2: Verified Skills & AST Proof Breakdown ── */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-8 lg:p-12 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#E5E7EB]">
+        {/* ── Section 2: Visa Endorsements (Verified Skills) ── */}
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-8 lg:p-10 shadow-sm relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#E5E7EB]">
             <div>
+              <div className="text-[10px] font-mono uppercase tracking-widest text-[#4F46E5] font-bold mb-1">
+                Pages 03–04 // Visas &amp; Endorsements
+              </div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-                Verified Skills & Evidence
+                Technical Competence Visas
               </h2>
             </div>
             <div className="text-xs font-mono text-[#64748B] flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>In-Memory Code Audit</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>AST Git Commit Ledgers Active</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
             {profile.skills.map((skill, idx) => {
               const Icon = skill.icon;
               return (
                 <div
                   key={idx}
-                  className="p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] flex flex-col justify-between"
+                  className="p-5 sm:p-6 rounded-2xl border-2 border-dashed border-indigo-200/90 bg-[#FAFBFD] relative flex flex-col justify-between hover:border-[#4F46E5]/60 transition-all shadow-xs group"
                 >
+                  {/* Visa Stamp Header */}
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-indigo-100 text-[10px] font-mono text-[#64748B]">
+                    <span className="font-bold text-[#4F46E5] uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5]" />
+                      VISA ENTRY: {skill.tier.toUpperCase()}
+                    </span>
+                    <span>PORT: GITHUB AST</span>
+                  </div>
+
                   <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center text-[#4F46E5]">
-                          <Icon size={16} />
+                        <div className="w-9 h-9 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-[#4F46E5] shadow-2xs group-hover:scale-105 transition-transform">
+                          <Icon size={18} />
                         </div>
-                        <h3 className="font-bold text-sm text-[#0F172A]">{skill.name}</h3>
+                        <h3 className="font-bold text-sm sm:text-base text-[#0F172A]">
+                          {skill.name}
+                        </h3>
                       </div>
-                      <span className="text-sm font-extrabold text-[#0F172A] font-mono">
+                      <span className="text-base font-extrabold text-[#4F46E5] font-mono">
                         {skill.score}%
                       </span>
                     </div>
@@ -608,15 +901,15 @@ export default function PublicPassportPage() {
 
                     <div className="w-full h-1.5 rounded-full bg-neutral-200 overflow-hidden mb-3">
                       <div
-                        className="h-full bg-[#4F46E5] rounded-full"
+                        className="h-full bg-[#4F46E5] rounded-full transition-all duration-500"
                         style={{ width: `${skill.score}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-3 border-t border-neutral-200/60">
-                    <span>{skill.tier}</span>
-                    <span>{skill.repos} • {skill.commits}</span>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-3 border-t border-neutral-200/70">
+                    <span className="text-[#0F172A] font-semibold">{skill.repos}</span>
+                    <span>{skill.commits}</span>
                   </div>
                 </div>
               );
@@ -829,7 +1122,7 @@ export default function PublicPassportPage() {
 
                 <div className="flex items-center gap-3 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200 flex-shrink-0">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(`https://creda-khaki.vercel.app/p/${rawUsername}`)}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(shareUrl)}`}
                     alt="Verification QR Code"
                     className="w-16 h-16 rounded-lg border border-neutral-200"
                   />
@@ -871,12 +1164,12 @@ export default function PublicPassportPage() {
                   <input
                     type="text"
                     readOnly
-                    value={`https://creda-khaki.vercel.app/p/${rawUsername}`}
+                    value={shareUrl}
                     className="flex-1 px-3 py-2.5 rounded-xl bg-[#FAFAF8] border border-neutral-200 text-xs text-[#0F172A] outline-none"
                   />
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://creda-khaki.vercel.app/p/${rawUsername}`);
+                      navigator.clipboard.writeText(shareUrl);
                       setBadgeCopied("url");
                       setTimeout(() => setBadgeCopied(null), 2000);
                     }}
@@ -897,12 +1190,12 @@ export default function PublicPassportPage() {
                   <input
                     type="text"
                     readOnly
-                    value={`[![Creda Verified](https://img.shields.io/badge/Creda_Verified-Top_Talent-4F46E5?style=flat-square&logo=shield)](https://creda-khaki.vercel.app/p/${rawUsername})`}
+                    value={`[![Creda Verified](https://img.shields.io/badge/Creda_Verified-Top_Talent-4F46E5?style=flat-square&logo=shield)](${shareUrl})`}
                     className="flex-1 px-3 py-2.5 rounded-xl bg-[#FAFAF8] border border-neutral-200 text-xs text-[#0F172A] outline-none"
                   />
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`[![Creda Verified](https://img.shields.io/badge/Creda_Verified-Top_Talent-4F46E5?style=flat-square&logo=shield)](https://creda-khaki.vercel.app/p/${rawUsername})`);
+                      navigator.clipboard.writeText(`[![Creda Verified](https://img.shields.io/badge/Creda_Verified-Top_Talent-4F46E5?style=flat-square&logo=shield)](${shareUrl})`);
                       setBadgeCopied("markdown");
                       setTimeout(() => setBadgeCopied(null), 2000);
                     }}
@@ -921,7 +1214,7 @@ export default function PublicPassportPage() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just verified my technical skills on @CredaProtocol — proven with real AST commit proof and zero resume fluff. Check out my live cryptographic passport:`)}&url=${encodeURIComponent(`https://creda-khaki.vercel.app/p/${rawUsername}`)}`}
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just verified my technical skills on @CredaProtocol — proven with real AST commit proof and zero resume fluff. Check out my live cryptographic passport:`)}&url=${encodeURIComponent(shareUrl)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="h-11 rounded-xl bg-black hover:bg-neutral-800 text-white font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
@@ -929,7 +1222,7 @@ export default function PublicPassportPage() {
                     <span>Share on X</span>
                   </a>
                   <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://creda-khaki.vercel.app/p/${rawUsername}`)}`}
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="h-11 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"

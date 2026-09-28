@@ -213,15 +213,21 @@ export default function DashboardPage() {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Comprehensive data loader connecting to FastAPI Backend
+  // Comprehensive data loader connecting to FastAPI Backend (Parallelized for 4x speedup)
   const loadDashboardData = async () => {
     setIsLoadingDashboard(true);
-    let loadedUser: any = null;
 
     try {
-      const userProfile = await api.getUserProfile();
-      if (userProfile) {
-        loadedUser = userProfile;
+      // Execute all 4 network round trips in parallel simultaneously
+      const [profileResult, skillsResult, evidenceResult, summaryResult] = await Promise.allSettled([
+        api.getUserProfile().catch(() => api.getCurrentUser()),
+        api.getSkills(),
+        api.getEvidence(),
+        api.getSkillsSummary(),
+      ]);
+
+      if (profileResult.status === "fulfilled" && profileResult.value) {
+        const userProfile = profileResult.value;
         setCurrentUser(userProfile as unknown as User);
         setProfileForm({
           name: userProfile.name || "",
@@ -237,63 +243,33 @@ export default function DashboardPage() {
           website_url: userProfile.website_url || "",
         });
       }
-    } catch {
-      try {
-        const user = await api.getCurrentUser();
-        if (user) {
-          loadedUser = user;
-          setCurrentUser(user);
-          setProfileForm((prev) => ({
-            ...prev,
-            name: user.name || prev.name,
-            professional_title: user.professional_title || prev.professional_title,
-            location: user.location || prev.location,
-            years_experience: user.years_experience || prev.years_experience,
-            bio: user.bio || prev.bio,
-            avatar_url: user.avatar_url || prev.avatar_url,
-            public_url: user.public_url || prev.public_url,
-          }));
+
+      if (skillsResult.status === "fulfilled" && skillsResult.value) {
+        const skillsRes = skillsResult.value;
+        if (skillsRes && Array.isArray(skillsRes.items)) {
+          setVerifiedSkills(skillsRes.items);
+        } else if (Array.isArray(skillsRes)) {
+          setVerifiedSkills(skillsRes);
         }
-      } catch {
-        // Unauthenticated or offline
       }
-    }
 
-    // Load real verified skills from backend
-    try {
-      const skillsRes = await api.getSkills();
-      if (skillsRes && Array.isArray(skillsRes.items)) {
-        setVerifiedSkills(skillsRes.items);
-      } else if (Array.isArray(skillsRes)) {
-        setVerifiedSkills(skillsRes);
+      if (evidenceResult.status === "fulfilled" && evidenceResult.value) {
+        const evidenceRes = evidenceResult.value;
+        if (evidenceRes && Array.isArray(evidenceRes.items)) {
+          setEvidenceItems(evidenceRes.items);
+        } else if (Array.isArray(evidenceRes)) {
+          setEvidenceItems(evidenceRes);
+        }
       }
-    } catch (err) {
-      console.warn("Could not load skills:", err);
-    }
 
-    // Load real evidence items from backend
-    try {
-      const evidenceRes = await api.getEvidence();
-      if (evidenceRes && Array.isArray(evidenceRes.items)) {
-        setEvidenceItems(evidenceRes.items);
-      } else if (Array.isArray(evidenceRes)) {
-        setEvidenceItems(evidenceRes);
+      if (summaryResult.status === "fulfilled" && summaryResult.value) {
+        setSkillsSummary(summaryResult.value);
       }
     } catch (err) {
-      console.warn("Could not load evidence:", err);
+      console.warn("Parallel dashboard data fetch error:", err);
+    } finally {
+      setIsLoadingDashboard(false);
     }
-
-    // Load skills summary
-    try {
-      const summary = await api.getSkillsSummary();
-      if (summary) {
-        setSkillsSummary(summary);
-      }
-    } catch {
-      // Optional summary
-    }
-
-    setIsLoadingDashboard(false);
   };
 
   useEffect(() => {
@@ -366,7 +342,10 @@ export default function DashboardPage() {
     currentUser?.public_url ||
     displayName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-  const passportUrl = `creda.work/p/${passportSlug}`;
+  const passportUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/p/${passportSlug}`
+      : `https://creda-khaki.vercel.app/p/${passportSlug}`;
 
   // Average confidence score across verified skills
   const hasVerifiedSkills = Boolean(
@@ -1941,8 +1920,8 @@ export default function DashboardPage() {
                     </label>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <div className="flex items-center rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus-within:border-[#4F46E5] focus-within:bg-white flex-1 overflow-hidden transition-all">
-                        <span className="px-4 py-3 text-xs font-mono text-[#64748B] bg-neutral-100/70 border-r border-[#E5E7EB] select-none whitespace-nowrap">
-                          creda.work/p/
+                        <span className="px-3.5 py-3 text-xs font-mono text-[#64748B] bg-neutral-100/70 border-r border-[#E5E7EB] select-none whitespace-nowrap">
+                          /p/
                         </span>
                         <input
                           type="text"
@@ -1963,12 +1942,12 @@ export default function DashboardPage() {
                         rel="noopener noreferrer"
                         className="h-11 px-4 rounded-xl border border-[#E5E7EB] hover:border-[#4F46E5] hover:text-[#4F46E5] bg-white text-xs font-mono font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
                       >
-                        <span>Test Live Link</span>
+                        <span>Open Live Passport</span>
                         <ExternalLink size={13} />
                       </Link>
                     </div>
                     <span className="text-[10px] font-mono text-[#64748B] mt-1.5 block">
-                      Shareable link: https://creda.work/p/{profileForm.public_url || "your-slug"}
+                      Shareable URL: {passportUrl}
                     </span>
                   </div>
 

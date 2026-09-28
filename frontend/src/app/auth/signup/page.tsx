@@ -247,6 +247,10 @@ export default function SignupPage() {
       localStorage.setItem("creda_user_email", email);
       setIsSubmitting(false);
       setSubmitted(true);
+      // Fast automatic redirect to dashboard for instantaneous UX
+      setTimeout(() => {
+        router.push(accountType === "talent" ? "/dashboard" : "/dashboard/recruiter");
+      }, 400);
     } catch (err: unknown) {
       const errObj = err as { detail?: string; message?: string; status?: number };
       if (errObj && (errObj.status === 400 || errObj.status === 422) && errObj.detail) {
@@ -259,13 +263,14 @@ export default function SignupPage() {
           name,
           email,
           professional_title: professionalTitle,
-          location: "Lagos, Nigeria",
+          location: "Africa",
         }));
         setIsOfflineFallback(true);
+        setIsSubmitting(false);
+        setSubmitted(true);
         setTimeout(() => {
-          setIsSubmitting(false);
-          setSubmitted(true);
-        }, 750);
+          router.push(accountType === "talent" ? "/dashboard" : "/dashboard/recruiter");
+        }, 400);
       }
     }
   };
@@ -323,15 +328,14 @@ export default function SignupPage() {
                     ? "Skill Passport Initialized!"
                     : "Recruiter Engine Account Created!"}
                 </h3>
-                <p className="text-xs sm:text-sm text-[#475569] font-mono max-w-sm mx-auto leading-relaxed">
-                  {accountType === "talent"
-                    ? "Welcome to Creda Protocol. We are preparing your Evidence Ingestion Hub to verify your work."
-                    : "Welcome to Creda Enterprise. Your workspace is ready to verify candidates and inspect proof ledgers."}
+                <p className="text-xs sm:text-sm text-[#475569] font-mono max-w-sm mx-auto leading-relaxed flex items-center justify-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-[#4F46E5]/30 border-t-[#4F46E5] animate-spin flex-shrink-0" />
+                  <span>Redirecting to your workspace...</span>
                 </p>
-                <div className="pt-4">
-                  <Link href="/dashboard" className="inline-block flex-shrink-0">
-                    <button className="h-12 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0">
-                      Enter Dashboard →
+                <div className="pt-2">
+                  <Link href={accountType === "talent" ? "/dashboard" : "/dashboard/recruiter"} className="inline-block flex-shrink-0">
+                    <button className="h-11 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0">
+                      Enter Dashboard Now →
                     </button>
                   </Link>
                 </div>
