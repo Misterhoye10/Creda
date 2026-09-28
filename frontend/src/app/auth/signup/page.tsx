@@ -272,11 +272,11 @@ export default function SignupPage() {
 
   const handleGithubSignup = () => {
     setIsSubmitting(true);
-    localStorage.setItem("creda_user_email", "hoye@creda.app");
+    localStorage.setItem("creda_user_email", "candidate@creda.app");
     localStorage.setItem("creda_user", JSON.stringify({
-      name: "Hoye",
-      email: "hoye@creda.app",
-      professional_title: "Backend Lead & Systems Engineer",
+      name: "Verified Candidate",
+      email: "candidate@creda.app",
+      professional_title: "Software Engineer",
       location: "Lagos, Nigeria",
     }));
     setTimeout(() => {
