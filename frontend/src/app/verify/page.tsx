@@ -52,9 +52,9 @@ interface VerificationRecord {
 const SAMPLE_RECORDS: Record<string, VerificationRecord> = {
   crd_live_8f3a92b1: {
     hash: "crd_live_8f3a92b1",
-    name: "Folarin Oyewole",
-    githubUsername: "Misterhoye10",
-    avatar: "https://ui-avatars.com/api/?name=Folarin+Oyewole&background=4F46E5&color=fff&bold=true",
+    name: "Verified Candidate",
+    githubUsername: "creda-protocol",
+    avatar: "https://ui-avatars.com/api/?name=Verified+Candidate&background=4F46E5&color=fff&bold=true",
     role: "Senior Distributed Systems & Backend Architect",
     location: "Lagos, Nigeria",
     issuedAt: "2026-09-15 08:34:22 UTC",
@@ -309,7 +309,7 @@ function VerifyContent() {
               }}
               className="px-2.5 py-1 rounded-md border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5] text-[#4F46E5] transition-all cursor-pointer font-bold"
             >
-              crd_live_8f3a92b1 (Folarin // Backend Architect)
+              crd_live_8f3a92b1 (Candidate // Backend Architect)
             </button>
             <button
               type="button"

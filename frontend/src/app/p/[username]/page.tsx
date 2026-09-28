@@ -60,8 +60,8 @@ const PROFILES: Record<
   }
 > = {
   "hoye": {
-    name: "Folarin Oyewole",
-    avatar: "https://ui-avatars.com/api/?name=Folarin+Oyewole&background=4F46E5&color=fff&bold=true",
+    name: "Verified Candidate",
+    avatar: "https://ui-avatars.com/api/?name=Verified+Candidate&background=4F46E5&color=fff&bold=true",
     title: "Backend Lead & Distributed Systems Engineer",
     location: "Lagos, Nigeria // Global Remote",
     trustIndex: 98.4,

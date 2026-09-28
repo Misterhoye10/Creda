@@ -46,15 +46,15 @@ def seed_default_user():
             user = User(
                 email="hoye@creda.app",
                 password_hash=hash_password("Password123!"),
-                name="Folarin Oyewole",
+                name="Verified Candidate",
                 professional_title="Backend Lead & Distributed Systems Engineer",
                 location="Lagos, Nigeria",
                 years_experience=6,
                 bio="Distributed systems and backend infrastructure engineer specializing in high-throughput Python/FastAPI architectures, GPG commit attestation, and cryptographic verification pipelines.",
                 public_url="hoye",
                 is_public=True,
-                github_url="https://github.com/Misterhoye10",
-                linkedin_url="https://linkedin.com/in/folarin-oyewole",
+                github_url="https://github.com/creda-protocol",
+                linkedin_url="https://linkedin.com",
                 website_url="https://creda-khaki.vercel.app",
             )
             db.add(user)
@@ -64,15 +64,15 @@ def seed_default_user():
             ev_gh = Evidence(
                 user_id=user.id,
                 type="GitHub",
-                title="GitHub: Misterhoye10/Creda",
+                title="GitHub: Repository Commits & AST Architecture",
                 description="Verified Git repositories, commit history, and AST codebase architecture.",
-                url="https://github.com/Misterhoye10/Creda",
+                url="https://github.com/creda-protocol",
                 source="github_api",
             )
             ev_cv = Evidence(
                 user_id=user.id,
                 type="CV",
-                title="Folarin_Oyewole_Senior_Backend_CV.pdf",
+                title="Senior_Backend_Engineer_CV.pdf",
                 description="Verified Curriculum Vitae detailing 6 years of backend and distributed systems experience.",
                 source="upload",
             )

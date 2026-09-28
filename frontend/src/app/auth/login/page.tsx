@@ -43,11 +43,11 @@ export default function LoginPage() {
       localStorage.setItem(
         "creda_user",
         JSON.stringify({
-          name: "Folarin Oyewole",
-          email: "hoye@creda.app",
+          name: "Verified Candidate",
+          email: "candidate@creda.app",
           professional_title: "Backend Lead & Distributed Systems Engineer",
           location: "Lagos, Nigeria",
-          public_url: "hoye",
+          public_url: "verified-candidate",
         })
       );
     }

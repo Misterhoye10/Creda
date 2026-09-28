@@ -318,11 +318,11 @@ export default function Home() {
             <div className="p-5 sm:p-8 border-b border-neutral-800 flex flex-wrap items-center justify-between gap-5 sm:gap-6">
               <div className="flex items-center gap-4 sm:gap-5">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-neutral-700 bg-neutral-800 flex items-center justify-center font-mono font-bold text-lg sm:text-xl text-[#818CF8] shadow-inner flex-shrink-0">
-                  FO
+                  VC
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Folarin Oyewole</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Verified Candidate</h3>
                     <span className="text-[9px] sm:text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-800 border border-neutral-700 text-neutral-300">
                       Lagos, NG
                     </span>
