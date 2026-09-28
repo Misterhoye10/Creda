@@ -671,3 +671,24 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+/* ========================================
+   PRINT STYLES FOR OFFICIAL CERTIFICATES
+   ======================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print, header, footer, nav {
+    display: none !important;
+  }
+  #creda-printable-certificate {
+    border: 3px double #4338CA !important;
+    margin: 0 !important;
+    padding: 24px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    page-break-inside: avoid;
+  }
+}
+

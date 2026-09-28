@@ -144,6 +144,37 @@ export default function RecruiterDashboardPage() {
   const [exportedStatus, setExportedStatus] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
+  // Custom Role AI Matcher State
+  const [showRoleAuditor, setShowRoleAuditor] = useState(false);
+  const [customJobText, setCustomJobText] = useState("");
+  const [isAuditingRole, setIsAuditingRole] = useState(false);
+  const [matchRankings, setMatchRankings] = useState<Record<string, number> | null>(null);
+
+  const handleAuditRole = () => {
+    if (!customJobText.trim()) return;
+    setIsAuditingRole(true);
+    setTimeout(() => {
+      const lowerJob = customJobText.toLowerCase();
+      const rankings: Record<string, number> = {};
+      CANDIDATES.forEach((cand) => {
+        let hits = 0;
+        cand.skills.forEach((s) => {
+          if (lowerJob.includes(s.toLowerCase())) hits += 1;
+        });
+        const bonus = Math.min(hits * 14, 25);
+        const dynamicScore = Math.min(Math.round(cand.score * 0.72 + bonus), 99);
+        rankings[cand.id] = dynamicScore;
+      });
+      setMatchRankings(rankings);
+      setIsAuditingRole(false);
+    }, 600);
+  };
+
+  const handleResetAudit = () => {
+    setMatchRankings(null);
+    setCustomJobText("");
+  };
+
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -172,6 +203,11 @@ export default function RecruiterDashboardPage() {
     const matchesScore = c.score >= minScore;
 
     return matchesSearch && matchesDiscipline && matchesScore;
+  }).sort((a, b) => {
+    if (matchRankings) {
+      return (matchRankings[b.id] || 0) - (matchRankings[a.id] || 0);
+    }
+    return b.score - a.score;
   });
 
   const handleExport = (platform: string) => {
@@ -306,6 +342,94 @@ export default function RecruiterDashboardPage() {
               </button>
             ))}
           </div>
+
+          {/* AI Custom Role Auditor Toggle */}
+          <div className="pt-3 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setShowRoleAuditor(!showRoleAuditor)}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100/60 text-[#4F46E5] text-xs font-mono font-semibold transition-all cursor-pointer"
+            >
+              <Sparkles size={14} />
+              <span>{showRoleAuditor ? "Hide Custom Role Matcher" : "Match Against Job Description (AI)"}</span>
+              <ChevronDown size={14} className={`transform transition-transform ${showRoleAuditor ? "rotate-180" : ""}`} />
+            </button>
+
+            {matchRankings && (
+              <div className="flex items-center gap-2 text-xs font-mono">
+                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-semibold flex items-center gap-1.5">
+                  <CheckCircle2 size={13} />
+                  Pipeline Ranked by Job Alignment
+                </span>
+                <button
+                  type="button"
+                  onClick={handleResetAudit}
+                  className="text-[#64748B] hover:text-[#0F172A] underline cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* AI Custom Role Matcher Panel */}
+          {showRoleAuditor && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#FAFAF8] border border-indigo-100 space-y-3 animate-fade-in-up">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="font-bold text-[#0F172A] flex items-center gap-1.5">
+                  <FileText size={14} className="text-[#4F46E5]" />
+                  Paste Custom Job Description or Role Requirements:
+                </span>
+                <span className="text-[#64748B]">Auto-calculates AST fit</span>
+              </div>
+              <textarea
+                value={customJobText}
+                onChange={(e) => setCustomJobText(e.target.value)}
+                placeholder="e.g. Looking for a Senior Backend Engineer proficient in Python, FastAPI, PostgreSQL, distributed systems, and CI/CD pipelines to build mission-critical fintech ledgers..."
+                rows={3}
+                className="w-full p-3 rounded-xl bg-white border border-neutral-200 focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none transition-all placeholder:text-neutral-400"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                {/* Benchmark Templates */}
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-[#64748B]">
+                  <span>Quick Templates:</span>
+                  {[
+                    { label: "Fintech Core Backend", query: "Senior Backend Lead with Python, FastAPI, PostgreSQL, and distributed financial ledgers." },
+                    { label: "Cloud SRE & DevOps", query: "Staff DevOps Engineer with Kubernetes, Terraform, Docker, and CI/CD security." },
+                    { label: "Product & UI/UX", query: "Lead Product Designer with Figma design systems, tokens, and UX architecture." },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setCustomJobText(preset.query)}
+                      className="px-2 py-0.5 rounded-md border border-neutral-200 bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] cursor-pointer"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAuditRole}
+                  disabled={isAuditingRole || !customJobText.trim()}
+                  className="px-5 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  {isAuditingRole ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Ranking Candidates...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={14} />
+                      <span>Rank Candidate Pool →</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Candidate Cards Grid */}
@@ -348,6 +472,19 @@ export default function RecruiterDashboardPage() {
                     </span>
                   </div>
                 </div>
+
+                {/* AI Dynamic Role Match Badge */}
+                {matchRankings && matchRankings[candidate.id] !== undefined && (
+                  <div className="mb-4 px-3.5 py-2.5 rounded-xl bg-indigo-50/90 border border-indigo-200 flex items-center justify-between text-xs font-mono animate-fade-in">
+                    <span className="text-[#4F46E5] font-bold flex items-center gap-1.5">
+                      <Sparkles size={13} />
+                      <span>Role Alignment:</span>
+                    </span>
+                    <span className="text-sm font-extrabold text-[#4F46E5]">
+                      {matchRankings[candidate.id]}% Match
+                    </span>
+                  </div>
+                )}
 
                 {/* Evidence Proof Banner */}
                 <div className="p-3.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] mb-5">

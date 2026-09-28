@@ -26,6 +26,10 @@ import {
   Check,
   ChevronDown,
   Box,
+  Printer,
+  X,
+  Award,
+  QrCode,
 } from "lucide-react";
 
 const CryptographicSeal3D = dynamic(
@@ -373,6 +377,9 @@ export default function PublicPassportPage() {
   }, [passportData, rawUsername]);
 
   const [copied, setCopied] = useState(false);
+  const [badgeCopied, setBadgeCopied] = useState<string | null>(null);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [verifiedHash, setVerifiedHash] = useState<boolean | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [showJobTester, setShowJobTester] = useState(false);
@@ -437,21 +444,23 @@ export default function PublicPassportPage() {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Export PDF Certificate Button */}
             <button
-              onClick={handleCopy}
+              onClick={() => setShowCertificateModal(true)}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
+              title="View and download printable cryptographic certificate"
+            >
+              <FileCheck size={14} className="text-[#4F46E5]" />
+              <span className="whitespace-nowrap hidden xs:inline">Export PDF</span>
+            </button>
+
+            {/* Share & Badges Button */}
+            <button
+              onClick={() => setShowShareModal(true)}
               className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:border-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
             >
-              {copied ? (
-                <>
-                  <Check size={13} className="text-[#4F46E5]" />
-                  <span className="text-[#4F46E5] font-semibold whitespace-nowrap hidden xs:inline">Link Copied</span>
-                </>
-              ) : (
-                <>
-                  <Share2 size={13} className="text-[#64748B]" />
-                  <span className="whitespace-nowrap hidden xs:inline">Share Ledger</span>
-                </>
-              )}
+              <Share2 size={13} className="text-[#64748B]" />
+              <span className="whitespace-nowrap hidden xs:inline">Share & Badges</span>
             </button>
 
             <Link href="/auth/signup" className="flex-shrink-0">
@@ -709,8 +718,233 @@ export default function PublicPassportPage() {
         </div>
       </main>
 
+      {/* ── Cryptographic Certificate Printable Modal ─────────── */}
+      {showCertificateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full border border-neutral-200 shadow-2xl relative overflow-hidden my-auto animate-fade-in-up">
+            {/* Modal Controls (Hidden when printing) */}
+            <div className="p-4 sm:p-6 border-b border-neutral-100 flex items-center justify-between no-print bg-[#FAFAF8]">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#64748B]">
+                <FileCheck size={16} className="text-[#4F46E5]" />
+                <span className="font-bold text-[#0F172A]">OFFICIAL CREDA TALENT LEDGER CERTIFICATE</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <Printer size={14} />
+                  <span>Print / Save PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCertificateModal(false)}
+                  className="p-2 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-800 transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Certificate Canvas */}
+            <div id="creda-printable-certificate" className="p-6 sm:p-10 bg-white border-8 border-double border-indigo-900/20 m-2 sm:m-4 rounded-2xl relative">
+              {/* Certificate Watermark / Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b-2 border-indigo-950/20 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-[#4F46E5] text-white flex items-center justify-center font-mono font-bold text-xl shadow-md">
+                    CRD
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">
+                      CREDA PROTOCOL ATTESTATION
+                    </h2>
+                    <p className="text-[11px] font-mono text-[#64748B]">
+                      DECENTRALIZED TECHNICAL TALENT VERIFICATION LEDGER
+                    </p>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right font-mono text-xs text-[#64748B]">
+                  <div><strong className="text-[#0F172A]">LEDGER ID:</strong> CRD-{passportHash.slice(0, 10).toUpperCase()}</div>
+                  <div className="text-[10px] mt-0.5">ISSUED: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                </div>
+              </div>
+
+              {/* Certificate Body */}
+              <div className="py-8 text-center space-y-4">
+                <div className="text-xs font-mono uppercase tracking-widest text-[#4F46E5] font-bold">
+                  Verified Candidate Credential
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight font-serif">
+                  {profile.name}
+                </h1>
+                <p className="text-sm font-mono text-[#475569] max-w-lg mx-auto">
+                  {profile.title} • {profile.location}
+                </p>
+
+                {/* Score Banner */}
+                <div className="inline-flex items-center gap-4 px-6 py-3 rounded-2xl bg-indigo-50 border border-indigo-200 mt-2">
+                  <div className="text-left">
+                    <div className="text-[10px] font-mono uppercase text-[#64748B]">Overall Trust Index</div>
+                    <div className="text-xs font-mono font-bold text-[#4F46E5]">{profile.badge}</div>
+                  </div>
+                  <div className="text-3xl font-extrabold font-mono text-[#4F46E5] pl-4 border-l border-indigo-200">
+                    {profile.trustIndex}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Verified Competencies Table */}
+              <div className="border border-neutral-200 rounded-xl overflow-hidden mb-6">
+                <div className="bg-[#FAFAF8] px-4 py-2 border-b border-neutral-200 text-xs font-mono font-bold text-[#0F172A] uppercase flex justify-between">
+                  <span>Verified Competency</span>
+                  <span>Confidence & Tier</span>
+                </div>
+                <div className="divide-y divide-neutral-100 text-xs font-mono">
+                  {profile.skills.map((skill) => (
+                    <div key={skill.name} className="px-4 py-2.5 flex items-center justify-between">
+                      <div>
+                        <strong className="text-[#0F172A] font-semibold">{skill.name}</strong>
+                        <div className="text-[10px] text-[#64748B]">{skill.auditNote}</div>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-4">
+                        <span className="font-bold text-[#4F46E5]">{skill.score}%</span>
+                        <div className="text-[10px] text-neutral-500">{skill.tier}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cryptographic Signature Footer & QR Code */}
+              <div className="pt-6 border-t-2 border-indigo-950/20 flex flex-col sm:flex-row items-center justify-between gap-6 font-mono text-xs">
+                <div className="space-y-1 text-left">
+                  <div className="text-[10px] text-[#64748B] uppercase">GPG Key Identifier:</div>
+                  <div className="text-xs font-bold text-[#0F172A] font-mono">{profile.gpgKey}</div>
+                  <div className="text-[10px] text-[#64748B] uppercase pt-1">SHA-256 Fingerprint:</div>
+                  <div className="text-[10px] text-neutral-500 font-mono break-all max-w-sm">
+                    {passportHash}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200 flex-shrink-0">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(`https://creda-khaki.vercel.app/p/${rawUsername}`)}`}
+                    alt="Verification QR Code"
+                    className="w-16 h-16 rounded-lg border border-neutral-200"
+                  />
+                  <div className="text-[10px] text-[#64748B] text-left max-w-[130px] leading-tight">
+                    Scan with any smartphone camera to verify live ledger proof.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Share & Embed Badges Modal ──────────────────────── */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-up">
+          <div className="bg-white rounded-3xl max-w-lg w-full border border-neutral-200 shadow-2xl p-6 sm:p-8 relative">
+            <div className="flex items-center justify-between pb-4 border-b border-neutral-100">
+              <div className="flex items-center gap-2">
+                <Share2 size={18} className="text-[#4F46E5]" />
+                <h3 className="font-bold text-base text-[#0F172A]">Share Talent Passport & Badges</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                className="p-1.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-neutral-500"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="py-5 space-y-5 text-xs font-mono">
+              {/* Direct Link */}
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-[#64748B] font-semibold mb-1.5 block">
+                  Public Passport URL
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`https://creda-khaki.vercel.app/p/${rawUsername}`}
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-[#FAFAF8] border border-neutral-200 text-xs text-[#0F172A] outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://creda-khaki.vercel.app/p/${rawUsername}`);
+                      setBadgeCopied("url");
+                      setTimeout(() => setBadgeCopied(null), 2000);
+                    }}
+                    className="h-10 px-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold transition-all flex items-center gap-1.5"
+                  >
+                    {badgeCopied === "url" ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{badgeCopied === "url" ? "Copied" : "Copy"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* GitHub README Badge Markdown */}
+              <div>
+                <label className="text-[11px] uppercase tracking-wider text-[#64748B] font-semibold mb-1.5 block">
+                  GitHub Profile README Badge (Markdown)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`[![Creda Verified](https://img.shields.io/badge/Creda_Verified-Top_Talent-4F46E5?style=flat-square&logo=shield)](https://creda-khaki.vercel.app/p/${rawUsername})`}
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-[#FAFAF8] border border-neutral-200 text-xs text-[#0F172A] outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`[![Creda Verified](https://img.shields.io/badge/Creda_Verified-Top_Talent-4F46E5?style=flat-square&logo=shield)](https://creda-khaki.vercel.app/p/${rawUsername})`);
+                      setBadgeCopied("markdown");
+                      setTimeout(() => setBadgeCopied(null), 2000);
+                    }}
+                    className="h-10 px-4 rounded-xl border border-neutral-200 hover:border-[#4F46E5] bg-white text-[#0F172A] font-semibold transition-all flex items-center gap-1.5"
+                  >
+                    {badgeCopied === "markdown" ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{badgeCopied === "markdown" ? "Copied" : "Copy"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 1-Click Social Sharing */}
+              <div className="pt-2">
+                <label className="text-[11px] uppercase tracking-wider text-[#64748B] font-semibold mb-2 block">
+                  Share Instantly to Socials
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just verified my technical skills on @CredaProtocol — proven with real AST commit proof and zero resume fluff. Check out my live cryptographic passport:`)}&url=${encodeURIComponent(`https://creda-khaki.vercel.app/p/${rawUsername}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-11 rounded-xl bg-black hover:bg-neutral-800 text-white font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>Share on X</span>
+                  </a>
+                  <a
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://creda-khaki.vercel.app/p/${rawUsername}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-11 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>Share on LinkedIn</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Minimalist Footer ───────────────────────────────── */}
-      <footer className="border-t border-[#E5E7EB] px-6 sm:px-10 py-5 text-xs font-mono text-[#64748B] bg-white">
+      <footer className="border-t border-[#E5E7EB] px-6 sm:px-10 py-5 text-xs font-mono text-[#64748B] bg-white no-print">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>Creda Protocol v2.4 // Public Ledger Node {passportHash.slice(0, 10)}</span>
           <span className="text-[#94A3B8] hidden sm:inline">SHA-256 Tamper-Proof Cryptographic Verification</span>
