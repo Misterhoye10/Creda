@@ -330,12 +330,12 @@ export default function DashboardPage() {
     (typeof window !== "undefined" && localStorage.getItem("creda_user_email")
       ? localStorage.getItem("creda_user_email")!.split("@")[0]
       : null) ||
-    "Folarin Oyewole";
+    "Verified Candidate";
 
   const displayEmail =
     currentUser?.email ||
     (typeof window !== "undefined" ? localStorage.getItem("creda_user_email") : null) ||
-    "hoye@creda.app";
+    "candidate@creda.app";
 
   const displayTitle =
     profileForm.professional_title ||

@@ -165,7 +165,7 @@ export default function LoginPage() {
             className="w-full h-12 mb-3 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2.5 cursor-pointer active:translate-y-0.5 disabled:opacity-75 whitespace-nowrap flex-shrink-0"
           >
             <ShieldCheck size={16} />
-            <span className="whitespace-nowrap">Instant Demo Access (Folarin Oyewole)</span>
+            <span className="whitespace-nowrap">Instant Demo Sign In</span>
           </button>
 
           {/* 1-Click Fast Developer Login: GitHub */}
