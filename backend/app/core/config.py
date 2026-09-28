@@ -45,5 +45,12 @@ class Settings(BaseSettings):
         "http://localhost:8000",
     ]
 
+    @field_validator("JWT_SECRET")
+    @classmethod
+    def validate_jwt_secret(cls, v: str) -> str:
+        if len(v) < 32:
+            raise ValueError("JWT_SECRET must be at least 32 characters for cryptographic security.")
+        return v
+
 
 settings = Settings()

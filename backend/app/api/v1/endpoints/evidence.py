@@ -1,3 +1,4 @@
+import re
 import json
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status
@@ -51,6 +52,13 @@ async def upload_cv(
             detail=f"File exceeds maximum allowed size of {MAX_FILE_SIZE // (1024 * 1024)}MB."
         )
 
+    # Validate PDF magic bytes header to prevent disguised binaries/scripts
+    if not file_bytes.startswith(b"%PDF-"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid PDF format. The uploaded document is corrupted or not a valid PDF."
+        )
+
     # Extract text from PDF
     extracted_text = extract_text_from_pdf(file_bytes)
     if not extracted_text:
@@ -88,11 +96,24 @@ def connect_github(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    username = data.username.strip().lstrip("@")
+    raw_user = data.username.strip().lstrip("@")
+    # Normalize full GitHub URLs if candidate pasted a link
+    if "github.com/" in raw_user:
+        raw_user = raw_user.split("github.com/")[-1].strip("/")
+    # Handle username/repo syntax
+    username = raw_user.split("/")[0].strip()
+
     if not username:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="GitHub username cannot be empty."
+        )
+
+    # Validate against standard GitHub username specification
+    if not re.match(r"^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$", username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid GitHub username format. Use alphanumeric characters and single hyphens."
         )
 
     try:

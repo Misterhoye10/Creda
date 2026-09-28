@@ -715,6 +715,7 @@ export default function DashboardPage() {
             <Link
               href={`/p/${passportSlug}`}
               target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-neutral-200 bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] text-xs font-mono text-[#0F172A] shadow-2xs transition-all whitespace-nowrap flex-shrink-0"
               title="Open public passport in new tab"
             >
@@ -808,6 +809,7 @@ export default function DashboardPage() {
                   <Link
                     href={`/p/${passportSlug}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-neutral-100 hover:text-[#0F172A] transition-colors text-left"
                   >
                     <ShieldCheck size={14} className="text-[#4F46E5]" />
@@ -1781,6 +1783,7 @@ export default function DashboardPage() {
                       <Link
                         href={`/p/${passportSlug}`}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="h-11 px-4 rounded-xl border border-[#E5E7EB] hover:border-[#4F46E5] hover:text-[#4F46E5] bg-white text-xs font-mono font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
                       >
                         <span>Test Live Link</span>

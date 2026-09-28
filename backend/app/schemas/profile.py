@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Dict
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ProfileUpdateRequest(BaseModel):
@@ -15,6 +15,16 @@ class ProfileUpdateRequest(BaseModel):
     github_url: Optional[str] = None
     linkedin_url: Optional[str] = None
     website_url: Optional[str] = None
+
+    @field_validator("github_url", "linkedin_url", "website_url", mode="before")
+    @classmethod
+    def validate_safe_url(cls, v: Optional[str]) -> Optional[str]:
+        if not v or not isinstance(v, str) or not v.strip():
+            return None
+        cleaned = v.strip()
+        if not (cleaned.startswith("http://") or cleaned.startswith("https://")):
+            raise ValueError("URL must begin with http:// or https://")
+        return cleaned
 
 
 class UserProfileResponse(BaseModel):

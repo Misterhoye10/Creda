@@ -388,7 +388,7 @@ export default function RecruiterDashboardPage() {
                     Quick Audit
                   </button>
 
-                  <Link href={`/p/${candidate.slug}`} target="_blank" className="flex-shrink-0">
+                  <Link href={`/p/${candidate.slug}`} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
                     <button className="px-3.5 py-1.5 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0">
                       <span className="whitespace-nowrap">Passport</span>
                       <ExternalLink size={12} className="flex-shrink-0" />
@@ -484,7 +484,7 @@ export default function RecruiterDashboardPage() {
             </div>
 
             <div className="pt-6 border-t border-[#E5E7EB] space-y-3">
-              <Link href={`/p/${selectedCandidate.slug}`} target="_blank" className="w-full block flex-shrink-0">
+              <Link href={`/p/${selectedCandidate.slug}`} target="_blank" rel="noopener noreferrer" className="w-full block flex-shrink-0">
                 <button className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0">
                   <span className="whitespace-nowrap">Open Full Public Ledger</span>
                   <ExternalLink size={14} className="flex-shrink-0" />

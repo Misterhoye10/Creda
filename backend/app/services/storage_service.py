@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import logging
 from pathlib import Path
@@ -16,7 +17,10 @@ def save_file(file_bytes: bytes, original_filename: str, content_type: str = "ap
     Tries Supabase Storage first; if unavailable, falls back to local disk storage.
     Returns the file URL or relative storage path.
     """
-    clean_name = Path(original_filename).name
+    raw_name = Path(original_filename).name
+    clean_name = re.sub(r"[^a-zA-Z0-9_.-]", "_", raw_name)
+    if not clean_name or clean_name == ".pdf":
+        clean_name = "document.pdf"
     unique_filename = f"{uuid.uuid4().hex[:12]}_{clean_name}"
 
     # Attempt Supabase Storage
