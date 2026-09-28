@@ -317,12 +317,12 @@ export default function Home() {
             {/* Candidate Header */}
             <div className="p-5 sm:p-8 border-b border-neutral-800 flex flex-wrap items-center justify-between gap-5 sm:gap-6">
               <div className="flex items-center gap-4 sm:gap-5">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-neutral-700 bg-neutral-800 flex items-center justify-center font-mono font-bold text-lg sm:text-xl text-white shadow-inner flex-shrink-0">
-                  AA
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-neutral-700 bg-neutral-800 flex items-center justify-center font-mono font-bold text-lg sm:text-xl text-[#818CF8] shadow-inner flex-shrink-0">
+                  FO
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Amina Adeleke</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Folarin Oyewole</h3>
                     <span className="text-[9px] sm:text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-800 border border-neutral-700 text-neutral-300">
                       Lagos, NG
                     </span>
@@ -387,7 +387,9 @@ export default function Home() {
                 <span className="w-2 h-2 rounded-full bg-[#4F46E5] animate-pulse" />
                 <span className="text-white font-medium cursor-blink">IN-MEMORY AST ANALYSIS // 0% SYNTHETIC INFLATION DETECTED</span>
               </div>
-              <span className="text-[#818CF8] font-semibold">creda.app/p/amina-adeleke</span>
+              <Link href="/p/hoye" className="text-[#818CF8] hover:text-white font-semibold transition-colors">
+                creda.app/p/hoye
+              </Link>
             </div>
           </div>
         </div>
@@ -893,7 +895,7 @@ export default function Home() {
                 tags: ["GPG Signed", "AST Validated", "Offer in 4 Days"],
               },
               {
-                name: "Amina Mwangi",
+                name: "Zainab Mwangi",
                 role: "Lead Frontend Architect",
                 location: "Nairobi, Kenya",
                 company: "Hired at AI Infra Co (San Francisco / Remote)",
@@ -902,7 +904,7 @@ export default function Home() {
                 hash: "4e1b...d309",
                 repos: "22 Pull Requests",
                 timeSaved: "Zero Rejections Across 6 Remote Applications",
-                avatar: "/testimonials/amina.jpg",
+                avatar: "https://ui-avatars.com/api/?name=Zainab+Mwangi&background=4F46E5&color=fff&bold=true",
                 quote:
                   "Applying from East Africa, CVs frequently get blocked by ATS filters. Creda proved my architectural depth with real commit metrics that couldn't be faked.",
                 tags: ["Top 2% Talent", "Zero ATS Friction", "Remote US Rate"],

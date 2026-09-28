@@ -27,37 +27,81 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDemoAccess = async () => {
     setIsSubmitting(true);
     setErrorMessage(null);
-
     try {
-      const response = await api.login(formData.email, formData.password);
+      const response = await api.login("hoye@creda.app", "Password123!");
       if (response?.access_token) {
         localStorage.setItem("creda_token", response.access_token);
       }
       if (response?.user) {
         localStorage.setItem("creda_user", JSON.stringify(response.user));
       }
-      localStorage.setItem("creda_user_email", formData.email);
+    } catch {
+      // Offline / cloud cold-start fallback
+      localStorage.setItem(
+        "creda_user",
+        JSON.stringify({
+          name: "Folarin Oyewole",
+          email: "hoye@creda.app",
+          professional_title: "Backend Lead & Distributed Systems Engineer",
+          location: "Lagos, Nigeria",
+          public_url: "hoye",
+        })
+      );
+    }
+    localStorage.setItem("creda_user_email", "hoye@creda.app");
+    setTimeout(() => {
+      setIsSubmitting(false);
+      router.push("/dashboard");
+    }, 400);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    const email = formData.email.trim();
+    const isDemoAccount = email.toLowerCase() === "hoye@creda.app" || email.toLowerCase().includes("hoye");
+
+    try {
+      const response = await api.login(email, formData.password);
+      if (response?.access_token) {
+        localStorage.setItem("creda_token", response.access_token);
+      }
+      if (response?.user) {
+        localStorage.setItem("creda_user", JSON.stringify(response.user));
+      }
+      localStorage.setItem("creda_user_email", email);
       setIsSubmitting(false);
       router.push("/dashboard");
     } catch (err: unknown) {
+      if (isDemoAccount) {
+        // Instant seamless access for Hoye / Hackathon demo
+        handleDemoAccess();
+        return;
+      }
+
       const errObj = err as { detail?: string; message?: string; status?: number };
       if (errObj && (errObj.status === 401 || errObj.status === 400 || errObj.status === 422) && errObj.detail) {
-        setErrorMessage(errObj.detail);
+        setErrorMessage(
+          errObj.status === 401
+            ? "Invalid email or password. If you haven't registered on the live backend yet, click 'Claim Free Passport' above or use 1-Click Demo Sign In."
+            : errObj.detail
+        );
         setIsSubmitting(false);
       } else {
         // Fallback for demo / offline mode
-        localStorage.setItem("creda_user_email", formData.email);
-        const namePart = formData.email.split("@")[0];
+        localStorage.setItem("creda_user_email", email);
+        const namePart = email.split("@")[0];
         const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
         localStorage.setItem(
           "creda_user",
           JSON.stringify({
             name: formattedName,
-            email: formData.email,
+            email: email,
             professional_title: "Backend Lead & Systems Engineer",
             location: "Lagos, Nigeria",
           })
@@ -71,21 +115,7 @@ export default function LoginPage() {
   };
 
   const handleGithubLogin = () => {
-    setIsSubmitting(true);
-    localStorage.setItem("creda_user_email", "hoye@creda.app");
-    localStorage.setItem(
-      "creda_user",
-      JSON.stringify({
-        name: "Hoye",
-        email: "hoye@creda.app",
-        professional_title: "Backend Lead & Systems Engineer",
-        location: "Lagos, Nigeria",
-      })
-    );
-    setTimeout(() => {
-      setIsSubmitting(false);
-      router.push("/dashboard");
-    }, 600);
+    handleDemoAccess();
   };
 
   return (
@@ -127,12 +157,23 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* 1-Click Demo Login (Hoye) */}
+          <button
+            type="button"
+            onClick={handleDemoAccess}
+            disabled={isSubmitting}
+            className="w-full h-12 mb-3 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2.5 cursor-pointer active:translate-y-0.5 disabled:opacity-75 whitespace-nowrap flex-shrink-0"
+          >
+            <ShieldCheck size={16} />
+            <span className="whitespace-nowrap">Instant Demo Access (Folarin Oyewole)</span>
+          </button>
+
           {/* 1-Click Fast Developer Login: GitHub */}
           <button
             type="button"
             onClick={handleGithubLogin}
             disabled={isSubmitting}
-            className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-all shadow-xs flex items-center justify-center gap-3 cursor-pointer active:translate-y-0.5 disabled:opacity-75 whitespace-nowrap flex-shrink-0"
+            className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white text-[#0F172A] transition-all shadow-xs flex items-center justify-center gap-2.5 cursor-pointer active:translate-y-0.5 disabled:opacity-75 whitespace-nowrap flex-shrink-0"
           >
             <svg className="w-4 h-4 fill-current flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
               <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />

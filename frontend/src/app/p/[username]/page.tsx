@@ -59,9 +59,56 @@ const PROFILES: Record<
     }>;
   }
 > = {
+  "hoye": {
+    name: "Folarin Oyewole",
+    avatar: "https://ui-avatars.com/api/?name=Folarin+Oyewole&background=4F46E5&color=fff&bold=true",
+    title: "Backend Lead & Distributed Systems Engineer",
+    location: "Lagos, Nigeria // Global Remote",
+    trustIndex: 98.4,
+    badge: "TOP 1% AFRICAN TALENT",
+    gpgKey: "0x4F9DE21AC8F19A42",
+    skills: [
+      {
+        name: "Python & FastAPI Engine",
+        score: 96,
+        repos: "18 Repositories",
+        commits: "1,840 commits",
+        tier: "Code-Proven Tier",
+        icon: Terminal,
+        auditNote: "AST validated high-concurrency async endpoints, Pydantic schemas & JWT security.",
+      },
+      {
+        name: "Distributed Systems & Ledger Engine",
+        score: 94,
+        repos: "12 Systems",
+        commits: "960 commits",
+        tier: "Code-Proven Tier",
+        icon: Server,
+        auditNote: "Cryptographic hash verification, concurrency controls, and Redis state management.",
+      },
+      {
+        name: "PostgreSQL & Database Optimization",
+        score: 91,
+        repos: "Production Schemas",
+        commits: "42 migrations",
+        tier: "Code-Proven Tier",
+        icon: Database,
+        auditNote: "ACID transactions, indexed relationship queries, and automated SQLAlchemy migrations.",
+      },
+      {
+        name: "Docker, Cloud & Security Hardening",
+        score: 90,
+        repos: "CI/CD & Cloud",
+        commits: "24 pipelines",
+        tier: "Top Strength Tier",
+        icon: Lock,
+        auditNote: "Containerization, security headers, reverse tabnabbing protection & OWASP compliance.",
+      },
+    ],
+  },
   "amina-adeleke": {
     name: "Amina Adeleke",
-    avatar: "/testimonials/amina.jpg",
+    avatar: "https://ui-avatars.com/api/?name=Amina+Adeleke&background=4F46E5&color=fff&bold=true",
     title: "Senior Backend & Distributed Systems Engineer",
     location: "Lagos, Nigeria // Global Remote",
     trustIndex: 96.4,

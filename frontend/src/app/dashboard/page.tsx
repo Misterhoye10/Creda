@@ -330,7 +330,7 @@ export default function DashboardPage() {
     (typeof window !== "undefined" && localStorage.getItem("creda_user_email")
       ? localStorage.getItem("creda_user_email")!.split("@")[0]
       : null) ||
-    "Hoye";
+    "Folarin Oyewole";
 
   const displayEmail =
     currentUser?.email ||
