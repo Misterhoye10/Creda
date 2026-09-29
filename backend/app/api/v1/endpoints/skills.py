@@ -54,12 +54,17 @@ def extract_user_skills(
             func.lower(Skill.name) == skill_name.lower()
         ).first()
 
+        ev_count = item.get("evidence_count", len(item["evidence_ids"]))
+        ev_status = "strong" if ev_count >= 2 and item["confidence"] >= 80 else ("moderate" if ev_count >= 1 else "self_declared")
+
         if existing_skill:
             # Update existing skill
             existing_skill.level = item["level"]
             existing_skill.category = item["category"]
             existing_skill.confidence = max(existing_skill.confidence, item["confidence"])
-            existing_skill.evidence_count = len(item["evidence_ids"])
+            existing_skill.evidence_count = max(existing_skill.evidence_count or 1, ev_count)
+            if not existing_skill.evidence_status or existing_skill.evidence_status == "self_declared":
+                existing_skill.evidence_status = ev_status
             skill_obj = existing_skill
         else:
             # Create new skill
@@ -69,7 +74,8 @@ def extract_user_skills(
                 category=item["category"],
                 level=item["level"],
                 confidence=item["confidence"],
-                evidence_count=len(item["evidence_ids"])
+                evidence_count=ev_count,
+                evidence_status=ev_status
             )
             db.add(skill_obj)
             db.flush()

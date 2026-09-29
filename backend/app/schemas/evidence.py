@@ -13,6 +13,7 @@ class ProjectCreateRequest(BaseModel):
 
 class GitHubConnectRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100, description="GitHub username")
+    token: Optional[str] = Field(None, description="Optional GitHub Personal Access Token for private repo auditing")
 
 
 class EvidenceResponse(BaseModel):

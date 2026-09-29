@@ -360,6 +360,8 @@ export default function DashboardPage() {
   });
   const [isSubmittingPortfolio, setIsSubmittingPortfolio] = useState(false);
   const [repoInput, setRepoInput] = useState("");
+  const [githubTokenInput, setGithubTokenInput] = useState("");
+  const [showTokenInput, setShowTokenInput] = useState(false);
   const [isConnectingRepo, setIsConnectingRepo] = useState(false);
   const [isExtractingSkills, setIsExtractingSkills] = useState(false);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
@@ -786,7 +788,10 @@ export default function DashboardPage() {
   }, []);
 
   const handleCopy = () => {
-    navigator.clipboard?.writeText(`https://${passportUrl}`);
+    const cleanUrl = passportUrl.startsWith("http://") || passportUrl.startsWith("https://")
+      ? passportUrl
+      : `https://${passportUrl}`;
+    navigator.clipboard?.writeText(cleanUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -811,7 +816,7 @@ export default function DashboardPage() {
     if (!repoInput.trim()) return;
     setIsConnectingRepo(true);
     try {
-      await api.connectGitHub(repoInput.trim());
+      await api.connectGitHub(repoInput.trim(), githubTokenInput.trim() || undefined);
       // Trigger AI extraction on newly connected repository
       try {
         await api.extractSkills();
@@ -832,6 +837,8 @@ export default function DashboardPage() {
       ]);
     } finally {
       setRepoInput("");
+      setGithubTokenInput("");
+      setShowTokenInput(false);
       setIsConnectingRepo(false);
       setShowConnectModal(false);
     }
@@ -3085,6 +3092,32 @@ export default function DashboardPage() {
                   onChange={(e) => setRepoInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none"
                 />
+              </div>
+
+              {/* Private Repository Verification Option */}
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowTokenInput(!showTokenInput)}
+                  className="text-[11px] font-mono text-[#4F46E5] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{showTokenInput ? "− Hide Private Repo Token" : "+ Have Private Repositories? (Optional)"}</span>
+                </button>
+
+                {showTokenInput && (
+                  <div className="mt-2 p-3 rounded-xl bg-indigo-50/60 border border-indigo-100 text-[11px] font-mono space-y-2 animate-fade-in">
+                    <p className="text-[#475569] leading-relaxed">
+                      By default, GitHub&apos;s public API only exposes public repositories. If your best work is in private repos, paste a GitHub Personal Access Token (read-only repo scope). Creda audits commit volume and language syntax while keeping your source code 100% private.
+                    </p>
+                    <input
+                      type="password"
+                      placeholder="ghp_... (Personal Access Token with read-only repo scope)"
+                      value={githubTokenInput}
+                      onChange={(e) => setGithubTokenInput(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-indigo-200 text-xs font-mono text-[#0F172A] outline-none focus:border-[#4F46E5]"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-2.5 pt-2">

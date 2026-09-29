@@ -347,10 +347,10 @@ class ApiClient {
     });
   }
 
-  async connectGitHub(username: string): Promise<any> {
+  async connectGitHub(username: string, token?: string): Promise<any> {
     return this.request("/evidence/github", {
       method: "POST",
-      body: JSON.stringify({ username }),
+      body: JSON.stringify({ username, token: token || undefined }),
     });
   }
 

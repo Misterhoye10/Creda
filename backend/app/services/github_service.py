@@ -1,14 +1,17 @@
 import json
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from github import Github, GithubException, Auth
 from app.core.config import settings
 
 logger = logging.getLogger("creda.github")
 
 
-def get_github_client() -> Github:
+def get_github_client(token: Optional[str] = None) -> Github:
     """Initialize PyGithub client with configured token or anonymously."""
+    if token and token.strip():
+        auth = Auth.Token(token.strip())
+        return Github(auth=auth)
     if settings.GITHUB_TOKEN:
         auth = Auth.Token(settings.GITHUB_TOKEN)
         return Github(auth=auth)
@@ -88,15 +91,29 @@ def calculate_github_telemetry_score(
     return min(98, score)
 
 
-def fetch_github_profile_and_repos(username: str) -> Dict[str, Any]:
+def fetch_github_profile_and_repos(username: str, token: Optional[str] = None) -> Dict[str, Any]:
     """
-    Fetch GitHub user details, top repositories, and language statistics.
+    Fetch GitHub user details, top repositories (public or authenticated private), and language statistics.
     Synthesizes a structured raw_text profile for AI skill extraction.
     """
-    g = get_github_client()
+    g = get_github_client(token=token)
 
     try:
-        gh_user = g.get_user(username)
+        if token and token.strip():
+            try:
+                auth_user = g.get_user()
+                if auth_user.login.lower() == username.lower():
+                    gh_user = auth_user
+                    repos = gh_user.get_repos(visibility="all", sort="updated")
+                else:
+                    gh_user = g.get_user(username)
+                    repos = gh_user.get_repos(type="all", sort="updated")
+            except Exception:
+                gh_user = g.get_user(username)
+                repos = gh_user.get_repos(type="public", sort="updated")
+        else:
+            gh_user = g.get_user(username)
+            repos = gh_user.get_repos(type="public", sort="updated")
     except GithubException as e:
         if e.status == 404:
             raise ValueError(f"GitHub user '{username}' was not found.")
@@ -112,7 +129,7 @@ def fetch_github_profile_and_repos(username: str) -> Dict[str, Any]:
         "bio": gh_user.bio or "",
         "company": gh_user.company or "",
         "location": gh_user.location or "",
-        "public_repos_count": gh_user.public_repos,
+        "public_repos_count": getattr(gh_user, "total_private_repos", 0) + (gh_user.public_repos or 0) if token else (gh_user.public_repos or 0),
         "followers_count": gh_user.followers,
         "avatar_url": gh_user.avatar_url,
         "html_url": gh_user.html_url

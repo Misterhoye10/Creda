@@ -132,7 +132,7 @@ def connect_github(
         )
 
     try:
-        gh_data = fetch_github_profile_and_repos(username)
+        gh_data = fetch_github_profile_and_repos(username, token=data.token)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
