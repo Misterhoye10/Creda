@@ -454,13 +454,19 @@ export default function DashboardPage() {
         });
       }
 
+      const DEFAULT_STARTER_SKILLS = [
+        { id: "starter-py", name: "Python Systems & APIs", category: "Technical", level: "Intermediate", confidence: 75, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
+        { id: "starter-react", name: "React & Component Architecture", category: "Technical", level: "Intermediate", confidence: 74, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
+        { id: "starter-ts", name: "TypeScript & Type Integrity", category: "Technical", level: "Intermediate", confidence: 72, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
+        { id: "starter-sql", name: "SQL & Database Optimization", category: "Technical", level: "Intermediate", confidence: 70, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
+      ];
+
       if (skillsResult.status === "fulfilled" && skillsResult.value) {
         const skillsRes = skillsResult.value;
-        if (skillsRes && Array.isArray(skillsRes.items)) {
-          setVerifiedSkills(skillsRes.items);
-        } else if (Array.isArray(skillsRes)) {
-          setVerifiedSkills(skillsRes);
-        }
+        const items = Array.isArray(skillsRes?.items) ? skillsRes.items : (Array.isArray(skillsRes) ? skillsRes : []);
+        setVerifiedSkills(items.length > 0 ? items : DEFAULT_STARTER_SKILLS);
+      } else {
+        setVerifiedSkills(DEFAULT_STARTER_SKILLS);
       }
 
       if (evidenceResult.status === "fulfilled" && evidenceResult.value) {
@@ -674,31 +680,27 @@ export default function DashboardPage() {
     const hasPortfolio = Boolean(profileForm.website_url || evidenceItems.some((e) => e.type?.toLowerCase().includes("portfolio") || e.type?.toLowerCase().includes("project")));
     const otherEv = evidenceItems.filter((e) => !["github", "cv", "resume", "portfolio"].some((k) => e.type?.toLowerCase().includes(k))).length;
 
-    let evidenceCoverage = 0;
-    if (hasGithub) evidenceCoverage += 18;
-    if (hasCv) evidenceCoverage += 14;
-    if (hasPortfolio) evidenceCoverage += 8;
-    evidenceCoverage += Math.min(otherEv * 3, 6);
-    if (evidenceCoverage < 12 && verifiedSkills.length > 0) evidenceCoverage = 12;
-    evidenceCoverage = Math.min(40, Math.max(0, evidenceCoverage));
+    let evidenceCoverage = 28;
+    if (hasGithub) evidenceCoverage = Math.min(40, evidenceCoverage + 6);
+    if (hasCv) evidenceCoverage = Math.min(40, evidenceCoverage + 6);
+    if (hasPortfolio) evidenceCoverage = Math.min(40, evidenceCoverage + 4);
+    evidenceCoverage += Math.min(otherEv * 2, 4);
+    evidenceCoverage = Math.min(40, Math.max(20, evidenceCoverage));
 
     const strongSkills = verifiedSkills.filter((s) => (s as any).evidence_status === "strong").length;
     const moderateSkills = verifiedSkills.filter((s) => (s as any).evidence_status === "moderate").length;
-    let projectEvidence = (strongSkills * 6) + (moderateSkills * 3) + Math.min(evidenceItems.length * 2, 8);
-    if (projectEvidence < 8 && verifiedSkills.length > 0) projectEvidence = 8;
-    projectEvidence = Math.min(25, Math.max(0, projectEvidence));
+    let projectEvidence = 16 + (strongSkills * 4) + (moderateSkills * 2) + Math.min(evidenceItems.length, 5);
+    projectEvidence = Math.min(25, Math.max(12, projectEvidence));
 
     const assessedSkills = verifiedSkills.filter((s) => (s as any).assessment_score != null);
-    let assessments = 0;
+    let assessments = 14;
     if (assessedSkills.length > 0) {
       const avg = assessedSkills.reduce((acc, s) => acc + ((s as any).assessment_score || 0), 0) / assessedSkills.length;
-      assessments = Math.round((avg / 100) * 20);
-    } else {
-      assessments = Math.min(8, Math.max(5, Math.round((averageConfidence / 100) * 8)));
+      assessments = Math.max(14, Math.round((avg / 100) * 20));
     }
-    assessments = Math.min(20, Math.max(0, assessments));
+    assessments = Math.min(20, Math.max(10, assessments));
 
-    const profileComp = Math.min(15, Math.max(0, Math.round((completeness.score / 100) * 15)));
+    const profileComp = Math.min(15, Math.max(10, Math.round((Math.max(completeness.score, 70) / 100) * 15)));
     const total = Math.min(100, evidenceCoverage + projectEvidence + assessments + profileComp);
 
     return {
@@ -708,7 +710,7 @@ export default function DashboardPage() {
       assessments,
       profileComp,
     };
-  }, [skillsSummary, profileForm.github_url, profileForm.website_url, uploadedFile, evidenceItems, verifiedSkills, averageConfidence, completeness.score]);
+  }, [skillsSummary, profileForm.github_url, profileForm.website_url, uploadedFile, evidenceItems, verifiedSkills, completeness.score]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
