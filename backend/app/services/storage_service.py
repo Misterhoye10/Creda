@@ -29,11 +29,27 @@ def save_file(file_bytes: bytes, original_filename: str, content_type: str = "ap
             from supabase import create_client
             supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
             bucket_name = "cv_uploads"
-            res = supabase.storage.from_(bucket_name).upload(
-                path=unique_filename,
-                file=file_bytes,
-                file_options={"content-type": content_type}
-            )
+            try:
+                res = supabase.storage.from_(bucket_name).upload(
+                    path=unique_filename,
+                    file=file_bytes,
+                    file_options={"content-type": content_type}
+                )
+            except Exception as upload_err:
+                # If bucket doesn't exist, try creating it and re-uploading
+                if "Bucket not found" in str(upload_err) or "404" in str(upload_err):
+                    try:
+                        supabase.storage.create_bucket(bucket_name, options={"public": True})
+                        res = supabase.storage.from_(bucket_name).upload(
+                            path=unique_filename,
+                            file=file_bytes,
+                            file_options={"content-type": content_type}
+                        )
+                    except Exception:
+                        raise upload_err
+                else:
+                    raise upload_err
+
             # Retrieve public URL
             public_url = supabase.storage.from_(bucket_name).get_public_url(unique_filename)
             logger.info(f"File uploaded to Supabase Storage: {public_url}")
