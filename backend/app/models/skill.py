@@ -24,6 +24,8 @@ class Skill(Base):
     category = Column(String(50), default="Technical", index=True)
     level = Column(String(50), default="Intermediate")  # 'Beginner', 'Intermediate', 'Advanced', 'Expert'
     confidence = Column(Integer, default=50)  # 0 to 100 percentage
+    evidence_status = Column(String(50), default="self_declared", nullable=False)  # 'self_declared', 'moderate', 'strong'
+    assessment_score = Column(Integer, nullable=True)  # e.g. 87% practical challenge
     evidence_count = Column(Integer, default=1)
     created_at = Column(
         DateTime(timezone=True),

@@ -51,13 +51,30 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
         slug = f"{slug_base}-{counter}"
         counter += 1
 
+    loc = data.location
+    if not loc and data.city and data.country:
+        loc = f"{data.city}, {data.country}"
+    elif not loc and data.country:
+        loc = data.country
+
     # Create new user
     new_user = User(
         email=data.email.lower(),
         password_hash=hashed_pwd,
         name=data.name,
+        account_type=data.account_type or "talent",
         professional_title=data.professional_title,
-        location=data.location,
+        location=loc,
+        country=data.country,
+        city=data.city,
+        primary_field=data.primary_field or "software",
+        years_experience=data.years_experience or 0,
+        availability=data.availability or "available_now",
+        work_preferences=data.work_preferences,
+        company_name=data.company_name,
+        company_website=data.company_website,
+        hiring_role=data.hiring_role,
+        team_size=data.team_size,
         public_url=slug
     )
 

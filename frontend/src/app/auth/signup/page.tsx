@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
 import {
   User,
@@ -10,16 +10,12 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Terminal,
   ArrowRight,
   CheckCircle2,
   ShieldCheck,
-  GitBranch,
   ChevronDown,
   Building2,
   Users,
-  Layers,
-  Search,
   Code2,
   Palette,
   Server,
@@ -27,6 +23,10 @@ import {
   Box,
   Check,
   AlertCircle,
+  MapPin,
+  Briefcase,
+  Globe,
+  Clock,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -119,37 +119,89 @@ const TEAM_SIZE_OPTIONS: TeamSizeOption[] = [
   },
 ];
 
-export default function SignupPage() {
+const AFRICAN_COUNTRIES = [
+  { code: "NG", name: "Nigeria", flag: "🇳🇬", defaultCity: "Lagos" },
+  { code: "GH", name: "Ghana", flag: "🇬🇭", defaultCity: "Accra" },
+  { code: "KE", name: "Kenya", flag: "🇰🇪", defaultCity: "Nairobi" },
+  { code: "ZA", name: "South Africa", flag: "🇿🇦", defaultCity: "Cape Town" },
+  { code: "EG", name: "Egypt", flag: "🇪🇬", defaultCity: "Cairo" },
+  { code: "RW", name: "Rwanda", flag: "🇷🇼", defaultCity: "Kigali" },
+  { code: "UG", name: "Uganda", flag: "🇺🇬", defaultCity: "Kampala" },
+  { code: "SN", name: "Senegal", flag: "🇸🇳", defaultCity: "Dakar" },
+  { code: "CM", name: "Cameroon", flag: "🇨🇲", defaultCity: "Douala" },
+  { code: "MA", name: "Morocco", flag: "🇲🇦", defaultCity: "Casablanca" },
+  { code: "ET", name: "Ethiopia", flag: "🇪🇹", defaultCity: "Addis Ababa" },
+  { code: "TZ", name: "Tanzania", flag: "🇹🇿", defaultCity: "Dar es Salaam" },
+  { code: "OTHER", name: "Other / International", flag: "🌍", defaultCity: "Remote" },
+];
+
+const WORK_PREFERENCE_OPTIONS = [
+  "Remote",
+  "Hybrid",
+  "On-site",
+  "Remote within my country",
+  "Open to relocation",
+];
+
+const EXPERIENCE_OPTIONS = [
+  { value: 1, label: "< 1 year (Junior / Entry)" },
+  { value: 2, label: "1 – 2 years (Associate)" },
+  { value: 4, label: "3 – 5 years (Mid-Level)" },
+  { value: 7, label: "5 – 8 years (Senior)" },
+  { value: 10, label: "8+ years (Lead / Staff / Principal)" },
+];
+
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [accountType, setAccountType] = useState<AccountType>("talent");
+
+  // Read role from query param on initial mount
+  useEffect(() => {
+    const roleParam = searchParams.get("role");
+    if (roleParam === "recruiter") {
+      setAccountType("recruiter");
+    } else if (roleParam === "talent") {
+      setAccountType("talent");
+    }
+  }, [searchParams]);
 
   // Talent form state
   const [talentData, setTalentData] = useState({
     name: "",
     email: "",
-    domain: "software-engineering",
     password: "",
+    country: "Nigeria",
+    city: "Lagos",
+    professionalTitle: "Full Stack Engineer",
+    domain: "software-engineering",
+    yearsExperience: 4,
+    workPreferences: ["Remote", "Remote within my country"],
   });
 
   // Recruiter form state
   const [recruiterData, setRecruiterData] = useState({
     name: "",
     workEmail: "",
-    companyName: "",
-    teamSize: "11-50",
     password: "",
+    companyName: "",
+    companyWebsite: "",
+    country: "Nigeria",
+    city: "Lagos",
+    hiringRole: "Technical Recruiter",
+    teamSize: "11-50",
   });
 
-  // Custom architectural dropdown states
+  // Dropdown states
   const [domainDropdownOpen, setDomainDropdownOpen] = useState(false);
   const [teamSizeDropdownOpen, setTeamSizeDropdownOpen] = useState(false);
-
-  const domainRef = useRef<HTMLDivElement>(null);
-  const teamSizeRef = useRef<HTMLDivElement>(null);
-
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const domainRef = useRef<HTMLDivElement>(null);
+  const teamSizeRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns on outside click or Escape
   useEffect(() => {
@@ -198,105 +250,152 @@ export default function SignupPage() {
     }
   };
 
-  const activePassword =
-    accountType === "talent" ? talentData.password : recruiterData.password;
+  const activePassword = accountType === "talent" ? talentData.password : recruiterData.password;
   const passwordStrength = getPasswordStrength(activePassword);
 
-  const selectedDomain =
-    DOMAIN_OPTIONS.find((d) => d.id === talentData.domain) || DOMAIN_OPTIONS[0];
-  const selectedTeamSize =
-    TEAM_SIZE_OPTIONS.find((t) => t.id === recruiterData.teamSize) || TEAM_SIZE_OPTIONS[1];
+  const selectedDomain = DOMAIN_OPTIONS.find((d) => d.id === talentData.domain) || DOMAIN_OPTIONS[0];
+  const selectedTeamSize = TEAM_SIZE_OPTIONS.find((t) => t.id === recruiterData.teamSize) || TEAM_SIZE_OPTIONS[1];
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isOfflineFallback, setIsOfflineFallback] = useState(false);
+  const toggleWorkPreference = (pref: string) => {
+    setTalentData((prev) => {
+      const exists = prev.workPreferences.includes(pref);
+      return {
+        ...prev,
+        workPreferences: exists
+          ? prev.workPreferences.filter((p) => p !== pref)
+          : [...prev.workPreferences, pref],
+      };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage(null);
 
-    const email = accountType === "talent" ? talentData.email : recruiterData.workEmail;
-    const password = accountType === "talent" ? talentData.password : recruiterData.password;
-    const name = accountType === "talent" ? talentData.name : recruiterData.name;
-    const professionalTitle =
-      accountType === "talent"
-        ? selectedDomain.label
-        : `${recruiterData.companyName || "Organization"} Hiring Team`;
+    const isTalent = accountType === "talent";
+    const email = isTalent ? talentData.email : recruiterData.workEmail;
+    const password = isTalent ? talentData.password : recruiterData.password;
+    const name = isTalent ? talentData.name : recruiterData.name;
+    const country = isTalent ? talentData.country : recruiterData.country;
+    const city = isTalent ? talentData.city : recruiterData.city;
+    const location = city ? `${city}, ${country}` : country;
+
+    const signupPayload = isTalent
+      ? {
+          email,
+          password,
+          name,
+          account_type: "talent" as const,
+          professional_title: talentData.professionalTitle || selectedDomain.label,
+          location,
+          country,
+          city,
+          primary_field: selectedDomain.label,
+          years_experience: Number(talentData.yearsExperience),
+          work_preferences: JSON.stringify(talentData.workPreferences),
+          availability: "Available",
+        }
+      : {
+          email,
+          password,
+          name,
+          account_type: "recruiter" as const,
+          professional_title: `${recruiterData.hiringRole || "Recruiter"} @ ${recruiterData.companyName || "Organization"}`,
+          location,
+          country,
+          city,
+          company_name: recruiterData.companyName,
+          company_website: recruiterData.companyWebsite,
+          hiring_role: recruiterData.hiringRole,
+          team_size: recruiterData.teamSize,
+        };
 
     try {
-      const response = await api.signup({
-        email,
-        password,
-        name,
-        professional_title: professionalTitle,
-        location: "Africa",
-      });
+      const response = await api.signup(signupPayload);
       if (response?.access_token) {
         localStorage.setItem("creda_token", response.access_token);
       }
       if (response?.user) {
         localStorage.setItem("creda_user", JSON.stringify(response.user));
       } else {
-        localStorage.setItem("creda_user", JSON.stringify({
-          name,
-          email,
-          professional_title: professionalTitle,
-          location: "Lagos, Nigeria",
-        }));
+        localStorage.setItem(
+          "creda_user",
+          JSON.stringify({
+            name,
+            email,
+            account_type: accountType,
+            professional_title: signupPayload.professional_title,
+            location,
+            country,
+            city,
+          })
+        );
       }
       localStorage.setItem("creda_user_email", email);
       setIsSubmitting(false);
       setSubmitted(true);
-      // Fast automatic redirect to dashboard for instantaneous UX
+
       setTimeout(() => {
         router.push(accountType === "talent" ? "/dashboard" : "/dashboard/recruiter");
-      }, 400);
+      }, 500);
     } catch (err: unknown) {
       const errObj = err as { detail?: string; message?: string; status?: number };
       if (errObj && (errObj.status === 400 || errObj.status === 422) && errObj.detail) {
         setErrorMessage(errObj.detail);
         setIsSubmitting(false);
       } else {
-        // Fallback for offline / preview environment
+        // Fallback offline mock for development resilience
         localStorage.setItem("creda_user_email", email);
-        localStorage.setItem("creda_user", JSON.stringify({
-          name,
-          email,
-          professional_title: professionalTitle,
-          location: "Africa",
-        }));
-        setIsOfflineFallback(true);
+        localStorage.setItem(
+          "creda_user",
+          JSON.stringify({
+            name,
+            email,
+            account_type: accountType,
+            professional_title: signupPayload.professional_title,
+            location,
+            country,
+            city,
+          })
+        );
         setIsSubmitting(false);
         setSubmitted(true);
         setTimeout(() => {
           router.push(accountType === "talent" ? "/dashboard" : "/dashboard/recruiter");
-        }, 400);
+        }, 500);
       }
     }
   };
 
   const handleGithubSignup = () => {
     setIsSubmitting(true);
-    localStorage.setItem("creda_user_email", "candidate@creda.app");
-    localStorage.setItem("creda_user", JSON.stringify({
-      name: "Verified Candidate",
-      email: "candidate@creda.app",
-      professional_title: "Software Engineer",
-      location: "Lagos, Nigeria",
-    }));
+    localStorage.setItem("creda_user_email", "talent@creda.work");
+    localStorage.setItem(
+      "creda_user",
+      JSON.stringify({
+        name: "David Adeyemi",
+        email: "talent@creda.work",
+        account_type: "talent",
+        professional_title: "Full Stack Engineer",
+        location: "Lagos, Nigeria",
+        country: "Nigeria",
+        city: "Lagos",
+      })
+    );
     setTimeout(() => {
       setIsSubmitting(false);
       router.push("/dashboard");
-    }, 600);
+    }, 500);
   };
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#0F172A] flex flex-col justify-between selection:bg-[#4F46E5] selection:text-white font-sans antialiased">
-      {/* ── Minimalist Architectural Header (Oberon Style) ── */}
+      {/* ── Minimalist Architectural Header ── */}
       <header className="border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-4 sm:px-10 h-14 sm:h-16 flex items-center justify-between">
         <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center tracking-tight group">
-            <CredaLogo size={26} showTag={true} tagText={accountType === "talent" ? "TALENT" : "RECRUITER"} />
+            <CredaLogo size={26} showTag={true} tagText={accountType === "talent" ? "TALENT" : "HIRING TEAM"} />
           </Link>
           <div className="text-xs font-mono text-[#64748B] flex items-center gap-2">
             <span className="hidden sm:inline">Already registered?</span>
@@ -311,296 +410,367 @@ export default function SignupPage() {
       </header>
 
       {/* ── Main Content Container ──────────────────────────── */}
-      <main className="flex-1 flex flex-col items-center justify-start px-3 sm:px-6 py-6 sm:py-8">
-        <div className="w-full max-w-xl rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-10 shadow-sm relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-start px-3 sm:px-6 py-6 sm:py-10">
+        <div className="w-full max-w-xl rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-9 shadow-sm relative overflow-hidden">
           {/* Structural Crosshairs */}
           <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute bottom-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute bottom-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
-            {submitted ? (
-              <div className="py-12 text-center space-y-4 animate-fade-in-up">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-[#4F46E5] flex items-center justify-center mx-auto shadow-xs">
-                  <CheckCircle2 size={28} />
+
+          {submitted ? (
+            <div className="py-12 text-center space-y-4 animate-fade-in-up">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-[#4F46E5] flex items-center justify-center mx-auto shadow-xs">
+                <CheckCircle2 size={28} />
+              </div>
+              <h3 className="text-2xl font-bold text-[#0F172A] tracking-tight">
+                {accountType === "talent" ? "Skill Passport Initialized!" : "Hiring Workspace Activated!"}
+              </h3>
+              <p className="text-xs sm:text-sm text-[#475569] font-mono max-w-sm mx-auto leading-relaxed flex items-center justify-center gap-2">
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-[#4F46E5]/30 border-t-[#4F46E5] animate-spin flex-shrink-0" />
+                <span>Redirecting to your workspace...</span>
+              </p>
+              <div className="pt-2">
+                <Link href={accountType === "talent" ? "/dashboard" : "/dashboard/recruiter"} className="inline-block flex-shrink-0">
+                  <button className="h-11 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap">
+                    Enter Dashboard Now →
+                  </button>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {/* ── Architectural Role Switcher: Tech Talent vs Hiring Team ── */}
+              <div className="mb-5">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] font-semibold mb-1.5 flex items-center justify-between">
+                  <span>Select Account Type</span>
+                  <span className="text-[#4F46E5]">Dual Protocol</span>
                 </div>
-                <h3 className="text-2xl font-bold text-[#0F172A] tracking-tight">
-                  {accountType === "talent"
-                    ? "Skill Passport Initialized!"
-                    : "Recruiter Engine Account Created!"}
-                </h3>
-                <p className="text-xs sm:text-sm text-[#475569] font-mono max-w-sm mx-auto leading-relaxed flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-full border-2 border-[#4F46E5]/30 border-t-[#4F46E5] animate-spin flex-shrink-0" />
-                  <span>Redirecting to your workspace...</span>
-                </p>
-                <div className="pt-2">
-                  <Link href={accountType === "talent" ? "/dashboard" : "/dashboard/recruiter"} className="inline-block flex-shrink-0">
-                    <button className="h-11 px-6 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap flex-shrink-0">
-                      Enter Dashboard Now →
-                    </button>
-                  </Link>
+                <div className="grid grid-cols-2 p-1 bg-[#FAFAF8] rounded-2xl border border-[#E5E7EB]">
+                  <button
+                    type="button"
+                    onClick={() => setAccountType("talent")}
+                    className={`h-11 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      accountType === "talent"
+                        ? "bg-white text-[#0F172A] shadow-xs border border-[#E5E7EB]"
+                        : "text-[#64748B] hover:text-[#0F172A]"
+                    }`}
+                  >
+                    <User size={15} className={accountType === "talent" ? "text-[#4F46E5]" : ""} />
+                    <span>Tech Talent</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountType("recruiter")}
+                    className={`h-11 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      accountType === "recruiter"
+                        ? "bg-white text-[#0F172A] shadow-xs border border-[#E5E7EB]"
+                        : "text-[#64748B] hover:text-[#0F172A]"
+                    }`}
+                  >
+                    <Building2 size={15} className={accountType === "recruiter" ? "text-[#4F46E5]" : ""} />
+                    <span>Hiring Team</span>
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div>
-                {/* ── Architectural Role Switcher (Talent vs Recruiter) ── */}
-                <div className="mb-4">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] font-semibold mb-1.5">
-                    Select Account Purpose
+
+              <div className="mb-5">
+                <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
+                  {accountType === "talent" ? "Build Your Creda Passport" : "Find Vetted African Tech Talent"}
+                </h2>
+                <p className="text-xs text-[#64748B] font-mono mt-1">
+                  {accountType === "talent"
+                    ? "Prove technical skills with code evidence • Free forever • Verified globally"
+                    : "Zero resume fluff • Evidence-backed candidate matching • Direct talent connection"}
+                </p>
+              </div>
+
+              {/* Quick GitHub sign up for Tech Talent */}
+              {accountType === "talent" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGithubSignup}
+                    disabled={isSubmitting}
+                    className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-all shadow-xs flex items-center justify-center gap-3 cursor-pointer active:translate-y-0.5 disabled:opacity-75 mb-4 whitespace-nowrap"
+                  >
+                    <svg className="w-4 h-4 fill-current flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                      />
+                    </svg>
+                    <span>Instant Sign Up with GitHub</span>
+                  </button>
+
+                  <div className="relative mb-5 flex items-center justify-center">
+                    <div className="w-full border-t border-[#E5E7EB]" />
+                    <span className="absolute bg-white px-3 text-[10px] font-mono uppercase tracking-widest text-[#64748B]">
+                      or create talent profile
+                    </span>
                   </div>
-                  <div className="grid grid-cols-2 p-1 bg-[#FAFAF8] rounded-2xl border border-[#E5E7EB]">
-                    <button
-                      type="button"
-                      onClick={() => setAccountType("talent")}
-                      className={`h-10 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                </>
+              )}
+
+              {errorMessage && (
+                <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-mono flex items-start gap-2.5">
+                  <AlertCircle size={16} className="text-rose-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold">Registration Notice</div>
+                    <div className="text-[11px] text-rose-700 mt-0.5">{errorMessage}</div>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Full Name */}
+                <div>
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
+                    Full Name
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
+                      <User size={16} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      placeholder={accountType === "talent" ? "e.g. David Adeyemi" : "e.g. Sarah Johnson"}
+                      value={accountType === "talent" ? talentData.name : recruiterData.name}
+                      onChange={(e) =>
                         accountType === "talent"
-                          ? "bg-white text-[#0F172A] shadow-xs border border-[#E5E7EB]"
-                          : "text-[#64748B] hover:text-[#0F172A]"
-                      }`}
-                    >
-                      <User size={14} className={accountType === "talent" ? "text-[#4F46E5]" : ""} />
-                      <span className="whitespace-nowrap">Tech Talent</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAccountType("recruiter")}
-                      className={`h-10 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${
-                        accountType === "recruiter"
-                          ? "bg-white text-[#0F172A] shadow-xs border border-[#E5E7EB]"
-                          : "text-[#64748B] hover:text-[#0F172A]"
-                      }`}
-                    >
-                      <Building2 size={14} className={accountType === "recruiter" ? "text-[#4F46E5]" : ""} />
-                      <span className="whitespace-nowrap">Hiring Team</span>
-                    </button>
+                          ? setTalentData({ ...talentData, name: e.target.value })
+                          : setRecruiterData({ ...recruiterData, name: e.target.value })
+                      }
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                    />
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
-                    {accountType === "talent" ? "Create your passport" : "Create team workspace"}
-                  </h2>
-                  <p className="text-xs text-[#64748B] font-mono mt-1">
-                    {accountType === "talent"
-                      ? "Free forever • No credit card required • 60-second setup"
-                      : "14-day free trial • Instant candidate verification"}
-                  </p>
+                {/* Email */}
+                <div>
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
+                    {accountType === "talent" ? "Professional Email" : "Work / Company Email"}
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
+                      <Mail size={16} />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      placeholder={accountType === "talent" ? "david@example.com" : "sarah@technova.com"}
+                      value={accountType === "talent" ? talentData.email : recruiterData.workEmail}
+                      onChange={(e) =>
+                        accountType === "talent"
+                          ? setTalentData({ ...talentData, email: e.target.value })
+                          : setRecruiterData({ ...recruiterData, workEmail: e.target.value })
+                      }
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                    />
+                  </div>
                 </div>
 
-                {/* Quick GitHub sign up available for tech professionals */}
-                {accountType === "talent" && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleGithubSignup}
-                      disabled={isSubmitting}
-                      className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold bg-[#0F172A] hover:bg-neutral-800 text-white transition-all shadow-xs flex items-center justify-center gap-3 cursor-pointer active:translate-y-0.5 disabled:opacity-75 mb-4 whitespace-nowrap flex-shrink-0"
-                    >
-                      <svg className="w-4 h-4 fill-current flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                      </svg>
-                      <span className="whitespace-nowrap">Sign Up with GitHub</span>
-                    </button>
-
-                    <div className="relative mb-4 flex items-center justify-center">
-                      <div className="w-full border-t border-[#E5E7EB]" />
-                      <span className="absolute bg-white px-3 text-[10px] font-mono uppercase tracking-widest text-[#64748B]">
-                        or register with email
-                      </span>
-                    </div>
-                  </>
-                )}
-
-                {errorMessage && (
-                  <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-mono flex items-start gap-2.5">
-                    <AlertCircle size={16} className="text-rose-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <div className="font-bold">Registration Notice</div>
-                      <div className="text-[11px] text-rose-700 mt-0.5">{errorMessage}</div>
-                    </div>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Field 1: Full Name */}
+                {/* Location: Country + City */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
-                      Full Name
+                      Country
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={accountType === "talent" ? talentData.country : recruiterData.country}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const found = AFRICAN_COUNTRIES.find((c) => c.name === val);
+                          if (accountType === "talent") {
+                            setTalentData({
+                              ...talentData,
+                              country: val,
+                              city: found ? found.defaultCity : talentData.city,
+                            });
+                          } else {
+                            setRecruiterData({
+                              ...recruiterData,
+                              country: val,
+                              city: found ? found.defaultCity : recruiterData.city,
+                            });
+                          }
+                        }}
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] transition-all outline-none cursor-pointer appearance-none"
+                      >
+                        {AFRICAN_COUNTRIES.map((c) => (
+                          <option key={c.code} value={c.name}>
+                            {c.flag} {c.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        size={14}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#64748B]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
+                      City / Region
                     </label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
-                        <User size={16} />
+                        <MapPin size={16} />
                       </div>
                       <input
                         type="text"
                         required
-                        placeholder={accountType === "talent" ? "e.g. Alex Adeleke" : "e.g. Tunde Balogun"}
-                        value={accountType === "talent" ? talentData.name : recruiterData.name}
+                        placeholder="e.g. Lagos, Nairobi, Accra"
+                        value={accountType === "talent" ? talentData.city : recruiterData.city}
                         onChange={(e) =>
                           accountType === "talent"
-                            ? setTalentData({ ...talentData, name: e.target.value })
-                            : setRecruiterData({ ...recruiterData, name: e.target.value })
+                            ? setTalentData({ ...talentData, city: e.target.value })
+                            : setRecruiterData({ ...recruiterData, city: e.target.value })
                         }
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* Field 2: Email */}
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
-                      {accountType === "talent" ? "Professional Email" : "Work Email"}
-                    </label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
-                        <Mail size={16} />
-                      </div>
-                      <input
-                        type="email"
-                        required
-                        placeholder={accountType === "talent" ? "talent@example.com" : "tunde@company.com"}
-                        value={accountType === "talent" ? talentData.email : recruiterData.workEmail}
-                        onChange={(e) =>
-                          accountType === "talent"
-                            ? setTalentData({ ...talentData, email: e.target.value })
-                            : setRecruiterData({ ...recruiterData, workEmail: e.target.value })
-                        }
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* ── Custom Architectural Dropdown: Talent Discipline ── */}
-                  {accountType === "talent" && (
-                    <div className="relative" ref={domainRef}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold">
-                          Primary Discipline / Domain
-                        </label>
-                        <span className="text-[10px] font-mono text-[#4F46E5] font-semibold">
-                          {selectedDomain.badge}
-                        </span>
-                      </div>
-
-                      {/* Dropdown Trigger Button */}
-                      {(() => {
-                        const SelectedDomainIcon = selectedDomain.icon;
-                        return (
-                          <button
-                            type="button"
-                            onClick={() => setDomainDropdownOpen(!domainDropdownOpen)}
-                            aria-expanded={domainDropdownOpen}
-                            className={`w-full px-3.5 py-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer outline-none ${
-                              domainDropdownOpen
-                                ? "bg-white border-[#4F46E5] ring-2 ring-[#4F46E5]/15 shadow-sm"
-                                : "bg-[#FAFAF8] border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5]"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 min-w-0 pr-2">
-                              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] flex-shrink-0">
-                                <SelectedDomainIcon size={16} />
-                              </div>
-                              <div className="truncate">
-                                <div className="text-xs font-bold text-[#0F172A] truncate">
-                                  {selectedDomain.label}
-                                </div>
-                                <div className="text-[10px] font-mono text-[#64748B] truncate">
-                                  {selectedDomain.sublabel}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <ChevronDown
-                                size={16}
-                                className={`text-[#64748B] transition-transform duration-200 ${
-                                  domainDropdownOpen ? "rotate-180 text-[#4F46E5]" : ""
-                                }`}
-                              />
-                            </div>
-                          </button>
-                        );
-                      })()}
-
-                      {/* Floating Architectural Dropdown Menu */}
-                      {domainDropdownOpen && (
-                        <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-50 rounded-2xl bg-white border border-[#E5E7EB] shadow-xl overflow-hidden animate-fade-in-up">
-                          <div className="px-3.5 py-2 bg-[#FAFAF8] border-b border-[#E5E7EB] flex items-center justify-between text-[10px] font-mono text-[#64748B]">
-                            <span>// VERIFICATION TRACK</span>
-                            <span>SELECT ARCHITECTURAL DOMAIN</span>
-                          </div>
-
-                          <div className="max-h-64 overflow-y-auto divide-y divide-neutral-100 p-1.5 space-y-0.5">
-                            {DOMAIN_OPTIONS.map((option) => {
-                              const OptionIcon = option.icon;
-                              const isSelected = option.id === talentData.domain;
-                              return (
-                                <button
-                                  key={option.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setTalentData({ ...talentData, domain: option.id });
-                                    setDomainDropdownOpen(false);
-                                  }}
-                                  className={`w-full p-2.5 rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer group ${
-                                    isSelected
-                                      ? "bg-indigo-50/70 border border-indigo-100/80"
-                                      : "hover:bg-[#FAFAF8] border border-transparent"
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-3 min-w-0 pr-3">
-                                    <div
-                                      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                                        isSelected
-                                          ? "bg-[#4F46E5] text-white"
-                                          : "bg-neutral-100 text-[#0F172A] group-hover:bg-indigo-50 group-hover:text-[#4F46E5]"
-                                      }`}
-                                    >
-                                      <OptionIcon size={16} />
-                                    </div>
-                                    <div className="truncate">
-                                      <div
-                                        className={`text-xs font-bold transition-colors truncate ${
-                                          isSelected
-                                            ? "text-[#4F46E5]"
-                                            : "text-[#0F172A] group-hover:text-[#4F46E5]"
-                                        }`}
-                                      >
-                                        {option.label}
-                                      </div>
-                                      <div className="text-[10px] font-mono text-[#64748B] truncate mt-0.5">
-                                        {option.sublabel}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <span
-                                      className={`text-[9px] font-mono px-2 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline ${
-                                        isSelected
-                                          ? "bg-indigo-100 text-[#4F46E5] font-bold"
-                                          : "bg-neutral-100 text-[#64748B]"
-                                      }`}
-                                    >
-                                      {option.badge}
-                                    </span>
-                                    {isSelected && (
-                                      <div className="w-5 h-5 rounded-full bg-[#4F46E5] text-white flex items-center justify-center">
-                                        <Check size={12} strokeWidth={3} />
-                                      </div>
-                                    )}
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
+                {/* ── TALENT SPECIFIC FIELDS ── */}
+                {accountType === "talent" && (
+                  <>
+                    {/* Professional Title */}
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
+                        Professional Title
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
+                          <Briefcase size={16} />
                         </div>
-                      )}
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Full Stack Developer, Product Designer, DevOps Lead"
+                          value={talentData.professionalTitle}
+                          onChange={(e) => setTalentData({ ...talentData, professionalTitle: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                        />
+                      </div>
                     </div>
-                  )}
 
-                  {/* Recruiter Company & Team Size Fields */}
-                  {accountType === "recruiter" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Discipline & Experience Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Primary Discipline Dropdown */}
+                      <div className="relative" ref={domainRef}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold">
+                            Primary Discipline
+                          </label>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDomainDropdownOpen(!domainDropdownOpen)}
+                          className="w-full px-3 py-2.5 rounded-xl border text-left bg-[#FAFAF8] border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] flex items-center justify-between cursor-pointer outline-none"
+                        >
+                          <div className="truncate text-xs font-bold text-[#0F172A]">
+                            {selectedDomain.label}
+                          </div>
+                          <ChevronDown
+                            size={14}
+                            className={`text-[#64748B] transition-transform ${
+                              domainDropdownOpen ? "rotate-180 text-[#4F46E5]" : ""
+                            }`}
+                          />
+                        </button>
+
+                        {domainDropdownOpen && (
+                          <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-2xl bg-white border border-[#E5E7EB] shadow-xl p-1.5 space-y-1">
+                            {DOMAIN_OPTIONS.map((option) => (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => {
+                                  setTalentData({ ...talentData, domain: option.id });
+                                  setDomainDropdownOpen(false);
+                                }}
+                                className={`w-full p-2 rounded-xl flex items-center justify-between text-left text-xs transition-colors cursor-pointer ${
+                                  option.id === talentData.domain
+                                    ? "bg-indigo-50 text-[#4F46E5] font-bold"
+                                    : "hover:bg-[#FAFAF8] text-[#0F172A]"
+                                }`}
+                              >
+                                <span className="truncate">{option.label}</span>
+                                {option.id === talentData.domain && <Check size={14} />}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Years of Experience */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold">
+                            Experience Level
+                          </label>
+                        </div>
+                        <div className="relative">
+                          <select
+                            value={talentData.yearsExperience}
+                            onChange={(e) =>
+                              setTalentData({ ...talentData, yearsExperience: Number(e.target.value) })
+                            }
+                            className="w-full px-3 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] transition-all outline-none cursor-pointer appearance-none"
+                          >
+                            {EXPERIENCE_OPTIONS.map((exp) => (
+                              <option key={exp.value} value={exp.value}>
+                                {exp.label}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#64748B]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Work Preferences Multi-Select */}
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-2">
+                        Work Preferences (Select all that apply)
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {WORK_PREFERENCE_OPTIONS.map((pref) => {
+                          const isSelected = talentData.workPreferences.includes(pref);
+                          return (
+                            <button
+                              key={pref}
+                              type="button"
+                              onClick={() => toggleWorkPreference(pref)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+                                isSelected
+                                  ? "bg-indigo-600 text-white font-semibold shadow-xs"
+                                  : "bg-[#FAFAF8] border border-[#E5E7EB] text-[#475569] hover:border-neutral-400 hover:text-[#0F172A]"
+                              }`}
+                            >
+                              {isSelected && <Check size={12} strokeWidth={3} />}
+                              <span>{pref}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* ── RECRUITER SPECIFIC FIELDS ── */}
+                {accountType === "recruiter" && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
                           Company Name
@@ -614,232 +784,232 @@ export default function SignupPage() {
                             required
                             placeholder="e.g. Flutterwave, Paystack"
                             value={recruiterData.companyName}
-                            onChange={(e) => setRecruiterData({ ...recruiterData, companyName: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                            onChange={(e) =>
+                              setRecruiterData({ ...recruiterData, companyName: e.target.value })
+                            }
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
                           />
                         </div>
                       </div>
 
-                      {/* Custom Architectural Dropdown: Team Size */}
-                      <div className="relative" ref={teamSizeRef}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold">
-                            Hiring Team Size
-                          </label>
-                          <span className="text-[10px] font-mono text-[#4F46E5] font-semibold">
-                            {selectedTeamSize.badge}
-                          </span>
+                      <div>
+                        <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
+                          Company Website
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
+                            <Globe size={16} />
+                          </div>
+                          <input
+                            type="url"
+                            placeholder="https://company.com"
+                            value={recruiterData.companyWebsite}
+                            onChange={(e) =>
+                              setRecruiterData({ ...recruiterData, companyWebsite: e.target.value })
+                            }
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                          />
                         </div>
+                      </div>
+                    </div>
 
-                        {/* Dropdown Trigger Button */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
+                          Your Role in Hiring
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
+                            <Briefcase size={16} />
+                          </div>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Founder, Head of Talent"
+                            value={recruiterData.hiringRole}
+                            onChange={(e) =>
+                              setRecruiterData({ ...recruiterData, hiringRole: e.target.value })
+                            }
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Team Size Dropdown */}
+                      <div className="relative" ref={teamSizeRef}>
+                        <label className="block text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold mb-1.5">
+                          Engineering Team Size
+                        </label>
                         <button
                           type="button"
                           onClick={() => setTeamSizeDropdownOpen(!teamSizeDropdownOpen)}
-                          aria-expanded={teamSizeDropdownOpen}
-                          className={`w-full px-3.5 py-3 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer outline-none ${
-                            teamSizeDropdownOpen
-                              ? "bg-white border-[#4F46E5] ring-2 ring-[#4F46E5]/15 shadow-sm"
-                              : "bg-[#FAFAF8] border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5]"
-                          }`}
+                          className="w-full px-3 py-2.5 rounded-xl border text-left bg-[#FAFAF8] border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] flex items-center justify-between cursor-pointer outline-none"
                         >
-                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                            <Users size={16} className="text-[#4F46E5] flex-shrink-0" />
+                          <div className="flex items-center gap-2 truncate">
+                            <Users size={14} className="text-[#4F46E5]" />
                             <span className="text-xs font-mono font-bold text-[#0F172A] truncate">
                               {selectedTeamSize.label}
                             </span>
                           </div>
-
                           <ChevronDown
-                            size={16}
-                            className={`text-[#64748B] flex-shrink-0 transition-transform duration-200 ${
+                            size={14}
+                            className={`text-[#64748B] transition-transform ${
                               teamSizeDropdownOpen ? "rotate-180 text-[#4F46E5]" : ""
                             }`}
                           />
                         </button>
 
-                        {/* Floating Team Size Dropdown */}
                         {teamSizeDropdownOpen && (
-                          <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-50 rounded-2xl bg-white border border-[#E5E7EB] shadow-xl overflow-hidden animate-fade-in-up">
-                            <div className="px-3.5 py-2 bg-[#FAFAF8] border-b border-[#E5E7EB] flex items-center justify-between text-[10px] font-mono text-[#64748B]">
-                              <span>// TEAM BANDWIDTH</span>
-                              <span>SELECT SCALE</span>
-                            </div>
-
-                            <div className="p-1.5 space-y-0.5">
-                              {TEAM_SIZE_OPTIONS.map((option) => {
-                                const isSelected = option.id === recruiterData.teamSize;
-                                return (
-                                  <button
-                                    key={option.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setRecruiterData({ ...recruiterData, teamSize: option.id });
-                                      setTeamSizeDropdownOpen(false);
-                                    }}
-                                    className={`w-full p-2.5 rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer group ${
-                                      isSelected
-                                        ? "bg-indigo-50/70 border border-indigo-100/80"
-                                        : "hover:bg-[#FAFAF8] border border-transparent"
-                                    }`}
-                                  >
-                                    <div>
-                                      <div
-                                        className={`text-xs font-bold transition-colors ${
-                                          isSelected
-                                            ? "text-[#4F46E5]"
-                                            : "text-[#0F172A] group-hover:text-[#4F46E5]"
-                                        }`}
-                                      >
-                                        {option.label}
-                                      </div>
-                                      <div className="text-[10px] font-mono text-[#64748B] mt-0.5">
-                                        {option.sublabel}
-                                      </div>
-                                    </div>
-
-                                    {isSelected && (
-                                      <div className="w-5 h-5 rounded-full bg-[#4F46E5] text-white flex items-center justify-center flex-shrink-0">
-                                        <Check size={12} strokeWidth={3} />
-                                      </div>
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </div>
+                          <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-2xl bg-white border border-[#E5E7EB] shadow-xl p-1.5 space-y-1">
+                            {TEAM_SIZE_OPTIONS.map((opt) => (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => {
+                                  setRecruiterData({ ...recruiterData, teamSize: opt.id });
+                                  setTeamSizeDropdownOpen(false);
+                                }}
+                                className={`w-full p-2 rounded-xl flex items-center justify-between text-left text-xs transition-colors cursor-pointer ${
+                                  opt.id === recruiterData.teamSize
+                                    ? "bg-indigo-50 text-[#4F46E5] font-bold"
+                                    : "hover:bg-[#FAFAF8] text-[#0F172A]"
+                                }`}
+                              >
+                                <div>
+                                  <div className="font-semibold">{opt.label}</div>
+                                  <div className="text-[10px] text-[#64748B]">{opt.sublabel}</div>
+                                </div>
+                                {opt.id === recruiterData.teamSize && <Check size={14} />}
+                              </button>
+                            ))}
                           </div>
                         )}
                       </div>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {/* Password Field */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold">
-                        Create Secure Password
-                      </label>
-                      {activePassword && (
-                        <span className="text-[10px] font-mono text-[#64748B]">
-                          Strength: <span className="font-semibold text-[#0F172A]">{passwordStrength.label}</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
-                        <Lock size={16} />
-                      </div>
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        required
-                        placeholder="••••••••••••"
-                        value={activePassword}
-                        onChange={(e) =>
-                          accountType === "talent"
-                            ? setTalentData({ ...talentData, password: e.target.value })
-                            : setRecruiterData({ ...recruiterData, password: e.target.value })
-                        }
-                        className="w-full pl-10 pr-11 py-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#64748B] hover:text-[#0F172A] transition-colors focus:outline-none cursor-pointer"
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-
-                    {/* Cryptographic Entropy Indicator */}
+                {/* Password Field */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-mono uppercase tracking-wider text-[#475569] font-semibold">
+                      Create Password
+                    </label>
                     {activePassword && (
-                      <div className="space-y-1.5 mt-2.5">
-                        <div className="flex items-center justify-between text-[11px] font-mono">
-                          <span className="text-neutral-400 uppercase tracking-wider text-[10px]">Cryptographic Entropy</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border tracking-wider ${passwordStrength.color}`}>
-                            {passwordStrength.label}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {[1, 2, 3, 4].map((step) => (
-                            <div
-                              key={step}
-                              className={`h-1 rounded-full transition-all duration-300 ${
-                                step <= passwordStrength.score
-                                  ? passwordStrength.score >= 3
-                                    ? "bg-emerald-500"
-                                    : passwordStrength.score === 2
-                                    ? "bg-indigo-500"
-                                    : "bg-amber-500"
-                                  : "bg-neutral-200"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                      <span className="text-[10px] font-mono text-[#64748B]">
+                        Strength: <span className="font-semibold text-[#0F172A]">{passwordStrength.label}</span>
+                      </span>
                     )}
                   </div>
-
-                  {/* Submit Button */}
-                  <div className="pt-2">
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
+                      <Lock size={16} />
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      placeholder="••••••••••••"
+                      value={activePassword}
+                      onChange={(e) =>
+                        accountType === "talent"
+                          ? setTalentData({ ...talentData, password: e.target.value })
+                          : setRecruiterData({ ...recruiterData, password: e.target.value })
+                      }
+                      className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                    />
                     <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-wait whitespace-nowrap flex-shrink-0"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#64748B] hover:text-[#0F172A] transition-colors focus:outline-none cursor-pointer"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      {isSubmitting ? (
-                        <>
-                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
-                          <span className="whitespace-nowrap">
-                            {accountType === "talent"
-                              ? "Generating Passport..."
-                              : "Creating Workspace..."}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="whitespace-nowrap">
-                            {accountType === "talent"
-                              ? "Create Skill Passport"
-                              : "Create Team Workspace"}
-                          </span>
-                          <ArrowRight size={14} className="flex-shrink-0" />
-                        </>
-                      )}
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
-                </form>
 
-                <p className="text-[11px] font-mono text-[#64748B] text-center mt-5 leading-relaxed">
-                  By registering, you agree to Creda&apos;s{" "}
-                  <Link href="/terms" className="underline hover:text-[#0F172A] transition-colors">
-                    Protocol Terms
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/privacy" className="underline hover:text-[#0F172A] transition-colors">
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
-
-                {/* Switch to Sign In */}
-                <div className="mt-6 pt-5 border-t border-neutral-100 text-center">
-                  <span className="text-xs text-[#64748B] font-mono">Already have a passport or account? </span>
-                  <Link href="/auth/login" className="text-xs font-mono font-semibold text-[#4F46E5] hover:underline">
-                    Sign In →
-                  </Link>
+                  {activePassword && (
+                    <div className="space-y-1.5 mt-2">
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {[1, 2, 3, 4].map((step) => (
+                          <div
+                            key={step}
+                            className={`h-1 rounded-full transition-all duration-300 ${
+                              step <= passwordStrength.score
+                                ? passwordStrength.score >= 3
+                                  ? "bg-emerald-500"
+                                  : passwordStrength.score === 2
+                                  ? "bg-indigo-500"
+                                  : "bg-amber-500"
+                                : "bg-neutral-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Submit Button */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-12 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-wait whitespace-nowrap"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+                        <span>{accountType === "talent" ? "Building Passport..." : "Creating Workspace..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{accountType === "talent" ? "Create Talent Profile" : "Register Hiring Team"}</span>
+                        <ArrowRight size={14} className="flex-shrink-0" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              <p className="text-[11px] font-mono text-[#64748B] text-center mt-4 leading-relaxed">
+                By registering, you agree to Creda&apos;s{" "}
+                <Link href="/terms" className="underline hover:text-[#0F172A] transition-colors">
+                  Protocol Terms
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="underline hover:text-[#0F172A] transition-colors">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+
+              {/* Switch to Sign In */}
+              <div className="mt-5 pt-4 border-t border-neutral-100 text-center">
+                <span className="text-xs text-[#64748B] font-mono">Already have a passport or account? </span>
+                <Link href="/auth/login" className="text-xs font-mono font-semibold text-[#4F46E5] hover:underline">
+                  Sign In →
+                </Link>
               </div>
-            )}
+            </div>
+          )}
         </div>
       </main>
 
       {/* ── Minimalist Footer ───────────────────────────────── */}
-      <footer className="border-t border-[#E5E7EB] px-6 sm:px-10 py-5 text-xs font-mono text-[#64748B] bg-white">
+      <footer className="border-t border-[#E5E7EB] px-6 sm:px-10 py-4 text-xs font-mono text-[#64748B] bg-white">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>Creda Protocol v2.4 // All Verification Systems Operational</span>
+          <span>Creda Protocol // Two-Sided African Tech Talent Network</span>
           <span className="text-[#94A3B8] hidden sm:inline">SHA-256 Ledger Node</span>
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center font-mono text-xs text-neutral-400">Loading Creda Protocol...</div>}>
+      <SignupContent />
+    </Suspense>
   );
 }

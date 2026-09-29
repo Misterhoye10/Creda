@@ -278,16 +278,17 @@ export default function Home() {
             global recruiters trust.
           </p>
 
-          {/* Action Row */}
+          {/* Action Row: The Two Primary Sides of Creda */}
           <div className={`flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10 sm:mb-14 w-full sm:w-auto reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '360ms' }}>
-            <Link href="/auth/signup" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap">
-                Claim Free Passport →
+            <Link href="/auth/signup?role=talent" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white btn-tactile cursor-pointer whitespace-nowrap flex items-center justify-center gap-2">
+                <span>Tech Talent →</span>
               </button>
             </Link>
-            <Link href="#ledger-preview" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-white hover:bg-neutral-50 text-[#0F172A] border border-neutral-300 btn-tactile-secondary cursor-pointer whitespace-nowrap">
-                Explore Sample Ledger ↓
+            <Link href="/auth/signup?role=recruiter" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto h-13 px-8 rounded-xl text-xs font-mono uppercase font-semibold bg-white hover:bg-neutral-50 text-[#0F172A] border border-neutral-300 btn-tactile-secondary cursor-pointer whitespace-nowrap flex items-center justify-center gap-2">
+                <Building2 size={15} className="text-[#4F46E5]" />
+                <span>Hiring Team →</span>
               </button>
             </Link>
           </div>
