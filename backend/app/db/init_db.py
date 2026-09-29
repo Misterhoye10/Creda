@@ -64,6 +64,11 @@ def migrate_columns():
                 if "verification_status" not in user_columns:
                     conn.execute(text("ALTER TABLE users ADD COLUMN verification_status VARCHAR(50) DEFAULT 'verified'"))
 
+                # Backfill existing records with null flags to guarantee discoverability
+                conn.execute(text("UPDATE users SET is_public = 1 WHERE is_public IS NULL"))
+                conn.execute(text("UPDATE users SET visibility = 'discoverable' WHERE visibility IS NULL"))
+                conn.execute(text("UPDATE users SET account_type = 'talent' WHERE account_type IS NULL"))
+                conn.execute(text("UPDATE users SET evidence_visibility = 'public' WHERE evidence_visibility IS NULL"))
                 conn.commit()
 
         # Check skills table columns

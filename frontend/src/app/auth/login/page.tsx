@@ -76,7 +76,9 @@ export default function LoginPage() {
       }
       localStorage.setItem("creda_user_email", email);
       setIsSubmitting(false);
-      router.push("/dashboard");
+
+      const isRecruiter = response?.user?.account_type === "recruiter";
+      router.push(isRecruiter ? "/dashboard/recruiter" : "/dashboard");
     } catch (err: unknown) {
       if (isDemoAccount) {
         // Instant seamless access for Hoye / Hackathon demo
@@ -97,18 +99,20 @@ export default function LoginPage() {
         localStorage.setItem("creda_user_email", email);
         const namePart = email.split("@")[0];
         const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        const isRecruiter = email.toLowerCase().includes("recruiter") || email.toLowerCase().includes("hiring");
         localStorage.setItem(
           "creda_user",
           JSON.stringify({
             name: formattedName,
             email: email,
-            professional_title: "Backend Lead & Systems Engineer",
+            account_type: isRecruiter ? "recruiter" : "talent",
+            professional_title: isRecruiter ? "Talent Acquisition Partner" : "Backend Lead & Systems Engineer",
             location: "Lagos, Nigeria",
           })
         );
         setTimeout(() => {
           setIsSubmitting(false);
-          router.push("/dashboard");
+          router.push(isRecruiter ? "/dashboard/recruiter" : "/dashboard");
         }, 600);
       }
     }

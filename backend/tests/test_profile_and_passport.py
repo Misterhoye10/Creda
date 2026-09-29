@@ -208,3 +208,51 @@ def test_public_passport_private_profile_returns_404(client):
 def test_public_passport_nonexistent_returns_404(client):
     res = client.get("/api/passport/non-existent-user-slug-999")
     assert res.status_code == 404
+
+
+def test_public_passport_directory_includes_newly_registered_talent(client):
+    # 1. Sign up new talent
+    talent_res = client.post("/api/auth/signup", json={
+        "email": "folarin_talent_dir@creda.app",
+        "password": "Password123!",
+        "name": "Folarin Oyewole",
+        "account_type": "talent",
+        "professional_title": "Lead Software Engineer",
+        "country": "Nigeria",
+        "city": "Lagos",
+        "primary_field": "software",
+        "years_experience": 5
+    })
+    assert talent_res.status_code == 201
+    talent_data = talent_res.json()["user"]
+
+    # 2. Sign up a recruiter
+    recruiter_res = client.post("/api/auth/signup", json={
+        "email": "recruiter_test_dir@creda.app",
+        "password": "Password123!",
+        "name": "Acme Talent Lead",
+        "account_type": "recruiter",
+        "company_name": "Acme Corp"
+    })
+    assert recruiter_res.status_code == 201
+
+    # 3. Query directory (recruiter discoverable endpoint)
+    dir_res = client.get("/api/passport/directory")
+    assert dir_res.status_code == 200
+    directory = dir_res.json()
+    assert isinstance(directory, list)
+
+    # Talent must be in directory
+    found_talent = next((c for c in directory if c["id"] == talent_data["id"]), None)
+    assert found_talent is not None
+    assert found_talent["name"] == "Folarin Oyewole"
+    assert found_talent["professional_title"] == "Lead Software Engineer"
+    assert found_talent["country"] == "Nigeria"
+    assert found_talent["city"] == "Lagos"
+    assert found_talent["is_new"] is True
+    assert found_talent["repos_audited"] == 0
+
+    # Recruiter must NOT be in talent directory
+    recruiter_id = recruiter_res.json()["user"]["id"]
+    found_recruiter = next((c for c in directory if c["id"] == recruiter_id), None)
+    assert found_recruiter is None

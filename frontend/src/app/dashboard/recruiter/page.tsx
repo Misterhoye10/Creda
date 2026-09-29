@@ -75,6 +75,7 @@ export interface Candidate {
   linkedinUrl?: string | null;
   websiteUrl?: string | null;
   assessmentsCount?: number;
+  isNew?: boolean;
 }
 
 export default function RecruiterDashboardPage() {
@@ -84,7 +85,7 @@ export default function RecruiterDashboardPage() {
   const [directoryError, setDirectoryError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("all");
-  const [minScore, setMinScore] = useState<number>(80);
+  const [minScore, setMinScore] = useState<number>(0);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportedStatus, setExportedStatus] = useState<string | null>(null);
@@ -196,19 +197,20 @@ export default function RecruiterDashboardPage() {
               city: u.city || "Lagos",
               workPreferences: u.work_preferences || "Remote, Hybrid",
               discipline,
-              score: Math.round(u.score || u.average_confidence || 88),
-              tier: u.tier || ((u.score || 88) >= 90 ? "Code-Proven Tier" : "Verified Tier"),
+              score: Math.round(u.score ?? u.average_confidence ?? 70),
+              tier: u.tier || ((u.score || 70) >= 90 ? "Code-Proven Tier" : ((u.evidence_count || 0) > 0 ? "Verified Tier" : "New Talent")),
               skills: u.skills && u.skills.length > 0 ? u.skills : rawSkillsDetail.map((s) => s.name),
               skillsDetail: rawSkillsDetail,
-              proofHighlight: u.proof_highlight || `${u.evidence_count || 2} verified proof sources with AST syntax telemetry.`,
-              reposAudited: u.repos_audited || 2,
-              commitsCount: u.commits_count || "420 commits",
+              proofHighlight: u.proof_highlight || ((u.evidence_count || 0) > 0 ? `${u.evidence_count} verified proof sources with AST syntax telemetry.` : "Newly registered talent profile ready for CV and repository audit."),
+              reposAudited: typeof u.repos_audited === "number" ? u.repos_audited : (u.evidence_count || 0),
+              commitsCount: u.commits_count || ((u.evidence_count || 0) > 0 ? "420 commits" : "0 commits audited"),
               availability: u.available_from || "Immediately Available",
               slug: u.slug || u.public_url || u.id,
               githubUrl: u.github_url,
               linkedinUrl: u.linkedin_url,
               websiteUrl: u.website_url,
               assessmentsCount: u.assessments_count || rawSkillsDetail.filter((s) => s.assessment_score != null).length,
+              isNew: Boolean(u.is_new ?? ((u.evidence_count || 0) === 0)),
             };
           });
 
@@ -414,20 +416,54 @@ export default function RecruiterDashboardPage() {
       {/* ── Recruiter Architectural Header ── */}
       <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between transition-all">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center tracking-tight group">
+          <Link href="/dashboard/recruiter" className="flex items-center tracking-tight group">
             <CredaLogo size={28} showTag={true} tagText="HIRING TEAM" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 p-1 rounded-xl bg-neutral-200/60 border border-neutral-200 text-xs font-mono">
-            <button className="px-3.5 py-1.5 rounded-lg bg-white text-[#0F172A] font-bold shadow-xs cursor-pointer">
-              Talent Pipeline
-            </button>
-            <Link
-              href="/dashboard"
-              className="px-3.5 py-1.5 rounded-lg text-[#64748B] hover:text-[#0F172A] transition-colors"
+            <button
+              type="button"
+              onClick={() => setPipelineFilter("all")}
+              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                pipelineFilter === "all"
+                  ? "bg-white text-[#0F172A] font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              }`}
             >
-              Switch to Talent View →
-            </Link>
+              Talent Directory
+            </button>
+            <button
+              type="button"
+              onClick={() => setPipelineFilter("shortlisted")}
+              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                pipelineFilter === "shortlisted"
+                  ? "bg-white text-[#0F172A] font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              }`}
+            >
+              <span>Shortlist</span>
+              {shortlistedIds.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                  {shortlistedIds.length}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPipelineFilter("requested")}
+              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                pipelineFilter === "requested"
+                  ? "bg-white text-[#0F172A] font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              }`}
+            >
+              <span>Interview Requests</span>
+              {sentRequests.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                  {sentRequests.length}
+                </span>
+              )}
+            </button>
           </nav>
         </div>
 
@@ -539,10 +575,10 @@ export default function RecruiterDashboardPage() {
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-xs font-mono text-[#64748B]">
               <SlidersHorizontal size={14} className="text-[#4F46E5]" />
               <span>Min Score:</span>
-              <span className="font-bold text-[#0F172A]">{minScore}%</span>
+              <span className="font-bold text-[#0F172A]">{minScore === 0 ? "Any (All Profiles)" : `${minScore}%`}</span>
               <input
                 type="range"
-                min="70"
+                min="0"
                 max="95"
                 step="5"
                 value={minScore}
@@ -803,6 +839,11 @@ export default function RecruiterDashboardPage() {
                           <h3 className="font-bold text-base text-[#0F172A] tracking-tight">
                             {candidate.name}
                           </h3>
+                          {candidate.isNew && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-[#4F46E5] text-[10px] font-mono font-bold tracking-wider">
+                              NEW TALENT
+                            </span>
+                          )}
                           <button
                             type="button"
                             onClick={() => toggleShortlist(candidate.id)}
@@ -834,8 +875,12 @@ export default function RecruiterDashboardPage() {
                         {candidate.score}
                       </div>
                       <span className="text-[10px] font-mono text-[#64748B] block">/ 100 Evidence</span>
-                      <span className="text-[9.5px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 font-semibold block mt-0.5">
-                        EXPLAINABLE AUDIT
+                      <span className={`text-[9.5px] font-mono px-2 py-0.5 rounded border font-semibold block mt-0.5 ${
+                        candidate.isNew
+                          ? "text-indigo-600 bg-indigo-50 border-indigo-100"
+                          : "text-emerald-600 bg-emerald-50 border-emerald-100"
+                      }`}>
+                        {candidate.isNew ? "SELF-DECLARED" : "EXPLAINABLE AUDIT"}
                       </span>
                     </div>
                   </div>

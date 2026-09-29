@@ -434,6 +434,10 @@ export default function DashboardPage() {
 
       if (profileResult.status === "fulfilled" && profileResult.value) {
         const userProfile = profileResult.value;
+        if ((userProfile as any).account_type === "recruiter") {
+          router.replace("/dashboard/recruiter");
+          return;
+        }
         setCurrentUser(userProfile as unknown as User);
         setProfileForm({
           name: userProfile.name || "",
@@ -493,6 +497,10 @@ export default function DashboardPage() {
         const cached = localStorage.getItem("creda_user");
         if (cached) {
           const parsed = JSON.parse(cached);
+          if (parsed && parsed.account_type === "recruiter") {
+            router.replace("/dashboard/recruiter");
+            return;
+          }
           if (parsed && (parsed.name || parsed.email)) {
             setCurrentUser((prev) => prev || (parsed as User));
             setProfileForm((prev) => ({
@@ -1024,7 +1032,7 @@ export default function DashboardPage() {
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
       <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAF8]/95 backdrop-blur-md px-6 sm:px-10 h-16 flex items-center justify-between transition-all">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center tracking-tight group">
+          <Link href="/dashboard" className="flex items-center tracking-tight group">
             <CredaLogo size={28} showTag={true} tagText="DASHBOARD" />
           </Link>
 

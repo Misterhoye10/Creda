@@ -6,6 +6,7 @@ from app.api.deps import get_current_user
 from app.core.security import hash_password, verify_password, create_access_token
 from app.db.session import get_db
 from app.models.user import User
+from app.models.skill import Skill
 from app.schemas.auth import (
     SignupRequest,
     LoginRequest,
@@ -58,11 +59,12 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
         loc = data.country
 
     # Create new user
+    account_type = data.account_type or "talent"
     new_user = User(
         email=data.email.lower(),
         password_hash=hashed_pwd,
         name=data.name,
-        account_type=data.account_type or "talent",
+        account_type=account_type,
         professional_title=data.professional_title,
         location=loc,
         country=data.country,
@@ -75,7 +77,10 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
         company_website=data.company_website,
         hiring_role=data.hiring_role,
         team_size=data.team_size,
-        public_url=slug
+        public_url=slug,
+        is_public=True,
+        visibility="discoverable",
+        evidence_visibility="public"
     )
 
     db.add(new_user)
