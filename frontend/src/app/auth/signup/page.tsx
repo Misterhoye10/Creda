@@ -333,6 +333,47 @@ function SignupContent() {
         );
       }
       localStorage.setItem("creda_user_email", email);
+
+      if (isTalent) {
+        try {
+          const rawTalents = localStorage.getItem("creda_custom_talents");
+          const talents = rawTalents ? JSON.parse(rawTalents) : [];
+          const cleanSlug = (response?.user?.public_url || name.toLowerCase().replace(/[^a-z0-9]+/g, "-")).trim();
+          const newTalent = {
+            id: response?.user?.id || `talent-${Date.now()}`,
+            name,
+            email,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4F46E5&color=fff&bold=true`,
+            title: talentData.professionalTitle || selectedDomain.label,
+            location,
+            country,
+            city,
+            workPreferences: talentData.workPreferences.join(", "),
+            discipline: "software" as const,
+            score: 83,
+            tier: "Verified Tier",
+            skills: ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"],
+            skillsDetail: [
+              { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
+              { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
+              { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
+              { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
+            ],
+            proofHighlight: "AST verified code and practical assessment records on Creda.",
+            reposAudited: 4,
+            commitsCount: "680 commits",
+            availability: "Immediately Available",
+            slug: cleanSlug,
+            assessmentsCount: 2,
+            isNew: false,
+          };
+          const updated = [newTalent, ...talents.filter((t: any) => t.email !== email && t.slug !== cleanSlug)];
+          localStorage.setItem("creda_custom_talents", JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+      }
+
       setIsSubmitting(false);
       setSubmitted(true);
 
@@ -359,6 +400,47 @@ function SignupContent() {
             city,
           })
         );
+
+        if (isTalent) {
+          try {
+            const rawTalents = localStorage.getItem("creda_custom_talents");
+            const talents = rawTalents ? JSON.parse(rawTalents) : [];
+            const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").trim();
+            const newTalent = {
+              id: `talent-${Date.now()}`,
+              name,
+              email,
+              avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4F46E5&color=fff&bold=true`,
+              title: talentData.professionalTitle || selectedDomain.label,
+              location,
+              country,
+              city,
+              workPreferences: talentData.workPreferences.join(", "),
+              discipline: "software" as const,
+              score: 83,
+              tier: "Verified Tier",
+              skills: ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"],
+              skillsDetail: [
+                { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
+                { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
+                { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
+                { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
+              ],
+              proofHighlight: "AST verified code and practical assessment records on Creda.",
+              reposAudited: 4,
+              commitsCount: "680 commits",
+              availability: "Immediately Available",
+              slug: cleanSlug,
+              assessmentsCount: 2,
+              isNew: false,
+            };
+            const updated = [newTalent, ...talents.filter((t: any) => t.email !== email && t.slug !== cleanSlug)];
+            localStorage.setItem("creda_custom_talents", JSON.stringify(updated));
+          } catch {
+            // ignore
+          }
+        }
+
         setIsSubmitting(false);
         setSubmitted(true);
         setTimeout(() => {

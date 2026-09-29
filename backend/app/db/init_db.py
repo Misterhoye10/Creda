@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, text, or_
 from app.db.base import Base
 from app.db.session import engine
 from app.models import User, Evidence, Skill, SkillEvidence, JobMatch, InterviewRequest, HiringRequest # noqa: F401
@@ -513,6 +513,76 @@ def seed_default_user():
             for name, cat, lvl, conf, ev_stat, score, ev_count in hoye_skills:
                 db.add(Skill(
                     user_id=hoye.id,
+                    name=name,
+                    category=cat,
+                    level=lvl,
+                    confidence=conf,
+                    evidence_status=ev_stat,
+                    assessment_score=score,
+                    evidence_count=ev_count,
+                ))
+
+        # ── 7b. Verified Talent: Folarin Thimoteus ────────────────────
+        folarin = db.query(User).filter(
+            or_(
+                User.email == "folarin.thimoteus@creda.app",
+                User.public_url == "folarin-thimoteus",
+                User.name == "Folarin Thimoteus"
+            )
+        ).first()
+        if not folarin:
+            folarin = User(
+                email="folarin.thimoteus@creda.app",
+                password_hash=hash_password("Password123!"),
+                account_type="talent",
+                name="Folarin Thimoteus",
+                professional_title="Senior Full-Stack & Distributed Systems Engineer",
+                country="Nigeria",
+                city="Lagos",
+                location="Lagos, Nigeria",
+                primary_field="software",
+                years_experience=5,
+                availability="available_now",
+                available_from="Immediately Available",
+                work_preferences="Remote Worldwide, Hybrid",
+                visibility="discoverable",
+                evidence_visibility="public",
+                bio="Full-stack engineer specializing in Python/FastAPI architectures, React components, and AST-verified cryptographic verification pipelines.",
+                public_url="folarin-thimoteus",
+                is_public=True,
+                github_url="https://github.com/creda-protocol",
+                linkedin_url="https://linkedin.com",
+                website_url="https://creda-khaki.vercel.app",
+            )
+            db.add(folarin)
+            db.flush()
+
+            db.add(Evidence(
+                user_id=folarin.id,
+                type="GitHub",
+                title="GitHub: Repository Commits & AST Architecture",
+                description="Verified Git repositories, commit history, and AST codebase architecture.",
+                url="https://github.com/creda-protocol",
+                source="github_api",
+            ))
+            db.add(Evidence(
+                user_id=folarin.id,
+                type="portfolio",
+                title="Technical Portfolio & Production Applications",
+                description="Audited distributed payment ledger and microservices portfolio.",
+                url="https://creda-khaki.vercel.app",
+                source="portfolio_url",
+            ))
+
+            folarin_skills = [
+                ("Python Systems & APIs", "Backend", "Advanced", 92, "strong", 88, 3),
+                ("React & Component Architecture", "Frontend", "Advanced", 89, "strong", 87, 3),
+                ("TypeScript & Type Systems", "Languages", "Intermediate", 84, "moderate", None, 2),
+                ("SQL & Database Optimization", "Databases", "Intermediate", 82, "moderate", None, 2),
+            ]
+            for name, cat, lvl, conf, ev_stat, score, ev_count in folarin_skills:
+                db.add(Skill(
+                    user_id=folarin.id,
                     name=name,
                     category=cat,
                     level=lvl,
