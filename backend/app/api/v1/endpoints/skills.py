@@ -203,6 +203,10 @@ def update_skill(
         skill.level = data.level
     if data.confidence is not None:
         skill.confidence = data.confidence
+    if data.evidence_status is not None:
+        skill.evidence_status = data.evidence_status
+    if data.assessment_score is not None:
+        skill.assessment_score = data.assessment_score
 
     db.commit()
     db.refresh(skill)

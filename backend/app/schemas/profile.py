@@ -63,6 +63,8 @@ class PublicSkillItem(BaseModel):
     name: str
     level: str
     confidence: int
+    evidence_status: Optional[str] = "self_declared"
+    assessment_score: Optional[int] = None
     evidence_count: int
     citations: List[PublicSkillCitation] = []
 
@@ -95,6 +97,12 @@ class SkillPassportResponse(BaseModel):
     verified_skills_count: int = 0
     average_confidence: float = 0.0
     is_creda_verified: bool = True
+    score: Optional[int] = None
+    evidence_coverage: Optional[int] = None
+    project_evidence: Optional[int] = None
+    assessments_score: Optional[int] = None
+    profile_completeness_score: Optional[int] = None
+    tier: Optional[str] = None
     skills: List[PublicSkillItem] = []
     evidence: List[PublicEvidenceItem] = []
 
@@ -106,3 +114,10 @@ class SkillsSummaryResponse(BaseModel):
     average_confidence: float
     total_evidence: int
     evidence_by_type: Dict[str, int]
+    score: Optional[int] = None
+    evidence_coverage: Optional[int] = None
+    project_evidence: Optional[int] = None
+    assessments_score: Optional[int] = None
+    profile_completeness_score: Optional[int] = None
+    tier: Optional[str] = None
+

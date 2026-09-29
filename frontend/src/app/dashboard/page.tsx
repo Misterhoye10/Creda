@@ -657,12 +657,50 @@ export default function DashboardPage() {
 
   // 4-Pillar Deterministic Explainable Evidence Score Breakdown
   const explainableScoreData = useMemo(() => {
-    const rawScore = hasVerifiedSkills ? averageConfidence : 78;
-    const evidenceCoverage = Math.min(40, Math.max(15, Math.round(rawScore * 0.38) + (evidenceItems.length > 1 ? 2 : 0)));
-    const projectEvidence = Math.min(25, Math.max(10, Math.round(rawScore * 0.24) + (profileForm.website_url ? 1 : 0)));
-    const assessments = Math.min(20, Math.max(8, Math.round(rawScore * 0.19)));
-    const profileComp = Math.min(15, Math.max(6, Math.round((completeness.score / 100) * 15)));
+    // If backend returned authoritative 4-pillar score, use it
+    if (skillsSummary?.score !== undefined && skillsSummary?.score !== null && skillsSummary.score > 0) {
+      return {
+        total: skillsSummary.score,
+        evidenceCoverage: skillsSummary.evidence_coverage ?? 28,
+        projectEvidence: skillsSummary.project_evidence ?? 16,
+        assessments: skillsSummary.assessments_score ?? 14,
+        profileComp: skillsSummary.profile_completeness_score ?? Math.round((completeness.score / 100) * 15),
+      };
+    }
+
+    // Local deterministic fallback calculation matching backend calculate_creda_evidence_score
+    const hasGithub = Boolean(profileForm.github_url || evidenceItems.some((e) => e.type?.toLowerCase().includes("github")));
+    const hasCv = Boolean(uploadedFile || evidenceItems.some((e) => e.type?.toLowerCase().includes("cv") || e.type?.toLowerCase().includes("resume")));
+    const hasPortfolio = Boolean(profileForm.website_url || evidenceItems.some((e) => e.type?.toLowerCase().includes("portfolio") || e.type?.toLowerCase().includes("project")));
+    const otherEv = evidenceItems.filter((e) => !["github", "cv", "resume", "portfolio"].some((k) => e.type?.toLowerCase().includes(k))).length;
+
+    let evidenceCoverage = 0;
+    if (hasGithub) evidenceCoverage += 18;
+    if (hasCv) evidenceCoverage += 14;
+    if (hasPortfolio) evidenceCoverage += 8;
+    evidenceCoverage += Math.min(otherEv * 3, 6);
+    if (evidenceCoverage < 12 && verifiedSkills.length > 0) evidenceCoverage = 12;
+    evidenceCoverage = Math.min(40, Math.max(0, evidenceCoverage));
+
+    const strongSkills = verifiedSkills.filter((s) => (s as any).evidence_status === "strong").length;
+    const moderateSkills = verifiedSkills.filter((s) => (s as any).evidence_status === "moderate").length;
+    let projectEvidence = (strongSkills * 6) + (moderateSkills * 3) + Math.min(evidenceItems.length * 2, 8);
+    if (projectEvidence < 8 && verifiedSkills.length > 0) projectEvidence = 8;
+    projectEvidence = Math.min(25, Math.max(0, projectEvidence));
+
+    const assessedSkills = verifiedSkills.filter((s) => (s as any).assessment_score != null);
+    let assessments = 0;
+    if (assessedSkills.length > 0) {
+      const avg = assessedSkills.reduce((acc, s) => acc + ((s as any).assessment_score || 0), 0) / assessedSkills.length;
+      assessments = Math.round((avg / 100) * 20);
+    } else {
+      assessments = Math.min(8, Math.max(5, Math.round((averageConfidence / 100) * 8)));
+    }
+    assessments = Math.min(20, Math.max(0, assessments));
+
+    const profileComp = Math.min(15, Math.max(0, Math.round((completeness.score / 100) * 15)));
     const total = Math.min(100, evidenceCoverage + projectEvidence + assessments + profileComp);
+
     return {
       total,
       evidenceCoverage,
@@ -670,7 +708,7 @@ export default function DashboardPage() {
       assessments,
       profileComp,
     };
-  }, [hasVerifiedSkills, averageConfidence, evidenceItems.length, profileForm.website_url, completeness.score]);
+  }, [skillsSummary, profileForm.github_url, profileForm.website_url, uploadedFile, evidenceItems, verifiedSkills, averageConfidence, completeness.score]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -951,6 +989,7 @@ export default function DashboardPage() {
     const challenge = PRACTICAL_CHALLENGES[challengeKey];
     const chosen = challenge.options.find((o) => o.id === selectedAssessmentOption);
     const score = chosen?.isCorrect ? Math.floor(Math.random() * 8) + 88 : 65;
+    const updatedStatus = chosen?.isCorrect ? "strong" : "moderate";
 
     // Immediately elevate the verified skill in memory
     setVerifiedSkills((prev) =>
@@ -958,7 +997,7 @@ export default function DashboardPage() {
         if (s.name.toLowerCase().includes(challenge.skillName.toLowerCase())) {
           return {
             ...s,
-            evidence_status: chosen?.isCorrect ? "strong" : "moderate",
+            evidence_status: updatedStatus,
             assessment_score: score,
             confidence: Math.max(s.confidence || 0, score),
           };
@@ -966,6 +1005,31 @@ export default function DashboardPage() {
         return s;
       })
     );
+
+    // Persist assessment to backend database so it survives page reloads & syncs with public passport
+    const targetSkill = verifiedSkills.find((s) =>
+      s.name.toLowerCase().includes(challenge.skillName.toLowerCase())
+    );
+    if (targetSkill && targetSkill.id) {
+      try {
+        await api.updateSkill(targetSkill.id, {
+          confidence: Math.max(targetSkill.confidence || 0, score),
+          evidence_status: updatedStatus,
+          assessment_score: score,
+        });
+      } catch (err) {
+        console.warn("Could not persist skill assessment to backend:", err);
+      }
+    }
+
+    try {
+      const summary = await api.getSkillsSummary();
+      if (summary) {
+        setSkillsSummary(summary);
+      }
+    } catch {
+      // Ignore background summary reload error
+    }
 
     setAssessmentResult({
       score,

@@ -8,11 +8,15 @@ class SkillBase(BaseModel):
     category: str = Field(default="Technical", description="Skill category, e.g. Frontend, Backend, Cloud")
     level: str = Field(default="Intermediate", description="Beginner, Intermediate, Advanced, Expert")
     confidence: int = Field(default=50, ge=0, le=100, description="Confidence score from 0 to 100")
+    evidence_status: Optional[str] = Field(default="self_declared", description="'self_declared', 'moderate', 'strong'")
+    assessment_score: Optional[int] = Field(default=None, description="Score from practical challenge")
 
 
 class SkillUpdate(BaseModel):
     level: Optional[str] = Field(None, description="Updated skill proficiency level")
     confidence: Optional[int] = Field(None, ge=0, le=100, description="Updated confidence percentage")
+    evidence_status: Optional[str] = Field(None, description="'self_declared', 'moderate', 'strong'")
+    assessment_score: Optional[int] = Field(None, description="Score from practical challenge, e.g. 87%")
 
 
 class EvidenceCitation(BaseModel):

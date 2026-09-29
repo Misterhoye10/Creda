@@ -330,8 +330,27 @@ export default function PublicPassportPage() {
         const data = await api.getPublicPassport(rawUsername);
         if (data) {
           setPassportData(data);
+          return;
         }
       } catch (err) {
+        // If slug lookup failed, attempt lookup using logged-in user id or slug from localStorage
+        try {
+          if (typeof window !== "undefined") {
+            const cachedUser = localStorage.getItem("creda_user");
+            if (cachedUser) {
+              const u = JSON.parse(cachedUser);
+              if (u && u.id) {
+                const byId = await api.getPublicPassport(u.id);
+                if (byId) {
+                  setPassportData(byId);
+                  return;
+                }
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
         console.log("Using static profile fallback:", err);
       } finally {
         setIsLoadingPassport(false);
@@ -376,15 +395,11 @@ export default function PublicPassportPage() {
       const initialsAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`;
 
       // 4-Pillar Deterministic Explainable Evidence Score (Unified across Dashboard, Passport & Recruiter directory)
-      const rawScore = (passportData.skills && passportData.skills.length > 0)
-        ? (passportData.average_confidence || 75)
-        : 70;
-      const evCount = passportData.evidence?.length || 0;
-      const evidenceCoverage = Math.min(40, Math.max(15, Math.round(rawScore * 0.38) + (evCount > 1 ? 2 : 0)));
-      const projectEvidence = Math.min(25, Math.max(10, Math.round(rawScore * 0.24) + (passportData.website_url ? 1 : 0)));
-      const assessments = Math.min(20, Math.max(8, Math.round(rawScore * 0.19)));
-      const profileComp = 14;
-      const unifiedScore = Math.min(100, evidenceCoverage + projectEvidence + assessments + profileComp);
+      const unifiedScore = passportData.score ?? 72;
+      const evidenceCoverage = passportData.evidence_coverage ?? Math.round(unifiedScore * 0.38);
+      const projectEvidence = passportData.project_evidence ?? Math.round(unifiedScore * 0.24);
+      const assessments = passportData.assessments_score ?? Math.round(unifiedScore * 0.19);
+      const profileComp = passportData.profile_completeness_score ?? 14;
 
       return {
         name: defaultName,
@@ -396,30 +411,37 @@ export default function PublicPassportPage() {
         projectEvidence,
         assessments,
         profileComp,
-        badge: unifiedScore >= 90 ? "CODE-PROVEN TIER" : (passportData.is_creda_verified ? "VERIFIED TALENT" : "CANDIDATE"),
+        tier: passportData.tier || (unifiedScore >= 90 ? "Code-Proven Tier" : (passportData.is_creda_verified ? "Verified Tier" : "Developing Evidence Tier")),
+        badge: passportData.tier?.toUpperCase() || (unifiedScore >= 90 ? "CODE-PROVEN TIER" : (passportData.is_creda_verified ? "VERIFIED TALENT" : "CANDIDATE")),
         gpgKey: `0x${(passportData.id || "9B4E38F1C2D90A77").replace(/-/g, "").slice(0, 16).toUpperCase()}`,
         skills: passportData.skills && passportData.skills.length > 0
-          ? passportData.skills.map((s) => ({
-              name: s.name,
-              score: s.confidence,
-              repos: `${s.evidence_count} Source(s)`,
-              commits: "Verified by Creda",
-              tier: `${s.level} Tier`,
-              icon: Terminal,
-              auditNote: s.citations?.[0]?.title
-                ? `Backed by ${s.citations[0].evidence_type}: ${s.citations[0].title}`
-                : "Corroborated by verified evidence ledger.",
-            }))
+          ? passportData.skills.map((s) => {
+              const status = s.evidence_status || (s.confidence >= 88 ? "strong" : s.confidence >= 70 ? "moderate" : "self_declared");
+              return {
+                name: s.name,
+                score: s.confidence,
+                evidence_status: status,
+                assessment_score: s.assessment_score,
+                repos: `${s.evidence_count} Source(s)`,
+                commits: s.assessment_score ? `${s.assessment_score}% Practical Test` : "Verified by Creda",
+                tier: `${s.level} Tier`,
+                icon: Terminal,
+                auditNote: s.citations?.[0]?.title
+                  ? `Backed by ${s.citations[0].evidence_type}: ${s.citations[0].title}`
+                  : (s.assessment_score ? `Verified AST solution scored ${s.assessment_score}% in practical challenge.` : "Corroborated by verified evidence ledger."),
+              };
+            })
           : DEFAULT_FALLBACK_SKILLS,
       };
     }
 
     if (PROFILES[rawUsername]) {
       const p = PROFILES[rawUsername];
-      const evidenceCoverage = Math.round(p.trustIndex * 0.38);
-      const projectEvidence = Math.round(p.trustIndex * 0.24);
-      const assessments = Math.round(p.trustIndex * 0.19);
-      const profileComp = Math.min(15, Math.max(10, Math.round(p.trustIndex - (evidenceCoverage + projectEvidence + assessments))));
+      const trust = p.trustIndex;
+      const evidenceCoverage = Math.round(trust * 0.38);
+      const projectEvidence = Math.round(trust * 0.24);
+      const assessments = Math.round(trust * 0.19);
+      const profileComp = Math.min(15, Math.max(10, Math.round(trust - (evidenceCoverage + projectEvidence + assessments))));
       return {
         ...p,
         evidenceCoverage,
@@ -433,10 +455,10 @@ export default function PublicPassportPage() {
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
-    const defaultTrust = 90;
-    const evidenceCoverage = Math.round(defaultTrust * 0.38);
-    const projectEvidence = Math.round(defaultTrust * 0.24);
-    const assessments = Math.round(defaultTrust * 0.19);
+    const defaultTrust = 72; // Uniform deterministic baseline matching initial talent dashboard
+    const evidenceCoverage = 28;
+    const projectEvidence = 16;
+    const assessments = 14;
     const profileComp = 14;
 
     return {
@@ -449,6 +471,7 @@ export default function PublicPassportPage() {
       projectEvidence,
       assessments,
       profileComp,
+      tier: "Verified Tier",
       badge: "VERIFIED TALENT",
       gpgKey: "0x9B4E38F1C2D90A77",
       skills: DEFAULT_FALLBACK_SKILLS,
@@ -996,13 +1019,19 @@ export default function PublicPassportPage() {
                   <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-3 border-t border-neutral-200/70">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded border text-[10px] font-bold flex items-center gap-1 ${
-                        skill.score >= 88
+                        (skill as any).evidence_status === "strong" || skill.score >= 88
                           ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-                          : skill.score >= 70
+                          : (skill as any).evidence_status === "moderate" || skill.score >= 70
                           ? "text-amber-700 bg-amber-50 border-amber-200"
                           : "text-stone-600 bg-stone-100 border-stone-200"
                       }`}>
-                        <span>{skill.score >= 88 ? "🟢 Strong Evidence" : skill.score >= 70 ? "🟡 Moderate Evidence" : "⚪ Self-Declared"}</span>
+                        <span>
+                          {(skill as any).evidence_status === "strong" || skill.score >= 88
+                            ? "🟢 Strong Evidence"
+                            : (skill as any).evidence_status === "moderate" || skill.score >= 70
+                            ? "🟡 Moderate Evidence"
+                            : "⚪ Self-Declared"}
+                        </span>
                       </span>
                       <span className="text-[#0F172A] font-semibold">{skill.repos}</span>
                     </div>

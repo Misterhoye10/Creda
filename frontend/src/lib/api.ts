@@ -106,6 +106,12 @@ export interface SkillPassportResponse {
   verified_skills_count: number;
   average_confidence: number;
   is_creda_verified: boolean;
+  score?: number | null;
+  evidence_coverage?: number | null;
+  project_evidence?: number | null;
+  assessments_score?: number | null;
+  profile_completeness_score?: number | null;
+  tier?: string | null;
   skills: PublicSkillItem[];
   evidence: PublicEvidenceItem[];
 }
@@ -117,6 +123,12 @@ export interface SkillsSummaryResponse {
   average_confidence: number;
   total_evidence: number;
   evidence_by_type: Record<string, number>;
+  score?: number | null;
+  evidence_coverage?: number | null;
+  project_evidence?: number | null;
+  assessments_score?: number | null;
+  profile_completeness_score?: number | null;
+  tier?: string | null;
 }
 
 export interface JobMatchSkill {
@@ -396,6 +408,21 @@ class ApiClient {
 
   async getSkills(): Promise<any> {
     return this.request("/skills");
+  }
+
+  async updateSkill(
+    skillId: string,
+    data: {
+      level?: string;
+      confidence?: number;
+      evidence_status?: string;
+      assessment_score?: number;
+    }
+  ): Promise<any> {
+    return this.request(`/skills/${skillId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
   }
 
   // Job Matching Endpoints
