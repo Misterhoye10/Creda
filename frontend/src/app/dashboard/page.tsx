@@ -1214,13 +1214,6 @@ export default function DashboardPage() {
 
         {/* Right Action Cluster */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/recruiter"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5] text-xs font-mono text-[#64748B] hover:text-[#4F46E5] transition-colors whitespace-nowrap flex-shrink-0"
-          >
-            <Building2 size={13} className="flex-shrink-0" />
-            <span className="whitespace-nowrap">Recruiter View →</span>
-          </Link>
           {/* Public Link Share & View */}
           <div className="flex items-center gap-1.5">
             <button
