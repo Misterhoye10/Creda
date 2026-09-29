@@ -461,13 +461,33 @@ export default function DashboardPage() {
         { id: "starter-sql", name: "SQL & Database Optimization", category: "Technical", level: "Intermediate", confidence: 70, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
       ];
 
+      let initialSkills = DEFAULT_STARTER_SKILLS;
       if (skillsResult.status === "fulfilled" && skillsResult.value) {
         const skillsRes = skillsResult.value;
         const items = Array.isArray(skillsRes?.items) ? skillsRes.items : (Array.isArray(skillsRes) ? skillsRes : []);
-        setVerifiedSkills(items.length > 0 ? items : DEFAULT_STARTER_SKILLS);
-      } else {
-        setVerifiedSkills(DEFAULT_STARTER_SKILLS);
+        if (items.length > 0) {
+          initialSkills = items;
+        }
       }
+      if (typeof window !== "undefined") {
+        try {
+          const savedAssessments = JSON.parse(localStorage.getItem("creda_practical_assessments") || "{}");
+          initialSkills = initialSkills.map((s) => {
+            const matchKey = Object.keys(savedAssessments).find((k) => s.name.toLowerCase().includes(k));
+            if (matchKey) {
+              const a = savedAssessments[matchKey];
+              return {
+                ...s,
+                evidence_status: (a.status as any) || "strong",
+                assessment_score: a.score,
+                confidence: Math.max(s.confidence || 0, a.confidence || a.score),
+              };
+            }
+            return s;
+          });
+        } catch {}
+      }
+      setVerifiedSkills(initialSkills);
 
       if (evidenceResult.status === "fulfilled" && evidenceResult.value) {
         const evidenceRes = evidenceResult.value;
@@ -1022,6 +1042,51 @@ export default function DashboardPage() {
       } catch (err) {
         console.warn("Could not persist skill assessment to backend:", err);
       }
+    }
+
+    // Persist to local storage for instant offline/page-reload resilience
+    try {
+      if (typeof window !== "undefined") {
+        const savedAssessments = JSON.parse(localStorage.getItem("creda_practical_assessments") || "{}");
+        savedAssessments[challenge.skillName.toLowerCase()] = {
+          score,
+          status: updatedStatus,
+          confidence: Math.max(score, 88),
+        };
+        localStorage.setItem("creda_practical_assessments", JSON.stringify(savedAssessments));
+
+        // Also sync updated score and assessment into creda_custom_talents
+        const rawCustom = localStorage.getItem("creda_custom_talents");
+        if (rawCustom) {
+          const customTalents = JSON.parse(rawCustom);
+          if (Array.isArray(customTalents)) {
+            const updatedCustom = customTalents.map((ct: any) => {
+              if (ct.email === currentUser?.email || ct.slug === passportSlug) {
+                const updatedSkillsDetail = ct.skillsDetail?.map((sd: any) => {
+                  if (sd.name.toLowerCase().includes(challenge.skillName.toLowerCase())) {
+                    return {
+                      ...sd,
+                      evidence_status: updatedStatus,
+                      assessment_score: score,
+                      confidence: Math.max(sd.confidence || 0, score),
+                    };
+                  }
+                  return sd;
+                }) || [];
+                return {
+                  ...ct,
+                  score: Math.min((ct.score || 83) + 4, 98),
+                  skillsDetail: updatedSkillsDetail,
+                };
+              }
+              return ct;
+            });
+            localStorage.setItem("creda_custom_talents", JSON.stringify(updatedCustom));
+          }
+        }
+      }
+    } catch {
+      // ignore local storage persistence error
     }
 
     try {
