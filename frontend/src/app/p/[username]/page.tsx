@@ -375,13 +375,28 @@ export default function PublicPassportPage() {
       const defaultName = passportData.name || rawUsername;
       const initialsAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`;
 
+      // 4-Pillar Deterministic Explainable Evidence Score (Unified across Dashboard, Passport & Recruiter directory)
+      const rawScore = (passportData.skills && passportData.skills.length > 0)
+        ? (passportData.average_confidence || 75)
+        : 70;
+      const evCount = passportData.evidence?.length || 0;
+      const evidenceCoverage = Math.min(40, Math.max(15, Math.round(rawScore * 0.38) + (evCount > 1 ? 2 : 0)));
+      const projectEvidence = Math.min(25, Math.max(10, Math.round(rawScore * 0.24) + (passportData.website_url ? 1 : 0)));
+      const assessments = Math.min(20, Math.max(8, Math.round(rawScore * 0.19)));
+      const profileComp = 14;
+      const unifiedScore = Math.min(100, evidenceCoverage + projectEvidence + assessments + profileComp);
+
       return {
         name: defaultName,
         avatar: passportData.avatar_url || initialsAvatar,
         title: passportData.professional_title || "Technical Engineer",
         location: passportData.location || "Lagos, Nigeria // Global Remote",
-        trustIndex: passportData.average_confidence || 85.0,
-        badge: passportData.is_creda_verified ? "VERIFIED TALENT" : "CANDIDATE",
+        trustIndex: unifiedScore,
+        evidenceCoverage,
+        projectEvidence,
+        assessments,
+        profileComp,
+        badge: unifiedScore >= 90 ? "CODE-PROVEN TIER" : (passportData.is_creda_verified ? "VERIFIED TALENT" : "CANDIDATE"),
         gpgKey: `0x${(passportData.id || "9B4E38F1C2D90A77").replace(/-/g, "").slice(0, 16).toUpperCase()}`,
         skills: passportData.skills && passportData.skills.length > 0
           ? passportData.skills.map((s) => ({
@@ -400,20 +415,40 @@ export default function PublicPassportPage() {
     }
 
     if (PROFILES[rawUsername]) {
-      return PROFILES[rawUsername];
+      const p = PROFILES[rawUsername];
+      const evidenceCoverage = Math.round(p.trustIndex * 0.38);
+      const projectEvidence = Math.round(p.trustIndex * 0.24);
+      const assessments = Math.round(p.trustIndex * 0.19);
+      const profileComp = Math.min(15, Math.max(10, Math.round(p.trustIndex - (evidenceCoverage + projectEvidence + assessments))));
+      return {
+        ...p,
+        evidenceCoverage,
+        projectEvidence,
+        assessments,
+        profileComp,
+      };
     }
 
     const defaultName = rawUsername
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+    const defaultTrust = 90;
+    const evidenceCoverage = Math.round(defaultTrust * 0.38);
+    const projectEvidence = Math.round(defaultTrust * 0.24);
+    const assessments = Math.round(defaultTrust * 0.19);
+    const profileComp = 14;
 
     return {
       name: defaultName,
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`,
       title: "Technical Professional",
       location: "Lagos, Nigeria // Global Remote",
-      trustIndex: 90.0,
+      trustIndex: defaultTrust,
+      evidenceCoverage,
+      projectEvidence,
+      assessments,
+      profileComp,
       badge: "VERIFIED TALENT",
       gpgKey: "0x9B4E38F1C2D90A77",
       skills: DEFAULT_FALLBACK_SKILLS,
@@ -794,7 +829,7 @@ export default function PublicPassportPage() {
 
                   <div className="flex items-baseline gap-2 mb-2">
                     <span className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight font-mono">
-                      {profile.trustIndex}
+                      {Math.round(profile.trustIndex)}
                     </span>
                     <span className="text-xs font-mono text-stone-500">
                       / 100 Evidence Proof
@@ -804,7 +839,7 @@ export default function PublicPassportPage() {
                   <div className="w-full h-2 rounded-full bg-stone-200 overflow-hidden mb-3">
                     <div
                       className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-700"
-                      style={{ width: `${profile.trustIndex}%` }}
+                      style={{ width: `${Math.min(100, Math.round(profile.trustIndex))}%` }}
                     />
                   </div>
 
@@ -821,7 +856,7 @@ export default function PublicPassportPage() {
                         <span>Codebase &amp; Git Evidence</span>
                       </span>
                       <span className="font-bold text-[#0F172A]">
-                        {Math.round(profile.trustIndex * 0.38)} <span className="text-stone-400 font-normal">/ 40</span>
+                        {profile.evidenceCoverage ?? Math.round(profile.trustIndex * 0.38)} <span className="text-stone-400 font-normal">/ 40</span>
                       </span>
                     </div>
 
@@ -831,7 +866,7 @@ export default function PublicPassportPage() {
                         <span>Syntactic &amp; AST Depth</span>
                       </span>
                       <span className="font-bold text-[#0F172A]">
-                        {Math.round(profile.trustIndex * 0.24)} <span className="text-stone-400 font-normal">/ 25</span>
+                        {profile.projectEvidence ?? Math.round(profile.trustIndex * 0.24)} <span className="text-stone-400 font-normal">/ 25</span>
                       </span>
                     </div>
 
@@ -841,7 +876,7 @@ export default function PublicPassportPage() {
                         <span>Cross-Referenced Citations</span>
                       </span>
                       <span className="font-bold text-[#0F172A]">
-                        {Math.round(profile.trustIndex * 0.19)} <span className="text-stone-400 font-normal">/ 20</span>
+                        {profile.assessments ?? Math.round(profile.trustIndex * 0.19)} <span className="text-stone-400 font-normal">/ 20</span>
                       </span>
                     </div>
 
@@ -851,7 +886,7 @@ export default function PublicPassportPage() {
                         <span>Identity &amp; Ledger Verification</span>
                       </span>
                       <span className="font-bold text-[#0F172A]">
-                        {Math.min(15, Math.max(10, Math.round(profile.trustIndex - (Math.round(profile.trustIndex * 0.38) + Math.round(profile.trustIndex * 0.24) + Math.round(profile.trustIndex * 0.19)))))} <span className="text-stone-400 font-normal">/ 15</span>
+                        {profile.profileComp ?? 14} <span className="text-stone-400 font-normal">/ 15</span>
                       </span>
                     </div>
                   </div>
