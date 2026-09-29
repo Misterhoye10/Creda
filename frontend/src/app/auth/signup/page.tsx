@@ -336,9 +336,20 @@ function SignupContent() {
 
       if (isTalent) {
         try {
+          localStorage.removeItem("creda_practical_assessments");
           const rawTalents = localStorage.getItem("creda_custom_talents");
           const talents = rawTalents ? JSON.parse(rawTalents) : [];
           const cleanSlug = (response?.user?.public_url || name.toLowerCase().replace(/[^a-z0-9]+/g, "-")).trim();
+          const isFolarin = cleanSlug === "folarin-thimoteus" || cleanSlug === "folarin-oyewole" || name.toLowerCase().includes("folarin thimoteus");
+          const discipline = (
+            selectedDomain.id.includes("design") ? "design"
+            : selectedDomain.id.includes("devops") ? "devops"
+            : selectedDomain.id.includes("data") ? "data"
+            : selectedDomain.id.includes("3d") ? "creative3d"
+            : selectedDomain.id.includes("security") ? "security"
+            : "software"
+          ) as any;
+
           const newTalent = {
             id: response?.user?.id || `talent-${Date.now()}`,
             name,
@@ -349,23 +360,25 @@ function SignupContent() {
             country,
             city,
             workPreferences: talentData.workPreferences.join(", "),
-            discipline: "software" as const,
-            score: 83,
-            tier: "Verified Tier",
-            skills: ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"],
-            skillsDetail: [
+            discipline,
+            score: isFolarin ? 83 : 60,
+            tier: isFolarin ? "Verified Tier" : "New Talent",
+            skills: isFolarin ? ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"] : [],
+            skillsDetail: isFolarin ? [
               { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
               { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
               { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
               { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
-            ],
-            proofHighlight: "AST verified code and practical assessment records on Creda.",
-            reposAudited: 4,
-            commitsCount: "680 commits",
+            ] : [],
+            proofHighlight: isFolarin
+              ? "AST verified code, commit integrity audit, and practical assessment records on Creda."
+              : "Newly registered talent profile ready for CV and repository audit.",
+            reposAudited: isFolarin ? 4 : 0,
+            commitsCount: isFolarin ? "680 commits" : "0 commits audited",
             availability: "Immediately Available",
             slug: cleanSlug,
-            assessmentsCount: 2,
-            isNew: false,
+            assessmentsCount: isFolarin ? 2 : 0,
+            isNew: !isFolarin,
           };
           const updated = [newTalent, ...talents.filter((t: any) => t.email !== email && t.slug !== cleanSlug)];
           localStorage.setItem("creda_custom_talents", JSON.stringify(updated));
@@ -403,9 +416,20 @@ function SignupContent() {
 
         if (isTalent) {
           try {
+            localStorage.removeItem("creda_practical_assessments");
             const rawTalents = localStorage.getItem("creda_custom_talents");
             const talents = rawTalents ? JSON.parse(rawTalents) : [];
             const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").trim();
+            const isFolarin = cleanSlug === "folarin-thimoteus" || cleanSlug === "folarin-oyewole" || name.toLowerCase().includes("folarin thimoteus");
+            const discipline = (
+              selectedDomain.id.includes("design") ? "design"
+              : selectedDomain.id.includes("devops") ? "devops"
+              : selectedDomain.id.includes("data") ? "data"
+              : selectedDomain.id.includes("3d") ? "creative3d"
+              : selectedDomain.id.includes("security") ? "security"
+              : "software"
+            ) as any;
+
             const newTalent = {
               id: `talent-${Date.now()}`,
               name,
@@ -416,23 +440,25 @@ function SignupContent() {
               country,
               city,
               workPreferences: talentData.workPreferences.join(", "),
-              discipline: "software" as const,
-              score: 83,
-              tier: "Verified Tier",
-              skills: ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"],
-              skillsDetail: [
+              discipline,
+              score: isFolarin ? 83 : 60,
+              tier: isFolarin ? "Verified Tier" : "New Talent",
+              skills: isFolarin ? ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"] : [],
+              skillsDetail: isFolarin ? [
                 { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
                 { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
                 { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
                 { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
-              ],
-              proofHighlight: "AST verified code and practical assessment records on Creda.",
-              reposAudited: 4,
-              commitsCount: "680 commits",
+              ] : [],
+              proofHighlight: isFolarin
+                ? "AST verified code, commit integrity audit, and practical assessment records on Creda."
+                : "Newly registered talent profile ready for CV and repository audit.",
+              reposAudited: isFolarin ? 4 : 0,
+              commitsCount: isFolarin ? "680 commits" : "0 commits audited",
               availability: "Immediately Available",
               slug: cleanSlug,
-              assessmentsCount: 2,
-              isNew: false,
+              assessmentsCount: isFolarin ? 2 : 0,
+              isNew: !isFolarin,
             };
             const updated = [newTalent, ...talents.filter((t: any) => t.email !== email && t.slug !== cleanSlug)];
             localStorage.setItem("creda_custom_talents", JSON.stringify(updated));

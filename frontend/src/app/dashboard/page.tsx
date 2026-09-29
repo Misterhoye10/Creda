@@ -201,20 +201,12 @@ const PRACTICAL_CHALLENGES: Record<string, AssessmentChallenge> = {
       "A high-throughput African payment switch experiences intermittent HTTP 504 gateway timeouts under 2,500 req/sec when querying transaction balances. The async route is blocking the event loop due to a synchronous ORM call.",
     prompt:
       "Identify the architectural fix that prevents threadpool exhaustion while maintaining ACID transaction semantics with PostgreSQL asyncpg.",
-    codeSnippet: `@router.get("/api/v1/ledger/balance/{user_id}")
-async def get_balance(user_id: str, db: Session = Depends(get_db)):
-    account = db.query(Account).filter(Account.user_id == user_id).first()
-    return {"balance": account.balance}`,
+    codeSnippet: `@router.get("/api/v1/ledger/balance/{user_id}")\nasync def get_balance(user_id: str, db: Session = Depends(get_db)):\n    account = db.query(Account).filter(Account.user_id == user_id).first()\n    return {"balance": account.balance}`,
     options: [
       {
         id: "opt-1",
         label: "Migrate to AsyncSession with select() and await execution",
-        code: `@router.get("/api/v1/ledger/balance/{user_id}")
-async def get_balance(user_id: str, db: AsyncSession = Depends(get_async_db)):
-    stmt = select(Account).where(Account.user_id == user_id)
-    result = await db.execute(stmt)
-    account = result.scalars().first()
-    return {"balance": account.balance}`,
+        code: `@router.get("/api/v1/ledger/balance/{user_id}")\nasync def get_balance(user_id: str, db: AsyncSession = Depends(get_async_db)):\n    stmt = select(Account).where(Account.user_id == user_id)\n    result = await db.execute(stmt)\n    account = result.scalars().first()\n    return {"balance": account.balance}`,
         explanation: "Correct! Uses non-blocking AsyncSession and awaitable queries, preventing event loop blocking.",
         isCorrect: true,
       },
@@ -237,20 +229,12 @@ async def get_balance(user_id: str, db: AsyncSession = Depends(get_async_db)):
       "A mobile fintech user transfers money. We want immediate optimistic visual feedback, but must rollback state and present a graceful error if the idempotency key responds with an API failure.",
     prompt:
       "Select the canonical React state pattern that guarantees deterministic rollback without race conditions.",
-    codeSnippet: `const [balance, setBalance] = useState(initialBalance);
-const handleTransfer = async (amount) => { ... }`,
+    codeSnippet: `const [balance, setBalance] = useState(initialBalance);\nconst handleTransfer = async (amount) => { ... }`,
     options: [
       {
         id: "opt-1",
         label: "Optimistic snapshot with atomic rollback in catch block",
-        code: `const prevBalance = balance;
-setBalance(b => b - amount);
-try {
-  await api.transfer({ amount, idempotencyKey });
-} catch (err) {
-  setBalance(prevBalance);
-  toast.error("Transfer failed. Balance restored.");
-}`,
+        code: `const prevBalance = balance;\nsetBalance(b => b - amount);\ntry {\n  await api.transfer({ amount, idempotencyKey });\n} catch (err) {\n  setBalance(prevBalance);\n  toast.error("Transfer failed. Balance restored.");\n}`,
         explanation: "Correct! Captures atomic snapshot and performs deterministic state restoration on API rejection.",
         isCorrect: true,
       },
@@ -259,6 +243,34 @@ try {
         label: "Force complete window reload on failure",
         code: `window.location.reload()`,
         explanation: "Incorrect. Full reload destroys client memory and creates poor UX.",
+        isCorrect: false,
+      },
+    ],
+  },
+  typescript: {
+    id: "ts-generic-typeguard",
+    skillName: "TypeScript",
+    domain: "Languages & Type Systems",
+    title: "Strict Generic Type Guards & Discriminated Union Validation",
+    duration: "4 mins",
+    scenario:
+      "An external webhook payload delivers polymorphic events. Unsafe type assertions (`as unknown as PaymentEvent`) are causing intermittent runtime TypeError exceptions in downstream event workers.",
+    prompt:
+      "Select the generic user-defined type guard pattern that enforces compile-time safety and runtime validation.",
+    codeSnippet: `type SuccessEvent = { status: "settled"; txId: string; amount: number };\ntype ErrorEvent = { status: "failed"; errorCode: string };\ntype WebhookEvent = SuccessEvent | ErrorEvent;`,
+    options: [
+      {
+        id: "opt-1",
+        label: "Discriminated union narrowing with custom type predicate function",
+        code: `function isSuccessEvent(e: WebhookEvent): e is SuccessEvent {\n  return e.status === "settled" && typeof (e as any).txId === "string";\n}`,
+        explanation: "Correct! Uses TypeScript type predicate `e is SuccessEvent` for zero runtime overhead and compiler verification.",
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: "Bypass typing with untyped any casting",
+        code: `const data = e as any;\nreturn data.status === "settled";`,
+        explanation: "Incorrect. Casting to `any` disables compiler type checking and introduces runtime vulnerability.",
         isCorrect: false,
       },
     ],
@@ -273,15 +285,12 @@ try {
       "Queries filtering by (tenant_id, status, created_at DESC) on an 80-million row transactions table are performing sequential scans taking 4.2 seconds.",
     prompt:
       "Select the optimal compound B-tree index definition that satisfies query filter equality and sort order.",
-    codeSnippet: `SELECT * FROM transactions 
-WHERE tenant_id = 'crd_ng_01' AND status = 'settled'
-ORDER BY created_at DESC LIMIT 50;`,
+    codeSnippet: `SELECT * FROM transactions \nWHERE tenant_id = 'crd_ng_01' AND status = 'settled'\nORDER BY created_at DESC LIMIT 50;`,
     options: [
       {
         id: "opt-1",
         label: "Composite B-Tree with tenant_id, status, and created_at DESC",
-        code: `CREATE INDEX idx_transactions_tenant_status_created 
-ON transactions (tenant_id, status, created_at DESC);`,
+        code: `CREATE INDEX idx_transactions_tenant_status_created \nON transactions (tenant_id, status, created_at DESC);`,
         explanation: "Correct! Matches equality filter attributes first, followed by sorting column in matching direction.",
         isCorrect: true,
       },
@@ -303,25 +312,12 @@ ON transactions (tenant_id, status, created_at DESC);`,
     scenario:
       "A container image is 1.4GB and includes gcc, package managers, and root execution, failing security audits.",
     prompt: "Choose the Dockerfile pattern that optimizes image size (<80MB) and drops root privileges.",
-    codeSnippet: `FROM python:3.11
-COPY . /app
-RUN pip install -r requirements.txt
-CMD ["python", "main.py"]`,
+    codeSnippet: `FROM python:3.11\nCOPY . /app\nRUN pip install -r requirements.txt\nCMD ["python", "main.py"]`,
     options: [
       {
         id: "opt-1",
         label: "Multi-stage build with distroless/nonroot runtime user",
-        code: `FROM python:3.11-slim AS builder
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
-
-FROM python:3.11-slim
-COPY --from=builder /install /usr/local
-WORKDIR /app
-COPY . .
-USER 65532:65532
-CMD ["python", "main.py"]`,
+        code: `FROM python:3.11-slim AS builder\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir --prefix=/install -r requirements.txt\n\nFROM python:3.11-slim\nCOPY --from=builder /install /usr/local\nWORKDIR /app\nCOPY . .\nUSER 65532:65532\nCMD ["python", "main.py"]`,
         explanation: "Correct! Minimizes attack surface and drops root privileges to an unprivileged UID.",
         isCorrect: true,
       },
@@ -334,7 +330,264 @@ CMD ["python", "main.py"]`,
       },
     ],
   },
+  kubernetes: {
+    id: "k8s-zero-downtime",
+    skillName: "Kubernetes",
+    domain: "DevOps & Cloud",
+    title: "Zero-Downtime Rolling Releases & Pod Disruption Budgets",
+    duration: "5 mins",
+    scenario:
+      "During peak traffic deployment, Kubernetes kills existing pods before new pods pass readiness probes, causing intermittent 502 errors.",
+    prompt: "Choose the Deployment spec that guarantees zero dropped connections during rolling releases.",
+    codeSnippet: `apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: payment-api`,
+    options: [
+      {
+        id: "opt-1",
+        label: "readinessProbe with preStop sleep hook and maxUnavailable: 0",
+        code: `strategy:\n  rollingUpdate:\n    maxSurge: 25%\n    maxUnavailable: 0\ntemplate:\n  spec:\n    containers:\n      - name: api\n        readinessProbe:\n          httpGet: { path: /health, port: 8080 }\n        lifecycle:\n          preStop: { exec: { command: ["sh", "-c", "sleep 10"] } }`,
+        explanation: "Correct! Ensures new pods accept traffic before old pods receive SIGTERM, completely eliminating 502 drops.",
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: "Set replica count to 1 with Recreate deployment strategy",
+        code: `strategy:\n  type: Recreate`,
+        explanation: "Incorrect. Recreate strategy guarantees downtime by killing old pods before creating new ones.",
+        isCorrect: false,
+      },
+    ],
+  },
+  terraform: {
+    id: "tf-state-lock",
+    skillName: "Terraform",
+    domain: "Cloud Infrastructure",
+    title: "Atomic State Locking & Distributed Drift Prevention",
+    duration: "4 mins",
+    scenario:
+      "Concurrent automated CI/CD pipeline runs cause race conditions and state file corruption when provisioning cloud VPCs and clusters.",
+    prompt: "Select the Terraform backend configuration that enforces atomic distributed locking.",
+    codeSnippet: `terraform {\n  backend "s3" {\n    bucket = "creda-tf-state"\n    key = "prod/terraform.tfstate"\n  }\n}`,
+    options: [
+      {
+        id: "opt-1",
+        label: "Configure DynamoDB table for state locking and hash verification",
+        code: `terraform {\n  backend "s3" {\n    bucket = "creda-tf-state"\n    key = "prod/terraform.tfstate"\n    region = "af-south-1"\n    dynamodb_table = "creda-lock-table"\n    encrypt = true\n  }\n}`,
+        explanation: "Correct! DynamoDB backend prevents concurrent executions by acquiring atomic lock tokens.",
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: "Store terraform.tfstate directly in the git repository",
+        code: `git add terraform.tfstate && git commit -m "update state"`,
+        explanation: "Incorrect. Storing state in git risks exposing secrets and guarantees unhandled merge conflicts.",
+        isCorrect: false,
+      },
+    ],
+  },
+  figma: {
+    id: "design-tokens-wcag",
+    skillName: "Figma & Design Systems",
+    domain: "Product & UI/UX Design",
+    title: "Semantic Token Hierarchy & WCAG 2.1 AA Contrast Compliance",
+    duration: "4 mins",
+    scenario:
+      "A banking mobile app must support dynamic dark/light theme switching without breaking brand contrast ratios or introducing unmaintainable hex overrides.",
+    prompt: "Select the token taxonomy that cleanly separates core brand colors from functional UI contexts.",
+    codeSnippet: `// Design Token Structure in Figma Variables & CSS`,
+    options: [
+      {
+        id: "opt-1",
+        label: "3-tier semantic token architecture (Global -> Semantic -> Component)",
+        code: `// Tier 1: Global\n$blue-600: #2563EB;\n// Tier 2: Semantic\n$color-bg-interactive: $blue-600;\n$color-text-on-interactive: #FFFFFF; // 4.8:1 contrast\n// Tier 3: Component\n.btn-primary { background: var($color-bg-interactive); color: var($color-text-on-interactive); }`,
+        explanation: "Correct! Semantic layering decouples design themes from component markup and guarantees WCAG contrast ratios.",
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: "Hardcode raw hex codes directly into every screen frame",
+        code: `.btn { background: #2563EB; color: #EEE; }`,
+        explanation: "Incorrect. Hardcoding hex values prevents token-driven theme switching and causes accessibility drift.",
+        isCorrect: false,
+      },
+    ],
+  },
+  data: {
+    id: "data-pipeline-chunking",
+    skillName: "Data Engineering",
+    domain: "Data & Analytics",
+    title: "Vectorized Columnar Chunking in Memory-Constrained Pipelines",
+    duration: "5 mins",
+    scenario:
+      "A nightly ETL job parsing 40GB transaction dumps crashes on an 8GB RAM worker node due to full dataset in-memory parsing.",
+    prompt: "Select the PyArrow columnar chunking pattern that operates in constant O(1) memory.",
+    codeSnippet: `import pandas as pd\n# Current bottleneck:\ndf = pd.read_csv("transactions_40gb.csv")`,
+    options: [
+      {
+        id: "opt-1",
+        label: "Stream Parquet/Arrow batches with projection and filter pushdown",
+        code: `import pyarrow.dataset as ds\ndataset = ds.dataset("transactions.parquet", format="parquet")\nfor batch in dataset.to_batches(columns=["user_id", "amount"], filter=ds.field("status") == "settled"):\n    process_stream(batch.to_pandas())`,
+        explanation: "Correct! Uses batch iteration and predicate pushdown to execute streaming transformations without OOM.",
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: "Allocate a 128GB swapfile on the host OS",
+        code: `sudo fallocate -l 128G /swapfile`,
+        explanation: "Incorrect. Disk swap thrashing causes catastrophic pipeline slowdowns rather than solving memory efficiency.",
+        isCorrect: false,
+      },
+    ],
+  },
+  security: {
+    id: "sec-hmac-auth",
+    skillName: "Cybersecurity",
+    domain: "Security & Auth",
+    title: "Cryptographic HMAC Verification & Replay Protection",
+    duration: "5 mins",
+    scenario:
+      "A payment webhook endpoint is susceptible to replay attacks where an attacker captures authentic requests and resends them repeatedly.",
+    prompt: "Select the cryptographic security pattern that guarantees authenticity and one-time window validity.",
+    codeSnippet: `@app.post("/webhooks/payout")\nasync def receive_payout(request: Request):`,
+    options: [
+      {
+        id: "opt-1",
+        label: "HMAC-SHA256 signature with timestamp window and Redis nonce deduplication",
+        code: `timestamp = request.headers["X-Timestamp"]\nnonce = request.headers["X-Nonce"]\nif abs(time.time() - float(timestamp)) > 300: raise ExpiredRequest()\nif not redis.set(f"nonce:{nonce}", "1", nx=True, ex=300): raise ReplayDetected()\nexpected = hmac.new(SECRET, f"{timestamp}.{nonce}.{body}".encode(), hashlib.sha256).hexdigest()\nif not hmac.compare_digest(request.headers["X-Signature"], expected): raise Forbidden()`,
+        explanation: "Correct! Combined timestamp window (<300s), unique nonce cache, and constant-time HMAC comparison defeats replay attacks.",
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: "Check request IP address against a static allowlist",
+        code: `if request.client.host not in ALLOWED_IPS: raise Forbidden()`,
+        explanation: "Incorrect. IP allowlists do not defend against payload tampering or replay over shared proxy/NAT networks.",
+        isCorrect: false,
+      },
+    ],
+  },
+  three: {
+    id: "three-instancing",
+    skillName: "Three.js / 3D Graphics",
+    domain: "3D & Creative Engineering",
+    title: "GPU InstancedMesh Geometry & Canvas 60 FPS Optimization",
+    duration: "5 mins",
+    scenario:
+      "A WebGL 3D dashboard drops to 14 FPS on mobile devices due to rendering 1,200 individual geometry mesh nodes with separate materials.",
+    prompt: "Select the Three.js architecture that collapses 1,200 draw calls into a single GPU invocation.",
+    codeSnippet: `// 1,200 separate mesh instances causing draw-call bottlenecks\nconst items = data.map(d => new THREE.Mesh(geometry, material));`,
+    options: [
+      {
+        id: "opt-1",
+        label: "Consolidate into InstancedMesh with matrix transforms",
+        code: `const instancedMesh = new THREE.InstancedMesh(geometry, material, count);\nconst dummy = new THREE.Object3D();\ndata.forEach((d, i) => {\n  dummy.position.set(d.x, d.y, d.z);\n  dummy.updateMatrix();\n  instancedMesh.setMatrixAt(i, dummy.matrix);\n});\ninstancedMesh.instanceMatrix.needsUpdate = true;\nscene.add(instancedMesh);`,
+        explanation: "Correct! GPU instancing submits a single draw call for all instances, locking the canvas at 60 FPS.",
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: "Reduce browser viewport resolution to 240p",
+        code: `renderer.setSize(320, 240)`,
+        explanation: "Incorrect. Downscaling viewport resolution destroys visual fidelity without resolving CPU-side draw call overhead.",
+        isCorrect: false,
+      },
+    ],
+  },
 };
+
+function getChallengeForSkill(skillName: string): AssessmentChallenge {
+  if (!skillName) return PRACTICAL_CHALLENGES.python;
+  const lower = skillName.toLowerCase();
+
+  if (lower.includes("python") || lower.includes("fastapi") || lower.includes("django")) return { ...PRACTICAL_CHALLENGES.python, skillName };
+  if (lower.includes("react") || lower.includes("next") || lower.includes("vue") || lower.includes("frontend")) return { ...PRACTICAL_CHALLENGES.react, skillName };
+  if (lower.includes("typescript") || lower.includes("ts") || lower.includes("javascript") || lower.includes("node")) return { ...PRACTICAL_CHALLENGES.typescript, skillName };
+  if (lower.includes("postgres") || lower.includes("sql") || lower.includes("database")) return { ...PRACTICAL_CHALLENGES.postgresql, skillName };
+  if (lower.includes("docker") || lower.includes("container")) return { ...PRACTICAL_CHALLENGES.docker, skillName };
+  if (lower.includes("kubernetes") || lower.includes("k8s") || lower.includes("cloud") || lower.includes("devops") || lower.includes("sre")) return { ...PRACTICAL_CHALLENGES.kubernetes, skillName };
+  if (lower.includes("terraform") || lower.includes("iac") || lower.includes("infra")) return { ...PRACTICAL_CHALLENGES.terraform, skillName };
+  if (lower.includes("figma") || lower.includes("design") || lower.includes("ui") || lower.includes("ux")) return { ...PRACTICAL_CHALLENGES.figma, skillName };
+  if (lower.includes("data") || lower.includes("pandas") || lower.includes("analytics") || lower.includes("pipeline") || lower.includes("dbt")) return { ...PRACTICAL_CHALLENGES.data, skillName };
+  if (lower.includes("security") || lower.includes("owasp") || lower.includes("cyber") || lower.includes("auth")) return { ...PRACTICAL_CHALLENGES.security, skillName };
+  if (lower.includes("three") || lower.includes("webgl") || lower.includes("3d") || lower.includes("glsl")) return { ...PRACTICAL_CHALLENGES.three, skillName };
+
+  const cleanTitle = skillName.replace(/[^a-zA-Z0-9\s]/g, "").trim() || "Technical Skill";
+  return {
+    id: `challenge-${cleanTitle.toLowerCase().replace(/\s+/g, "-")}`,
+    skillName,
+    domain: `${cleanTitle} Architecture`,
+    title: `${cleanTitle} Production Reliability & Concurrency Benchmark`,
+    duration: "4 mins",
+    scenario: `A distributed production system leveraging ${skillName} encounters unexpected latency spikes and threadpool contention during high-volume spikes. You must diagnose the architecture and enforce non-blocking execution while preserving consistency.`,
+    prompt: `Select the architectural fix for ${skillName} that minimizes latency, releases threadpool locks, and guarantees fault tolerance.`,
+    codeSnippet: `// Production Service: ${skillName}\nasync function processTransaction(payload: TransactionEvent) {\n  // Processing high-throughput payload with ${skillName}\n}`,
+    options: [
+      {
+        id: "opt-1",
+        label: `Implement decoupled asynchronous workers with connection pooling and circuit-breaker telemetry for ${skillName}`,
+        code: `// Resilient ${skillName} Pipeline\nconst pool = getClientPool();\nawait pool.withCircuitBreaker(async (client) => {\n  return await client.processAsync(payload);\n});`,
+        explanation: `Correct! Applies connection pooling, non-blocking asynchronous execution, and circuit-breaker isolation.`,
+        isCorrect: true,
+      },
+      {
+        id: "opt-2",
+        label: `Apply synchronous blocking busy-wait loop without backpressure`,
+        code: `while(!isAvailable()) { sleep(1000); }\nreturn executeSync(payload);`,
+        explanation: `Incorrect. Synchronous busy-waiting starves the worker threadpool and causes cascading timeouts.`,
+        isCorrect: false,
+      },
+    ],
+  };
+}
+
+const DOMAIN_STARTER_OPTIONS: Record<string, Array<{ name: string; category: string }>> = {
+  software: [
+    { name: "Python Systems & APIs", category: "Backend" },
+    { name: "React & Component Architecture", category: "Frontend" },
+    { name: "TypeScript & Type Safety", category: "Languages" },
+    { name: "SQL & Database Optimization", category: "Databases" },
+  ],
+  design: [
+    { name: "Figma Component Variables & Tokens", category: "UI/UX" },
+    { name: "Design Systems & Token Architecture", category: "Design Systems" },
+    { name: "User Flow & Information Architecture", category: "UX Architecture" },
+    { name: "WCAG 2.1 AA Accessibility Standards", category: "Accessibility" },
+  ],
+  devops: [
+    { name: "Kubernetes Cluster Orchestration", category: "DevOps" },
+    { name: "Terraform Infrastructure as Code", category: "Cloud" },
+    { name: "Docker Multi-Stage Optimization", category: "Containers" },
+    { name: "CI/CD Pipeline Automation", category: "SRE" },
+  ],
+  data: [
+    { name: "SQL Query Performance & Indexing", category: "Databases" },
+    { name: "Data Pipeline & ETL Engineering", category: "Data" },
+    { name: "Python for Data Analysis", category: "Analytics" },
+    { name: "Data Warehouse Modeling", category: "Architecture" },
+  ],
+  creative3d: [
+    { name: "React Three Fiber & Canvas", category: "3D Graphics" },
+    { name: "Custom GLSL Shaders", category: "Shaders" },
+    { name: "WebGL Performance Optimization", category: "Performance" },
+    { name: "Three.js Scene Graph Optimization", category: "3D Graphics" },
+  ],
+  security: [
+    { name: "OWASP Hardening & Penetration Testing", category: "Security" },
+    { name: "API Authentication & JWT Security", category: "Auth" },
+    { name: "Vulnerability Auditing & Remediation", category: "Compliance" },
+    { name: "Network Protocol Security", category: "Infrastructure" },
+  ],
+};
+
+function getDomainKey(field?: string | null): string {
+  if (!field) return "software";
+  const f = field.toLowerCase();
+  if (f.includes("design") || f.includes("ui") || f.includes("ux")) return "design";
+  if (f.includes("devops") || f.includes("cloud") || f.includes("infra") || f.includes("sre")) return "devops";
+  if (f.includes("data") || f.includes("ai") || f.includes("ml") || f.includes("analytics")) return "data";
+  if (f.includes("3d") || f.includes("creative") || f.includes("webgl")) return "creative3d";
+  if (f.includes("security") || f.includes("cyber") || f.includes("audit")) return "security";
+  return "software";
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -432,8 +685,9 @@ export default function DashboardPage() {
         api.getTalentRequests(),
       ]);
 
+      let userProfile: any = null;
       if (profileResult.status === "fulfilled" && profileResult.value) {
-        const userProfile = profileResult.value;
+        userProfile = profileResult.value;
         if ((userProfile as any).account_type === "recruiter") {
           router.replace("/dashboard/recruiter");
           return;
@@ -452,16 +706,23 @@ export default function DashboardPage() {
           linkedin_url: userProfile.linkedin_url || "",
           website_url: userProfile.website_url || "",
         });
+      } else if (typeof window !== "undefined") {
+        try {
+          const cachedUser = localStorage.getItem("creda_user");
+          if (cachedUser) {
+            userProfile = JSON.parse(cachedUser);
+          }
+        } catch {}
       }
 
       const DEFAULT_STARTER_SKILLS = [
-        { id: "starter-py", name: "Python Systems & APIs", category: "Technical", level: "Intermediate", confidence: 75, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
-        { id: "starter-react", name: "React & Component Architecture", category: "Technical", level: "Intermediate", confidence: 74, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
-        { id: "starter-ts", name: "TypeScript & Type Integrity", category: "Technical", level: "Intermediate", confidence: 72, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
-        { id: "starter-sql", name: "SQL & Database Optimization", category: "Technical", level: "Intermediate", confidence: 70, evidence_status: "self_declared", assessment_score: null, evidence_count: 1 },
+        { id: "starter-py", name: "Python Systems & APIs", category: "Technical", level: "Advanced", confidence: 92, evidence_status: "strong", assessment_score: 88, evidence_count: 3 },
+        { id: "starter-react", name: "React & Component Architecture", category: "Technical", level: "Advanced", confidence: 89, evidence_status: "strong", assessment_score: 87, evidence_count: 3 },
+        { id: "starter-ts", name: "TypeScript & Type Integrity", category: "Technical", level: "Intermediate", confidence: 84, evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
+        { id: "starter-sql", name: "SQL & Database Optimization", category: "Technical", level: "Intermediate", confidence: 82, evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
       ];
 
-      let initialSkills = DEFAULT_STARTER_SKILLS;
+      let initialSkills: any[] = [];
       if (skillsResult.status === "fulfilled" && skillsResult.value) {
         const skillsRes = skillsResult.value;
         const items = Array.isArray(skillsRes?.items) ? skillsRes.items : (Array.isArray(skillsRes) ? skillsRes : []);
@@ -469,6 +730,45 @@ export default function DashboardPage() {
           initialSkills = items;
         }
       }
+
+      // Check if user is the seeded demo account (Folarin)
+      const isFolarin =
+        userProfile?.public_url?.includes("folarin") ||
+        userProfile?.name?.toLowerCase().includes("folarin") ||
+        userProfile?.email?.toLowerCase().includes("folarin") ||
+        userProfile?.email?.toLowerCase().includes("misttterhoye");
+
+      if (initialSkills.length === 0) {
+        if (isFolarin) {
+          initialSkills = DEFAULT_STARTER_SKILLS;
+        } else {
+          // Check if custom talent has saved verified skills stored in localStorage
+          try {
+            const rawCustom = localStorage.getItem("creda_custom_talents");
+            if (rawCustom) {
+              const talents = JSON.parse(rawCustom);
+              const match = talents.find((t: any) =>
+                (t.email && userProfile?.email && t.email.toLowerCase() === userProfile.email.toLowerCase()) ||
+                (t.name && userProfile?.name && t.name.toLowerCase() === userProfile.name.toLowerCase()) ||
+                (t.slug && userProfile?.public_url && t.slug === userProfile.public_url)
+              );
+              if (match && Array.isArray(match.skillsDetail) && match.skillsDetail.length > 0) {
+                initialSkills = match.skillsDetail.map((sd: any, idx: number) => ({
+                  id: `custom-skill-${idx}`,
+                  name: sd.name,
+                  category: sd.category || "Technical",
+                  level: sd.level || "Intermediate",
+                  confidence: sd.confidence || 75,
+                  evidence_status: sd.evidence_status || "self_declared",
+                  assessment_score: sd.assessment_score || null,
+                  evidence_count: sd.evidence_count || 1,
+                }));
+              }
+            }
+          } catch {}
+        }
+      }
+
       if (typeof window !== "undefined") {
         try {
           const savedAssessments = JSON.parse(localStorage.getItem("creda_practical_assessments") || "{}");
@@ -484,6 +784,24 @@ export default function DashboardPage() {
               };
             }
             return s;
+          });
+
+          // Inject any completed assessments not already present in initialSkills
+          Object.entries(savedAssessments).forEach(([skillKey, a]: [string, any]) => {
+            const alreadyPresent = initialSkills.some((s) => s.name.toLowerCase().includes(skillKey));
+            if (!alreadyPresent && a && a.score) {
+              const ch = getChallengeForSkill(skillKey);
+              initialSkills.push({
+                id: `assessed-${skillKey}`,
+                name: ch.skillName,
+                category: ch.domain || "Technical",
+                level: a.score >= 85 ? "Advanced" : "Intermediate",
+                confidence: a.confidence || a.score,
+                evidence_status: a.status || "strong",
+                assessment_score: a.score,
+                evidence_count: 1,
+              });
+            }
           });
         } catch {}
       }
@@ -1004,33 +1322,48 @@ export default function DashboardPage() {
     if (!selectedAssessmentOption) return;
     setIsEvaluatingAssessment(true);
 
-    const challengeKey =
-      Object.keys(PRACTICAL_CHALLENGES).find((k) =>
-        selectedAssessmentSkill.toLowerCase().includes(k)
-      ) || "python";
-    const challenge = PRACTICAL_CHALLENGES[challengeKey];
+    const challenge = getChallengeForSkill(selectedAssessmentSkill);
     const chosen = challenge.options.find((o) => o.id === selectedAssessmentOption);
     const score = chosen?.isCorrect ? Math.floor(Math.random() * 8) + 88 : 65;
     const updatedStatus = chosen?.isCorrect ? "strong" : "moderate";
 
-    // Immediately elevate the verified skill in memory
-    setVerifiedSkills((prev) =>
-      prev.map((s) => {
-        if (s.name.toLowerCase().includes(challenge.skillName.toLowerCase())) {
-          return {
-            ...s,
-            evidence_status: updatedStatus,
-            assessment_score: score,
-            confidence: Math.max(s.confidence || 0, score),
-          };
-        }
-        return s;
-      })
-    );
+    // Immediately elevate the verified skill in memory (or append if brand new skill)
+    setVerifiedSkills((prev) => {
+      const matchIdx = prev.findIndex((s) =>
+        s.name.toLowerCase().includes(challenge.skillName.toLowerCase()) ||
+        challenge.skillName.toLowerCase().includes(s.name.toLowerCase())
+      );
+      if (matchIdx >= 0) {
+        return prev.map((s, idx) =>
+          idx === matchIdx
+            ? {
+                ...s,
+                evidence_status: updatedStatus,
+                assessment_score: score,
+                confidence: Math.max(s.confidence || 0, score),
+              }
+            : s
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: `assessed-${Date.now()}`,
+          name: challenge.skillName,
+          category: challenge.domain || "Technical",
+          level: score >= 85 ? "Advanced" : "Intermediate",
+          confidence: score,
+          evidence_status: updatedStatus,
+          assessment_score: score,
+          evidence_count: 1,
+        },
+      ];
+    });
 
     // Persist assessment to backend database so it survives page reloads & syncs with public passport
     const targetSkill = verifiedSkills.find((s) =>
-      s.name.toLowerCase().includes(challenge.skillName.toLowerCase())
+      s.name.toLowerCase().includes(challenge.skillName.toLowerCase()) ||
+      challenge.skillName.toLowerCase().includes(s.name.toLowerCase())
     );
     if (targetSkill && targetSkill.id) {
       try {
@@ -1062,8 +1395,13 @@ export default function DashboardPage() {
           if (Array.isArray(customTalents)) {
             const updatedCustom = customTalents.map((ct: any) => {
               if (ct.email === currentUser?.email || ct.slug === passportSlug) {
-                const updatedSkillsDetail = ct.skillsDetail?.map((sd: any) => {
-                  if (sd.name.toLowerCase().includes(challenge.skillName.toLowerCase())) {
+                let foundSkill = false;
+                const updatedSkillsDetail = (ct.skillsDetail || []).map((sd: any) => {
+                  if (
+                    sd.name.toLowerCase().includes(challenge.skillName.toLowerCase()) ||
+                    challenge.skillName.toLowerCase().includes(sd.name.toLowerCase())
+                  ) {
+                    foundSkill = true;
                     return {
                       ...sd,
                       evidence_status: updatedStatus,
@@ -1072,11 +1410,29 @@ export default function DashboardPage() {
                     };
                   }
                   return sd;
-                }) || [];
+                });
+
+                if (!foundSkill) {
+                  updatedSkillsDetail.push({
+                    name: challenge.skillName,
+                    level: score >= 85 ? "Advanced" : "Intermediate",
+                    confidence: score,
+                    evidence_status: updatedStatus,
+                    assessment_score: score,
+                    evidence_count: 1,
+                  });
+                }
+
+                const updatedSkillsList = Array.from(new Set([...(ct.skills || []), challenge.skillName]));
+                const newScore = Math.min((ct.score || 60) + 6, 98);
+
                 return {
                   ...ct,
-                  score: Math.min((ct.score || 83) + 4, 98),
+                  score: newScore,
+                  tier: newScore >= 75 ? "Verified Tier" : (ct.tier || "New Talent"),
+                  skills: updatedSkillsList,
                   skillsDetail: updatedSkillsDetail,
+                  assessmentsCount: (ct.assessmentsCount || 0) + 1,
                 };
               }
               return ct;
@@ -1493,8 +1849,10 @@ export default function DashboardPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const firstSkill = verifiedSkills[0]?.name || "Python";
-                        handleStartAssessment(firstSkill);
+                        const domainKey = getDomainKey(currentUser?.primary_field || (currentUser as any)?.domain);
+                        const fallbackSkill = DOMAIN_STARTER_OPTIONS[domainKey]?.[0]?.name || "Python Systems & APIs";
+                        const targetSkill = verifiedSkills[0]?.name || fallbackSkill;
+                        handleStartAssessment(targetSkill);
                       }}
                       className={`p-3 rounded-xl border text-xs font-mono flex items-center gap-2 text-left transition-colors cursor-pointer ${
                         hasAssessment
@@ -2191,74 +2549,169 @@ export default function DashboardPage() {
               </div>
 
               {/* Assessment Challenges List */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(verifiedSkills.length > 0 ? verifiedSkills : [
-                  { name: "Python", evidence_status: "strong", assessment_score: 87, level: "Advanced" },
-                  { name: "React", evidence_status: "moderate", assessment_score: null, level: "Intermediate" },
-                  { name: "PostgreSQL", evidence_status: "strong", assessment_score: 91, level: "Advanced" },
-                  { name: "Docker", evidence_status: "self_declared", assessment_score: null, level: "Intermediate" },
-                ]).map((skill, idx) => {
-                  const challengeKey = Object.keys(PRACTICAL_CHALLENGES).find(k => skill.name.toLowerCase().includes(k)) || "python";
-                  const challenge = PRACTICAL_CHALLENGES[challengeKey];
-                  const hasAssessment = Boolean(skill.assessment_score && skill.assessment_score >= 80) || skill.evidence_status === "strong";
-                  const Icon = getSkillIcon(skill.name);
+              {verifiedSkills.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {verifiedSkills.map((skill, idx) => {
+                    const challenge = getChallengeForSkill(skill.name);
+                    const hasAssessment = Boolean(skill.assessment_score && skill.assessment_score >= 80) || skill.evidence_status === "strong";
+                    const Icon = getSkillIcon(skill.name);
 
-                  return (
-                    <div
-                      key={skill.id || idx}
-                      className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5]/40 transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-white border border-[#E5E7EB] flex items-center justify-center text-[#4F46E5] shadow-2xs">
-                              <Icon size={18} />
+                    return (
+                      <div
+                        key={skill.id || idx}
+                        className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5]/40 transition-all flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-white border border-[#E5E7EB] flex items-center justify-center text-[#4F46E5] shadow-2xs">
+                                <Icon size={18} />
+                              </div>
+                              <div>
+                                <div className="font-bold text-sm text-[#0F172A]">{skill.name} Challenge</div>
+                                <div className="text-[10px] font-mono text-[#64748B]">{challenge.domain} • ~{challenge.duration}</div>
+                              </div>
                             </div>
-                            <div>
-                              <div className="font-bold text-sm text-[#0F172A]">{skill.name} Challenge</div>
-                              <div className="text-[10px] font-mono text-[#64748B]">{challenge.domain} • ~{challenge.duration}</div>
-                            </div>
+
+                            {hasAssessment ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-mono font-bold">
+                                <CheckCircle2 size={12} className="text-emerald-600" />
+                                VERIFIED {skill.assessment_score || 88}%
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-mono font-bold">
+                                UNVERIFIED
+                              </span>
+                            )}
                           </div>
 
-                          {hasAssessment ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-mono font-bold">
-                              <CheckCircle2 size={12} className="text-emerald-600" />
-                              VERIFIED {skill.assessment_score || 88}%
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-mono font-bold">
-                              UNVERIFIED
-                            </span>
-                          )}
+                          <div className="text-xs font-bold text-[#0F172A] mb-1.5">{challenge.title}</div>
+                          <p className="text-xs text-[#475569] leading-relaxed line-clamp-3 mb-4">
+                            {challenge.scenario}
+                          </p>
                         </div>
 
-                        <div className="text-xs font-bold text-[#0F172A] mb-1.5">{challenge.title}</div>
-                        <p className="text-xs text-[#475569] leading-relaxed line-clamp-3 mb-4">
-                          {challenge.scenario}
-                        </p>
+                        <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
+                          <span className="text-[11px] font-mono text-[#64748B]">
+                            {hasAssessment ? "🟢 Strong Evidence Attested" : "Elevates to 🟢 Strong Evidence"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleStartAssessment(skill.name)}
+                            className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                              hasAssessment
+                                ? "bg-white border border-[#E5E7EB] text-[#475569] hover:bg-neutral-50"
+                                : "bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-xs"
+                            }`}
+                          >
+                            <Zap size={13} />
+                            <span>{hasAssessment ? "Retake Challenge" : "Start Practical Challenge →"}</span>
+                          </button>
+                        </div>
                       </div>
-
-                      <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
-                        <span className="text-[11px] font-mono text-[#64748B]">
-                          {hasAssessment ? "🟢 Strong Evidence Attested" : "Elevates to 🟢 Strong Evidence"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleStartAssessment(skill.name)}
-                          className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                            hasAssessment
-                              ? "bg-white border border-[#E5E7EB] text-[#475569] hover:bg-neutral-50"
-                              : "bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-xs"
-                          }`}
-                        >
-                          <Zap size={13} />
-                          <span>{hasAssessment ? "Retake Challenge" : "Start Practical Challenge →"}</span>
-                        </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Onboarding Notice Banner */}
+                  <div className="p-6 sm:p-8 rounded-2xl border border-indigo-100 bg-indigo-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="space-y-1.5">
+                      <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#4F46E5] uppercase tracking-wider">
+                        <Sparkles size={14} />
+                        <span>Zero Pre-Filled Skills // Honest Evidence Verification</span>
                       </div>
+                      <h3 className="text-lg font-bold text-[#0F172A]">
+                        Connect Evidence or Take Field Benchmarks
+                      </h3>
+                      <p className="text-xs font-mono text-[#475569] max-w-xl leading-relaxed">
+                        Creda does not assume skills. Connect your GitHub repository or upload your Technical CV to automatically verify your skills via AST code analysis. Or, complete any of the field benchmarks below to immediately attest 🟢 Strong Evidence on your Creda Passport.
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="flex flex-wrap sm:flex-col gap-2.5 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setShowConnectModal(true)}
+                        className="px-4 py-2.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <GitBranch size={13} />
+                        <span>Connect GitHub</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("evidence")}
+                        className="px-4 py-2.5 rounded-xl bg-white border border-[#E5E7EB] hover:bg-neutral-50 text-[#0F172A] text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <FileText size={13} />
+                        <span>Upload CV PDF</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Domain-tailored Starter Challenges */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-[#0F172A]">
+                        // Practical Benchmarks for {currentUser?.primary_field || "Software Engineering"}
+                      </h3>
+                      <span className="text-[10px] font-mono text-[#64748B]">Passing awards 🟢 Strong Evidence (+12%)</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {(() => {
+                        const domainKey = getDomainKey(currentUser?.primary_field || (currentUser as any)?.domain);
+                        const starterList = DOMAIN_STARTER_OPTIONS[domainKey] || DOMAIN_STARTER_OPTIONS.software;
+                        return starterList.map((item, idx) => {
+                          const challenge = getChallengeForSkill(item.name);
+                          const Icon = getSkillIcon(item.name);
+                          return (
+                            <div
+                              key={idx}
+                              className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] hover:bg-white hover:border-[#4F46E5]/40 transition-all flex flex-col justify-between"
+                            >
+                              <div>
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-white border border-[#E5E7EB] flex items-center justify-center text-[#4F46E5] shadow-2xs">
+                                      <Icon size={18} />
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-sm text-[#0F172A]">{item.name}</div>
+                                      <div className="text-[10px] font-mono text-[#64748B]">{challenge.domain} • ~{challenge.duration}</div>
+                                    </div>
+                                  </div>
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 text-[10px] font-mono font-bold">
+                                    READY TO ATTEST
+                                  </span>
+                                </div>
+
+                                <div className="text-xs font-bold text-[#0F172A] mb-1.5">{challenge.title}</div>
+                                <p className="text-xs text-[#475569] leading-relaxed line-clamp-3 mb-4">
+                                  {challenge.scenario}
+                                </p>
+                              </div>
+
+                              <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
+                                <span className="text-[11px] font-mono text-[#64748B]">
+                                  Awards 🟢 Strong Evidence (+12%)
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartAssessment(item.name)}
+                                  className="px-4 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <Zap size={13} />
+                                  <span>Start Practical Challenge →</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -3389,8 +3842,7 @@ export default function DashboardPage() {
 
       {/* ── Practical Skill Assessment Modal ───────────────────── */}
       {showAssessmentModal && (() => {
-        const challengeKey = Object.keys(PRACTICAL_CHALLENGES).find(k => selectedAssessmentSkill.toLowerCase().includes(k)) || "python";
-        const challenge = PRACTICAL_CHALLENGES[challengeKey];
+        const challenge = getChallengeForSkill(selectedAssessmentSkill);
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in overflow-y-auto">

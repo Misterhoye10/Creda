@@ -256,24 +256,39 @@ export default function RecruiterDashboardPage() {
           const directory = await api.getPublicPassportDirectory(50);
           if (Array.isArray(directory) && directory.length > 0) {
             mapped = directory.map((u: any) => {
-              const rawSkillsDetail: CandidateSkillDetail[] = Array.isArray(u.skills_detail) && u.skills_detail.length > 0
-                ? u.skills_detail.map((s: any) => ({
-                    id: s.id,
-                    name: s.name,
-                    level: s.level || "Intermediate",
-                    confidence: s.confidence || 85,
-                    evidence_status: (s.evidence_status as any) || "strong",
-                    assessment_score: s.assessment_score || null,
-                    evidence_count: s.evidence_count || 2,
-                  }))
-                : (u.skills || ["Backend Architecture", "FastAPI", "Database Optimization"]).map((name: string, i: number) => ({
-                    name,
-                    level: "Advanced",
-                    confidence: 90 - i * 3,
-                    evidence_status: (i === 0 ? "strong" : i === 1 ? "moderate" : "self_declared") as any,
-                    assessment_score: i === 0 ? 88 : null,
-                    evidence_count: i === 0 ? 3 : 1,
-                  }));
+              const slug = u.slug || u.public_url || u.id;
+              const isFolarin = slug === "folarin-thimoteus" || slug === "folarin-oyewole" || (u.name && u.name.toLowerCase().includes("folarin"));
+
+              let rawSkillsDetail: CandidateSkillDetail[] = [];
+              if (Array.isArray(u.skills_detail) && u.skills_detail.length > 0) {
+                rawSkillsDetail = u.skills_detail.map((s: any) => ({
+                  id: s.id,
+                  name: s.name,
+                  level: s.level || "Intermediate",
+                  confidence: s.confidence || 85,
+                  evidence_status: (s.evidence_status as any) || "strong",
+                  assessment_score: s.assessment_score || null,
+                  evidence_count: s.evidence_count || 2,
+                }));
+              } else if (Array.isArray(u.skills) && u.skills.length > 0) {
+                rawSkillsDetail = u.skills.map((name: string, i: number) => ({
+                  name,
+                  level: "Intermediate",
+                  confidence: 80 - i * 3,
+                  evidence_status: (i === 0 ? "strong" : "moderate") as any,
+                  assessment_score: i === 0 ? 85 : null,
+                  evidence_count: 1,
+                }));
+              } else if (isFolarin) {
+                rawSkillsDetail = [
+                  { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
+                  { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
+                  { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
+                  { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
+                ];
+              } else {
+                rawSkillsDetail = [];
+              }
 
               const discipline: Candidate["discipline"] = (
                 ["software", "design", "devops", "data", "creative3d", "security"].includes(u.discipline)
@@ -281,9 +296,7 @@ export default function RecruiterDashboardPage() {
                   : "software"
               ) as Candidate["discipline"];
 
-              const slug = u.slug || u.public_url || u.id;
-              const isFolarin = slug === "folarin-thimoteus" || slug === "folarin-oyewole" || (u.name && u.name.toLowerCase().includes("folarin"));
-              const score = isFolarin ? 83 : Math.round(u.score ?? u.average_confidence ?? 70);
+              const score = isFolarin ? 83 : Math.round(u.score ?? u.average_confidence ?? 60);
 
               return {
                 id: u.id,
@@ -1142,19 +1155,27 @@ export default function RecruiterDashboardPage() {
                   <div className="mb-4 space-y-1.5">
                     <div className="text-[10px] uppercase font-mono text-[#64748B] font-semibold flex items-center justify-between">
                       <span>Individual Skill Evidence Tiers</span>
-                      <span className="text-[#4F46E5]">{candidate.skillsDetail.length} Skills Evaluated</span>
+                      <span className="text-[#4F46E5]">
+                        {candidate.skillsDetail.length > 0 ? `${candidate.skillsDetail.length} Skills Evaluated` : "Awaiting Audit"}
+                      </span>
                     </div>
-                    <div className="space-y-1">
-                      {candidate.skillsDetail.slice(0, 3).map((sd, sIdx) => (
-                        <div
-                          key={sIdx}
-                          className="px-2.5 py-1.5 rounded-xl bg-stone-50/70 border border-stone-200/60 flex items-center justify-between text-xs font-mono"
-                        >
-                          <span className="font-semibold text-[#0F172A]">{sd.name}</span>
-                          {renderEvidenceStatusPill(sd.evidence_status, sd.assessment_score)}
-                        </div>
-                      ))}
-                    </div>
+                    {candidate.skillsDetail.length > 0 ? (
+                      <div className="space-y-1">
+                        {candidate.skillsDetail.slice(0, 3).map((sd, sIdx) => (
+                          <div
+                            key={sIdx}
+                            className="px-2.5 py-1.5 rounded-xl bg-stone-50/70 border border-stone-200/60 flex items-center justify-between text-xs font-mono"
+                          >
+                            <span className="font-semibold text-[#0F172A]">{sd.name}</span>
+                            {renderEvidenceStatusPill(sd.evidence_status, sd.assessment_score)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-3 py-2 rounded-xl bg-[#FAFAF8] border border-dashed border-stone-200 text-[11px] font-mono text-[#64748B] text-center">
+                        Awaiting repository or CV evidence audit
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1332,17 +1353,23 @@ export default function RecruiterDashboardPage() {
                     3-Tier Skill Evidence Status
                   </div>
                   <div className="space-y-1.5">
-                    {selectedCandidate.skillsDetail.map((sd, sIdx) => (
-                      <div
-                        key={sIdx}
-                        className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-between text-xs font-mono"
-                      >
-                        <span className="font-semibold text-[#0F172A] flex items-center gap-1.5">
-                          <span>{sd.name}</span>
-                        </span>
-                        {renderEvidenceStatusPill(sd.evidence_status, sd.assessment_score)}
+                    {selectedCandidate.skillsDetail.length > 0 ? (
+                      selectedCandidate.skillsDetail.map((sd, sIdx) => (
+                        <div
+                          key={sIdx}
+                          className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-between text-xs font-mono"
+                        >
+                          <span className="font-semibold text-[#0F172A] flex items-center gap-1.5">
+                            <span>{sd.name}</span>
+                          </span>
+                          {renderEvidenceStatusPill(sd.evidence_status, sd.assessment_score)}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 rounded-xl border border-dashed border-[#E5E7EB] bg-[#FAFAF8] text-center text-xs font-mono text-[#64748B]">
+                        No verified skill citations extracted yet.
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 

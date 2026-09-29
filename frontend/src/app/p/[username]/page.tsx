@@ -469,6 +469,7 @@ export default function PublicPassportPage() {
               const u = JSON.parse(cachedUser);
               const uSlug = u.public_url || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
               if (uSlug === rawUsername || u.id === rawUsername || !rawUsername || rawUsername === "talent") {
+                const isFolarin = uSlug.includes("folarin") || u.name?.toLowerCase().includes("folarin");
                 setPassportData({
                   id: u.id || "custom-talent-id",
                   name: u.name,
@@ -476,15 +477,15 @@ export default function PublicPassportPage() {
                   professional_title: u.professional_title,
                   location: u.location,
                   public_url: uSlug,
-                  score: 83,
-                  tier: "Verified Tier",
-                  skills: [
+                  score: isFolarin ? 83 : 60,
+                  tier: isFolarin ? "Verified Tier" : "New Talent",
+                  skills: isFolarin ? [
                     { id: "sk-1", name: "Python Systems & APIs", confidence: 92, level: "Advanced", evidence_status: "strong", assessment_score: 88, evidence_count: 3 },
                     { id: "sk-2", name: "React & Component Architecture", confidence: 89, level: "Advanced", evidence_status: "strong", assessment_score: 87, evidence_count: 3 },
                     { id: "sk-3", name: "TypeScript & Type Safety", confidence: 84, level: "Intermediate", evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
                     { id: "sk-4", name: "SQL & Database Optimization", confidence: 82, level: "Intermediate", evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
-                  ],
-                  is_creda_verified: true,
+                  ] : [],
+                  is_creda_verified: isFolarin,
                 } as any);
                 return;
               }
@@ -580,7 +581,7 @@ export default function PublicPassportPage() {
                   : (s.assessment_score ? `Verified AST solution scored ${s.assessment_score}% in practical challenge.` : "Corroborated by verified evidence ledger."),
               };
             })
-          : DEFAULT_FALLBACK_SKILLS,
+          : (isFolarin ? DEFAULT_FALLBACK_SKILLS : []),
       };
     }
 
@@ -605,10 +606,10 @@ export default function PublicPassportPage() {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
     const isFolarinFallback = rawUsername.toLowerCase().includes("folarin");
-    const defaultTrust = isFolarinFallback ? 83 : 72; // Uniform deterministic baseline matching initial talent dashboard
-    const evidenceCoverage = isFolarinFallback ? 32 : 28;
-    const projectEvidence = isFolarinFallback ? 22 : 16;
-    const assessments = isFolarinFallback ? 16 : 14;
+    const defaultTrust = isFolarinFallback ? 83 : 60; // Uniform deterministic baseline matching initial talent dashboard
+    const evidenceCoverage = isFolarinFallback ? 32 : 20;
+    const projectEvidence = isFolarinFallback ? 22 : 14;
+    const assessments = isFolarinFallback ? 16 : 12;
     const profileComp = isFolarinFallback ? 13 : 14;
 
     return {
@@ -621,10 +622,10 @@ export default function PublicPassportPage() {
       projectEvidence,
       assessments,
       profileComp,
-      tier: "Verified Tier",
-      badge: "VERIFIED TALENT",
+      tier: isFolarinFallback ? "Verified Tier" : "New Talent",
+      badge: isFolarinFallback ? "VERIFIED TALENT" : "NEW TALENT",
       gpgKey: "0x9B4E38F1C2D90A77",
-      skills: DEFAULT_FALLBACK_SKILLS,
+      skills: isFolarinFallback ? DEFAULT_FALLBACK_SKILLS : [],
     };
   }, [passportData, rawUsername]);
 
@@ -1122,75 +1123,90 @@ export default function PublicPassportPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-            {profile.skills.map((skill, idx) => {
-              const Icon = skill.icon;
-              return (
-                <div
-                  key={idx}
-                  className="p-5 sm:p-6 rounded-2xl border-2 border-dashed border-indigo-200/90 bg-[#FAFBFD] relative flex flex-col justify-between hover:border-[#4F46E5]/60 transition-all shadow-xs group"
-                >
-                  {/* Visa Stamp Header */}
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-indigo-100 text-[10px] font-mono text-[#64748B]">
-                    <span className="font-bold text-[#4F46E5] uppercase tracking-wider flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5]" />
-                      VISA ENTRY: {skill.tier.toUpperCase()}
-                    </span>
-                    <span>PORT: GITHUB AST</span>
-                  </div>
+          {profile.skills.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+              {profile.skills.map((skill, idx) => {
+                const Icon = skill.icon;
+                return (
+                  <div
+                    key={idx}
+                    className="p-5 sm:p-6 rounded-2xl border-2 border-dashed border-indigo-200/90 bg-[#FAFBFD] relative flex flex-col justify-between hover:border-[#4F46E5]/60 transition-all shadow-xs group"
+                  >
+                    {/* Visa Stamp Header */}
+                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-indigo-100 text-[10px] font-mono text-[#64748B]">
+                      <span className="font-bold text-[#4F46E5] uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5]" />
+                        VISA ENTRY: {skill.tier.toUpperCase()}
+                      </span>
+                      <span>PORT: GITHUB AST</span>
+                    </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-[#4F46E5] shadow-2xs group-hover:scale-105 transition-transform">
-                          <Icon size={18} />
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-[#4F46E5] shadow-2xs group-hover:scale-105 transition-transform">
+                            <Icon size={18} />
+                          </div>
+                          <h3 className="font-bold text-sm sm:text-base text-[#0F172A]">
+                            {skill.name}
+                          </h3>
                         </div>
-                        <h3 className="font-bold text-sm sm:text-base text-[#0F172A]">
-                          {skill.name}
-                        </h3>
-                      </div>
-                      <span className="text-base font-extrabold text-[#4F46E5] font-mono">
-                        {skill.score}%
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-[#475569] font-mono leading-relaxed mb-4">
-                      {skill.auditNote}
-                    </p>
-
-                    <div className="w-full h-1.5 rounded-full bg-neutral-200 overflow-hidden mb-3">
-                      <div
-                        className="h-full bg-[#4F46E5] rounded-full transition-all duration-500"
-                        style={{ width: `${skill.score}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-3 border-t border-neutral-200/70">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded border text-[10px] font-bold flex items-center gap-1 ${
-                        (skill as any).evidence_status === "strong" || skill.score >= 88
-                          ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-                          : (skill as any).evidence_status === "moderate" || skill.score >= 70
-                          ? "text-amber-700 bg-amber-50 border-amber-200"
-                          : "text-stone-600 bg-stone-100 border-stone-200"
-                      }`}>
-                        <span>
-                          {(skill as any).evidence_status === "strong" || skill.score >= 88
-                            ? "🟢 Strong Evidence"
-                            : (skill as any).evidence_status === "moderate" || skill.score >= 70
-                            ? "🟡 Moderate Evidence"
-                            : "⚪ Self-Declared"}
+                        <span className="text-base font-extrabold text-[#4F46E5] font-mono">
+                          {skill.score}%
                         </span>
-                      </span>
-                      <span className="text-[#0F172A] font-semibold">{skill.repos}</span>
+                      </div>
+
+                      <p className="text-xs text-[#475569] font-mono leading-relaxed mb-4">
+                        {skill.auditNote}
+                      </p>
+
+                      <div className="w-full h-1.5 rounded-full bg-neutral-200 overflow-hidden mb-3">
+                        <div
+                          className="h-full bg-[#4F46E5] rounded-full transition-all duration-500"
+                          style={{ width: `${skill.score}%` }}
+                        />
+                      </div>
                     </div>
-                    <span>{skill.commits}</span>
+
+                    <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-3 border-t border-neutral-200/70">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded border text-[10px] font-bold flex items-center gap-1 ${
+                          (skill as any).evidence_status === "strong" || skill.score >= 88
+                            ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                            : (skill as any).evidence_status === "moderate" || skill.score >= 70
+                            ? "text-amber-700 bg-amber-50 border-amber-200"
+                            : "text-stone-600 bg-stone-100 border-stone-200"
+                        }`}>
+                          <span>
+                            {(skill as any).evidence_status === "strong" || skill.score >= 88
+                              ? "🟢 Strong Evidence"
+                              : (skill as any).evidence_status === "moderate" || skill.score >= 70
+                              ? "🟡 Moderate Evidence"
+                              : "⚪ Self-Declared"}
+                          </span>
+                        </span>
+                        <span className="text-[#0F172A] font-semibold">{skill.repos}</span>
+                      </div>
+                      <span>{skill.commits}</span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-8 sm:p-12 rounded-2xl border border-dashed border-neutral-300 bg-[#FAFAF8] text-center">
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[#4F46E5] mx-auto mb-3">
+                <ShieldCheck size={22} />
+              </div>
+              <h3 className="font-bold text-base text-[#0F172A]">Awaiting Evidence &amp; Skill Visas</h3>
+              <p className="text-xs font-mono text-[#64748B] max-w-md mx-auto mt-1 mb-4 leading-relaxed">
+                This candidate recently registered their Creda Passport. As soon as GitHub repositories, Technical CVs, or practical challenges are completed, cryptographic skill visas and AST audit trails will appear here.
+              </p>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 text-[#4F46E5] border border-indigo-200 text-xs font-mono font-semibold">
+                <span>Deterministic Proof Ledger Active</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Section 3: Interactive Recruiter Job Match Simulator ── */}
@@ -1370,18 +1386,24 @@ export default function PublicPassportPage() {
                   <span>Confidence & Tier</span>
                 </div>
                 <div className="divide-y divide-neutral-100 text-xs font-mono">
-                  {profile.skills.map((skill) => (
-                    <div key={skill.name} className="px-4 py-2.5 flex items-center justify-between">
-                      <div>
-                        <strong className="text-[#0F172A] font-semibold">{skill.name}</strong>
-                        <div className="text-[10px] text-[#64748B]">{skill.auditNote}</div>
+                  {profile.skills.length > 0 ? (
+                    profile.skills.map((skill) => (
+                      <div key={skill.name} className="px-4 py-2.5 flex items-center justify-between">
+                        <div>
+                          <strong className="text-[#0F172A] font-semibold">{skill.name}</strong>
+                          <div className="text-[10px] text-[#64748B]">{skill.auditNote}</div>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-4">
+                          <span className="font-bold text-[#4F46E5]">{skill.score}%</span>
+                          <div className="text-[10px] text-neutral-500">{skill.tier}</div>
+                        </div>
                       </div>
-                      <div className="text-right flex-shrink-0 ml-4">
-                        <span className="font-bold text-[#4F46E5]">{skill.score}%</span>
-                        <div className="text-[10px] text-neutral-500">{skill.tier}</div>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-4 text-center text-[#64748B] text-xs">
+                      Awaiting repository connection or CV extraction to certify competencies.
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
