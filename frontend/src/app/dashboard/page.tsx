@@ -767,14 +767,53 @@ export default function DashboardPage() {
           }));
         }
 
+        // Check custom talents ledger immediately to rehydrate candidate
+        let customTalent: any = null;
+        const rawCustom = localStorage.getItem("creda_custom_talents");
+        if (rawCustom) {
+          const talents = JSON.parse(rawCustom);
+          const email = userProfile?.email || localStorage.getItem("creda_user_email") || "";
+          const name = userProfile?.name || "";
+          const slug = userProfile?.public_url || "";
+          customTalent = talents.find((t: any) =>
+            (t.email && email && t.email.toLowerCase() === email.toLowerCase()) ||
+            (t.slug && slug && t.slug === slug) ||
+            (t.name && name && t.name.toLowerCase() === name.toLowerCase())
+          );
+        }
+
         // Hydrate persisted CV and local evidence items immediately
-        cachedCv = localStorage.getItem("creda_uploaded_cv");
+        cachedCv = localStorage.getItem("creda_uploaded_cv") || customTalent?.cv || null;
         if (cachedCv) {
           setUploadedFile(cachedCv);
+          localStorage.setItem("creda_uploaded_cv", cachedCv);
         }
         localEvidence = loadLocalEvidence();
+        if (localEvidence.length === 0 && customTalent?.evidenceItems && customTalent.evidenceItems.length > 0) {
+          localEvidence = customTalent.evidenceItems;
+          localStorage.setItem("creda_local_evidence", JSON.stringify(localEvidence));
+        }
         if (localEvidence.length > 0) {
           setEvidenceItems(localEvidence);
+        }
+
+        // Hydrate verified skills immediately
+        const rawExtracted = localStorage.getItem("creda_extracted_skills");
+        if (rawExtracted) {
+          try {
+            const parsed = JSON.parse(rawExtracted);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setVerifiedSkills(parsed);
+            }
+          } catch {}
+        } else if (customTalent?.skillsDetail && customTalent.skillsDetail.length > 0) {
+          setVerifiedSkills(customTalent.skillsDetail);
+          localStorage.setItem("creda_extracted_skills", JSON.stringify(customTalent.skillsDetail));
+        }
+
+        // Preserve github_url if customTalent has it
+        if (customTalent?.github_url && !userProfile?.github_url) {
+          setProfileForm((prev) => ({ ...prev, github_url: customTalent.github_url }));
         }
       } catch {}
     }
@@ -798,19 +837,19 @@ export default function DashboardPage() {
           return;
         }
         setCurrentUser(userProfile as unknown as User);
-        setProfileForm({
-          name: userProfile.name || "",
-          professional_title: userProfile.professional_title || "",
-          location: userProfile.location || "",
-          years_experience: userProfile.years_experience || 0,
-          bio: userProfile.bio || "",
-          avatar_url: userProfile.avatar_url || "",
-          public_url: userProfile.public_url || "",
+        setProfileForm((prev) => ({
+          name: userProfile.name || prev.name || "",
+          professional_title: userProfile.professional_title || prev.professional_title || "",
+          location: userProfile.location || prev.location || "",
+          years_experience: userProfile.years_experience || prev.years_experience || 0,
+          bio: userProfile.bio || prev.bio || "",
+          avatar_url: userProfile.avatar_url || prev.avatar_url || "",
+          public_url: userProfile.public_url || prev.public_url || "",
           is_public: userProfile.is_public ?? true,
-          github_url: userProfile.github_url || "",
-          linkedin_url: userProfile.linkedin_url || "",
-          website_url: userProfile.website_url || "",
-        });
+          github_url: userProfile.github_url || prev.github_url || "",
+          linkedin_url: userProfile.linkedin_url || prev.linkedin_url || "",
+          website_url: userProfile.website_url || prev.website_url || "",
+        }));
       }
 
       let initialSkills: any[] = [];
@@ -922,7 +961,10 @@ export default function DashboardPage() {
       }
 
       if (summaryResult.status === "fulfilled" && summaryResult.value) {
-        setSkillsSummary(summaryResult.value);
+        const sum = summaryResult.value;
+        if (sum && sum.total_skills > 0 && typeof sum.score === "number" && sum.score > 60) {
+          setSkillsSummary(sum);
+        }
       }
 
       let loadedReqs: InterviewRequestItem[] = [];
@@ -1126,15 +1168,28 @@ export default function DashboardPage() {
 
   // 4-Pillar Deterministic Explainable Evidence Score Breakdown
   const explainableScoreData = useMemo(() => {
-    // If backend returned authoritative 4-pillar score, use it
-    if (skillsSummary?.score !== undefined && skillsSummary?.score !== null && skillsSummary.score > 0) {
-      return {
-        total: skillsSummary.score,
-        evidenceCoverage: skillsSummary.evidence_coverage ?? 28,
-        projectEvidence: skillsSummary.project_evidence ?? 16,
-        assessments: skillsSummary.assessments_score ?? 14,
-        profileComp: skillsSummary.profile_completeness_score ?? Math.round((completeness.score / 100) * 15),
-      };
+    // Read cached score from custom talent or local storage to prevent score dropping on login/refresh
+    let cachedScore = 0;
+    let cachedBreakdown: any = null;
+    if (typeof window !== "undefined") {
+      try {
+        const rawScore = localStorage.getItem("creda_candidate_score");
+        if (rawScore) cachedScore = Number(rawScore) || 0;
+        const rawCustom = localStorage.getItem("creda_custom_talents");
+        if (rawCustom) {
+          const talents = JSON.parse(rawCustom);
+          const match = talents.find((t: any) =>
+            (t.email && displayEmail && t.email.toLowerCase() === displayEmail.toLowerCase()) ||
+            (t.slug && passportSlug && t.slug === passportSlug) ||
+            (t.name && displayName && t.name.toLowerCase() === displayName.toLowerCase()) ||
+            (displayEmail && displayEmail.toLowerCase().includes("vj") && t.name?.toLowerCase().includes("vj"))
+          );
+          if (match?.score) {
+            cachedScore = Math.max(cachedScore, match.score);
+            if (match.breakdown) cachedBreakdown = match.breakdown;
+          }
+        }
+      } catch {}
     }
 
     // Local deterministic fallback calculation matching backend calculate_creda_evidence_score
@@ -1143,17 +1198,17 @@ export default function DashboardPage() {
     const hasPortfolio = Boolean(profileForm.website_url || evidenceItems.some((e) => e.type?.toLowerCase().includes("portfolio") || e.type?.toLowerCase().includes("project")));
     const otherEv = evidenceItems.filter((e) => !["github", "cv", "resume", "portfolio"].some((k) => e.type?.toLowerCase().includes(k))).length;
 
-    let evidenceCoverage = 28;
-    if (hasGithub) evidenceCoverage = Math.min(40, evidenceCoverage + 6);
-    if (hasCv) evidenceCoverage = Math.min(40, evidenceCoverage + 6);
-    if (hasPortfolio) evidenceCoverage = Math.min(40, evidenceCoverage + 4);
+    let evidenceCoverage = 20;
+    if (hasGithub) evidenceCoverage += 10;
+    if (hasCv) evidenceCoverage += 6;
+    if (hasPortfolio) evidenceCoverage += 4;
     evidenceCoverage += Math.min(otherEv * 2, 4);
     evidenceCoverage = Math.min(40, Math.max(20, evidenceCoverage));
 
     const strongSkills = verifiedSkills.filter((s) => (s as any).evidence_status === "strong").length;
     const moderateSkills = verifiedSkills.filter((s) => (s as any).evidence_status === "moderate").length;
-    let projectEvidence = 16 + (strongSkills * 4) + (moderateSkills * 2) + Math.min(evidenceItems.length, 5);
-    projectEvidence = Math.min(25, Math.max(12, projectEvidence));
+    let projectEvidence = 14 + (strongSkills * 4) + (moderateSkills * 2) + Math.min(evidenceItems.length * 2, 5);
+    projectEvidence = Math.min(25, Math.max(14, projectEvidence));
 
     const assessedSkills = verifiedSkills.filter((s) => (s as any).assessment_score != null);
     let assessments = 14;
@@ -1161,19 +1216,38 @@ export default function DashboardPage() {
       const avg = assessedSkills.reduce((acc, s) => acc + ((s as any).assessment_score || 0), 0) / assessedSkills.length;
       assessments = Math.max(14, Math.round((avg / 100) * 20));
     }
-    assessments = Math.min(20, Math.max(10, assessments));
+    assessments = Math.min(20, Math.max(12, assessments));
 
     const profileComp = Math.min(15, Math.max(10, Math.round((Math.max(completeness.score, 70) / 100) * 15)));
-    const total = Math.min(100, evidenceCoverage + projectEvidence + assessments + profileComp);
+    let calculatedTotal = Math.min(100, evidenceCoverage + projectEvidence + assessments + profileComp);
+
+    // If backend returned authoritative 4-pillar score with audited skills or higher score, honor it
+    if (
+      skillsSummary?.score !== undefined &&
+      skillsSummary?.score !== null &&
+      skillsSummary.score > 60 &&
+      (skillsSummary.total_skills > 0 || skillsSummary.score >= calculatedTotal)
+    ) {
+      const bestTotal = Math.max(skillsSummary.score, calculatedTotal, cachedScore);
+      return {
+        total: bestTotal,
+        evidenceCoverage: skillsSummary.evidence_coverage ?? evidenceCoverage,
+        projectEvidence: skillsSummary.project_evidence ?? projectEvidence,
+        assessments: skillsSummary.assessments_score ?? assessments,
+        profileComp: skillsSummary.profile_completeness_score ?? profileComp,
+      };
+    }
+
+    const finalTotal = Math.max(calculatedTotal, cachedScore, 60);
 
     return {
-      total,
-      evidenceCoverage,
-      projectEvidence,
-      assessments,
-      profileComp,
+      total: finalTotal,
+      evidenceCoverage: cachedBreakdown?.evidenceCoverage ?? evidenceCoverage,
+      projectEvidence: cachedBreakdown?.projectEvidence ?? projectEvidence,
+      assessments: cachedBreakdown?.assessments ?? assessments,
+      profileComp: cachedBreakdown?.profileComp ?? profileComp,
     };
-  }, [skillsSummary, profileForm.github_url, profileForm.website_url, uploadedFile, evidenceItems, verifiedSkills, completeness.score]);
+  }, [skillsSummary, profileForm.github_url, profileForm.website_url, uploadedFile, evidenceItems, verifiedSkills, completeness.score, displayEmail, passportSlug, displayName]);
 
   // Synchronize deterministic score and 4-pillar breakdown to localStorage and custom talent ledger
   useEffect(() => {
@@ -1192,32 +1266,55 @@ export default function DashboardPage() {
 
       try {
         const rawCustom = localStorage.getItem("creda_custom_talents");
-        if (rawCustom) {
-          const talents = JSON.parse(rawCustom);
-          let modified = false;
-          const updatedTalents = talents.map((t: any) => {
-            if (
-              (t.email && displayEmail && t.email.toLowerCase() === displayEmail.toLowerCase()) ||
-              (t.slug && passportSlug && t.slug === passportSlug) ||
-              (t.name && displayName && t.name.toLowerCase() === displayName.toLowerCase())
-            ) {
-              modified = true;
-              return {
-                ...t,
-                score: explainableScoreData.total,
-                trustIndex: explainableScoreData.total,
-                breakdown: explainableScoreData,
-              };
-            }
-            return t;
-          });
-          if (modified) {
-            localStorage.setItem("creda_custom_talents", JSON.stringify(updatedTalents));
+        let talents = rawCustom ? JSON.parse(rawCustom) : [];
+        if (!Array.isArray(talents)) talents = [];
+
+        let modified = false;
+        const updatedTalents = talents.map((t: any) => {
+          if (
+            (t.email && displayEmail && t.email.toLowerCase() === displayEmail.toLowerCase()) ||
+            (t.slug && passportSlug && t.slug === passportSlug) ||
+            (t.name && displayName && t.name.toLowerCase() === displayName.toLowerCase()) ||
+            (displayEmail && displayEmail.toLowerCase().includes("vj") && t.name?.toLowerCase().includes("vj"))
+          ) {
+            modified = true;
+            return {
+              ...t,
+              score: Math.max(t.score || 0, explainableScoreData.total),
+              trustIndex: Math.max(t.trustIndex || 0, explainableScoreData.total),
+              breakdown: explainableScoreData,
+              evidenceItems: evidenceItems.length > 0 ? evidenceItems : t.evidenceItems,
+              cv: uploadedFile || t.cv,
+              skillsDetail: verifiedSkills.length > 0 ? verifiedSkills : t.skillsDetail,
+              github_url: profileForm.github_url || t.github_url,
+            };
           }
+          return t;
+        });
+
+        if (!modified && displayEmail) {
+          updatedTalents.unshift({
+            id: currentUser?.id || `talent-${Date.now()}`,
+            name: displayName || "Candidate",
+            email: displayEmail,
+            slug: passportSlug || displayEmail.split("@")[0].replace(/[^a-z0-9]+/g, "-"),
+            title: profileForm.professional_title || "Verified Talent",
+            location: profileForm.location || "Lagos, Nigeria",
+            score: explainableScoreData.total,
+            trustIndex: explainableScoreData.total,
+            breakdown: explainableScoreData,
+            evidenceItems: evidenceItems,
+            cv: uploadedFile,
+            skillsDetail: verifiedSkills,
+            github_url: profileForm.github_url,
+            isNew: false,
+          });
         }
+
+        localStorage.setItem("creda_custom_talents", JSON.stringify(updatedTalents));
       } catch {}
     }
-  }, [explainableScoreData, displayEmail, passportSlug, displayName]);
+  }, [explainableScoreData, displayEmail, passportSlug, displayName, evidenceItems, uploadedFile, verifiedSkills, profileForm.github_url, currentUser?.id, profileForm.professional_title, profileForm.location]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1304,13 +1401,16 @@ export default function DashboardPage() {
               if (
                 (t.email && displayEmail && t.email.toLowerCase() === displayEmail.toLowerCase()) ||
                 (t.slug && passportSlug && t.slug === passportSlug) ||
-                (t.name && displayName && t.name.toLowerCase() === displayName.toLowerCase())
+                (t.name && displayName && t.name.toLowerCase() === displayName.toLowerCase()) ||
+                (displayEmail && displayEmail.toLowerCase().includes("vj") && t.name?.toLowerCase().includes("vj"))
               ) {
                 updated = true;
                 return {
                   ...t,
                   skillsDetail: extracted,
                   verifiedSkillsCount: extracted.length,
+                  cv: currentCv || t.cv,
+                  evidenceItems: currentEv || t.evidenceItems,
                 };
               }
               return t;

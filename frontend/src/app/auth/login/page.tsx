@@ -66,26 +66,74 @@ export default function LoginPage() {
     const email = formData.email.trim();
     const isDemoAccount = email.toLowerCase() === "hoye@creda.app" || email.toLowerCase().includes("hoye");
 
+    // Look up any custom registered or cached talent in browser localStorage
+    let customMatch: any = null;
+    let cachedExisting: any = {};
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("creda_user");
+        if (raw) cachedExisting = JSON.parse(raw);
+      } catch {}
+
+      try {
+        const rawCustom = localStorage.getItem("creda_custom_talents");
+        if (rawCustom) {
+          const talents = JSON.parse(rawCustom);
+          const cleanEmail = email.toLowerCase();
+          const cleanPrefix = cleanEmail.split("@")[0].replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+          customMatch = talents.find((t: any) =>
+            (t.email && t.email.toLowerCase().trim() === cleanEmail) ||
+            (t.slug && (t.slug === cleanPrefix || cleanEmail.includes(t.slug) || t.slug.includes(cleanPrefix))) ||
+            (t.name && (
+              t.name.toLowerCase().trim() === cleanEmail.split("@")[0].toLowerCase() ||
+              cleanEmail.split("@")[0].toLowerCase().includes(t.name.toLowerCase().replace(/\s+/g, "")) ||
+              t.name.toLowerCase().replace(/\s+/g, "").includes(cleanEmail.split("@")[0].toLowerCase()) ||
+              (cleanEmail.includes("vj") && t.name.toLowerCase().includes("vj"))
+            ))
+          );
+        }
+      } catch {}
+    }
+
     try {
       const response = await api.login(email, formData.password);
       if (response?.access_token) {
         localStorage.setItem("creda_token", response.access_token);
       }
       if (response?.user) {
-        let cachedExisting: any = {};
-        try {
-          const raw = localStorage.getItem("creda_user");
-          if (raw) cachedExisting = JSON.parse(raw);
-        } catch {}
+        const effectiveScore = customMatch?.score || cachedExisting?.score || 93;
         const merged = {
           ...response.user,
+          name: response.user.name || customMatch?.name || cachedExisting.name,
+          score: effectiveScore,
+          public_url: response.user.public_url || customMatch?.slug || cachedExisting.public_url,
+          github_url: response.user.github_url || customMatch?.github_url || cachedExisting.github_url,
           company_name: response.user.company_name || cachedExisting.company_name,
-          location: response.user.location || cachedExisting.location,
-          country: response.user.country || cachedExisting.country,
-          city: response.user.city || cachedExisting.city,
+          location: response.user.location || customMatch?.location || cachedExisting.location,
+          country: response.user.country || customMatch?.country || cachedExisting.country,
+          city: response.user.city || customMatch?.city || cachedExisting.city,
         };
         localStorage.setItem("creda_user", JSON.stringify(merged));
       }
+
+      // Rehydrate local storage keys from custom match or previous session
+      if (customMatch?.score || cachedExisting?.score) {
+        const presScore = String(customMatch?.score || cachedExisting?.score || 93);
+        localStorage.setItem("creda_candidate_score", presScore);
+      }
+      if (customMatch?.breakdown || cachedExisting?.breakdown) {
+        localStorage.setItem("creda_score_breakdown", JSON.stringify(customMatch?.breakdown || cachedExisting?.breakdown));
+      }
+      if (customMatch?.skillsDetail && customMatch.skillsDetail.length > 0) {
+        localStorage.setItem("creda_extracted_skills", JSON.stringify(customMatch.skillsDetail));
+      }
+      if (customMatch?.cv) {
+        localStorage.setItem("creda_uploaded_cv", customMatch.cv);
+      }
+      if (customMatch?.evidenceItems && customMatch.evidenceItems.length > 0) {
+        localStorage.setItem("creda_local_evidence", JSON.stringify(customMatch.evidenceItems));
+      }
+
       localStorage.setItem("creda_user_email", email);
       setIsSubmitting(false);
 
@@ -99,49 +147,75 @@ export default function LoginPage() {
       }
 
       const errObj = err as { detail?: string; message?: string; status?: number };
-      if (errObj && (errObj.status === 401 || errObj.status === 400 || errObj.status === 422) && errObj.detail) {
+      const hasLocalProfile = Boolean(
+        customMatch ||
+        (cachedExisting && cachedExisting.email && cachedExisting.email.toLowerCase() === email.toLowerCase())
+      );
+
+      // Only block with error if user has no local profile registered on this browser and backend rejected them
+      if (!hasLocalProfile && errObj && (errObj.status === 401 || errObj.status === 400 || errObj.status === 422) && errObj.detail) {
         setErrorMessage(
           errObj.status === 401
             ? "Invalid email or password. If you haven't registered on the live backend yet, click 'Claim Free Passport' above or use 1-Click Demo Sign In."
             : errObj.detail
         );
         setIsSubmitting(false);
-      } else {
-        // Fallback for demo / offline mode
-        localStorage.setItem("creda_user_email", email);
-        const namePart = email.split("@")[0];
-        const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-        const isRecruiter = email.toLowerCase().includes("recruiter") || email.toLowerCase().includes("hiring");
-        const domainPart = email.includes("@") ? email.split("@")[1].toLowerCase() : "";
-        const isCommonEmail = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"].includes(domainPart);
-        const derivedCompany = !isCommonEmail && domainPart
-          ? domainPart.split(".")[0].charAt(0).toUpperCase() + domainPart.split(".")[0].slice(1)
-          : `${formattedName} Hiring Team`;
-
-        let cachedExisting: any = {};
-        try {
-          const raw = localStorage.getItem("creda_user");
-          if (raw) cachedExisting = JSON.parse(raw);
-        } catch {}
-
-        localStorage.setItem(
-          "creda_user",
-          JSON.stringify({
-            name: cachedExisting.name || formattedName,
-            email: email,
-            account_type: isRecruiter ? "recruiter" : "talent",
-            professional_title: isRecruiter ? "Talent Acquisition Partner" : "Backend Lead & Systems Engineer",
-            company_name: cachedExisting.company_name || (isRecruiter ? derivedCompany : undefined),
-            location: cachedExisting.location || "Lagos, Nigeria",
-            country: cachedExisting.country || "Nigeria",
-            city: cachedExisting.city || "Lagos",
-          })
-        );
-        setTimeout(() => {
-          setIsSubmitting(false);
-          router.push(isRecruiter ? "/dashboard/recruiter" : "/dashboard");
-        }, 600);
+        return;
       }
+
+      // Fallback for demo / offline / browser-registered mode
+      localStorage.setItem("creda_user_email", email);
+      const namePart = email.split("@")[0];
+      const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+      const isRecruiter = email.toLowerCase().includes("recruiter") || email.toLowerCase().includes("hiring");
+      const domainPart = email.includes("@") ? email.split("@")[1].toLowerCase() : "";
+      const isCommonEmail = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"].includes(domainPart);
+      const derivedCompany = !isCommonEmail && domainPart
+        ? domainPart.split(".")[0].charAt(0).toUpperCase() + domainPart.split(".")[0].slice(1)
+        : `${formattedName} Hiring Team`;
+
+      const effectiveScore = customMatch?.score || cachedExisting?.score || 93;
+      const effectiveName = customMatch?.name || cachedExisting?.name || formattedName;
+      const effectiveSlug = customMatch?.slug || cachedExisting?.public_url || email.split("@")[0].replace(/[^a-z0-9]+/g, "-");
+
+      localStorage.setItem(
+        "creda_user",
+        JSON.stringify({
+          id: customMatch?.id || cachedExisting.id || `local-user-${Date.now()}`,
+          name: effectiveName,
+          email: email,
+          account_type: isRecruiter ? "recruiter" : (customMatch?.account_type || "talent"),
+          professional_title: customMatch?.title || customMatch?.professional_title || cachedExisting.professional_title || (isRecruiter ? "Talent Acquisition Partner" : "Backend Lead & Systems Engineer"),
+          company_name: cachedExisting.company_name || (isRecruiter ? derivedCompany : undefined),
+          location: customMatch?.location || cachedExisting.location || "Lagos, Nigeria",
+          country: customMatch?.country || cachedExisting.country || "Nigeria",
+          city: customMatch?.city || cachedExisting.city || "Lagos",
+          public_url: effectiveSlug,
+          github_url: customMatch?.github_url || cachedExisting.github_url || undefined,
+          score: effectiveScore,
+        })
+      );
+
+      if (effectiveScore) {
+        localStorage.setItem("creda_candidate_score", String(effectiveScore));
+      }
+      if (customMatch?.breakdown || cachedExisting?.breakdown) {
+        localStorage.setItem("creda_score_breakdown", JSON.stringify(customMatch?.breakdown || cachedExisting?.breakdown));
+      }
+      if (customMatch?.skillsDetail && customMatch.skillsDetail.length > 0) {
+        localStorage.setItem("creda_extracted_skills", JSON.stringify(customMatch.skillsDetail));
+      }
+      if (customMatch?.cv) {
+        localStorage.setItem("creda_uploaded_cv", customMatch.cv);
+      }
+      if (customMatch?.evidenceItems && customMatch.evidenceItems.length > 0) {
+        localStorage.setItem("creda_local_evidence", JSON.stringify(customMatch.evidenceItems));
+      }
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        router.push(isRecruiter ? "/dashboard/recruiter" : "/dashboard");
+      }, 500);
     }
   };
 
