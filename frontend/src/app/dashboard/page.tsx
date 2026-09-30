@@ -1955,7 +1955,7 @@ export default function DashboardPage() {
             {(() => {
               const hasEvidence = evidenceItems.length > 0 || Boolean(uploadedFile);
               const hasSkills = verifiedSkills.length > 0;
-              const hasAssessment = verifiedSkills.some((s) => s.assessment_score >= 80 || s.evidence_status === "strong");
+              const hasAssessment = verifiedSkills.some((s) => s.assessment_score != null && s.assessment_score > 0);
               const hasPublic = profileForm.is_public;
 
               let progress = 20; // Basic Info done on registration
@@ -2095,7 +2095,7 @@ export default function DashboardPage() {
                       <div>
                         <div className="font-bold text-[#0F172A]">4. Get Assessed</div>
                         <div className="text-[10px] text-[#64748B]">
-                          {hasAssessment ? "Strong Evidence Earned" : "5-Min Practical Challenge →"}
+                          {hasAssessment ? "Assessment Passed" : "5-Min Practical Challenge →"}
                         </div>
                       </div>
                     </button>
@@ -2333,23 +2333,32 @@ export default function DashboardPage() {
 
                         {/* Practical Assessment Upgrade Action */}
                         <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs font-mono">
-                          {evidenceStatus !== "strong" ? (
+                          {assessmentScore ? (
+                            <div className="w-full py-1.5 px-3 rounded-xl bg-emerald-50 text-emerald-800 text-[11px] font-bold flex items-center justify-between">
+                              <span className="flex items-center gap-1.5">
+                                <Award size={14} className="text-emerald-600" />
+                                <span>Verified Practical Benchmark</span>
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span>{assessmentScore}% Score</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartAssessment(skill.name)}
+                                  className="text-[10px] text-emerald-700 underline hover:text-emerald-900 cursor-pointer ml-1"
+                                >
+                                  Retake
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
                             <button
                               type="button"
                               onClick={() => handleStartAssessment(skill.name)}
                               className="w-full py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-[#4F46E5] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                             >
                               <Zap size={13} />
-                              <span>Take Practical Assessment → Elevate to 🟢 Strong</span>
+                              <span>Take Practical Assessment → Benchmark Proof</span>
                             </button>
-                          ) : (
-                            <div className="w-full py-1.5 px-3 rounded-xl bg-emerald-50 text-emerald-800 text-[11px] font-bold flex items-center justify-between">
-                              <span className="flex items-center gap-1.5">
-                                <Award size={14} className="text-emerald-600" />
-                                <span>Verified Practical Benchmark</span>
-                              </span>
-                              <span>{assessmentScore || 92}% Score</span>
-                            </div>
                           )}
                         </div>
                       </div>
@@ -2767,7 +2776,7 @@ export default function DashboardPage() {
                   <div className="p-3 rounded-2xl bg-[#FAFAF8] border border-[#E5E7EB] text-center font-mono">
                     <div className="text-[10px] text-[#64748B] uppercase">Strong Evidence</div>
                     <div className="text-lg font-bold text-emerald-700">
-                      {verifiedSkills.filter((s) => s.evidence_status === "strong" || (s.assessment_score && s.assessment_score >= 80)).length} / {verifiedSkills.length || 0}
+                      {verifiedSkills.filter((s) => s.assessment_score != null && s.assessment_score > 0).length} / {verifiedSkills.length || 0}
                     </div>
                   </div>
                 </div>
@@ -2778,7 +2787,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {verifiedSkills.map((skill, idx) => {
                     const challenge = getChallengeForSkill(skill.name);
-                    const hasAssessment = Boolean(skill.assessment_score && skill.assessment_score >= 80) || skill.evidence_status === "strong";
+                    const hasAssessment = Boolean(skill.assessment_score != null && skill.assessment_score > 0);
                     const Icon = getSkillIcon(skill.name);
 
                     return (
@@ -2801,11 +2810,11 @@ export default function DashboardPage() {
                             {hasAssessment ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-mono font-bold">
                                 <CheckCircle2 size={12} className="text-emerald-600" />
-                                VERIFIED {skill.assessment_score || 88}%
+                                VERIFIED {skill.assessment_score}%
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-mono font-bold">
-                                UNVERIFIED
+                                PRACTICAL CHALLENGE AVAILABLE
                               </span>
                             )}
                           </div>
@@ -2818,7 +2827,7 @@ export default function DashboardPage() {
 
                         <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
                           <span className="text-[11px] font-mono text-[#64748B]">
-                            {hasAssessment ? "🟢 Strong Evidence Attested" : "Elevates to 🟢 Strong Evidence"}
+                            {hasAssessment ? "🟢 Practical Test Verified" : "Elevates to 🟢 Strong Evidence"}
                           </span>
                           <button
                             type="button"

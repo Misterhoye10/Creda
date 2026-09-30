@@ -277,7 +277,7 @@ export default function RecruiterDashboardPage() {
                   level: "Intermediate",
                   confidence: 80 - i * 3,
                   evidence_status: (i === 0 ? "strong" : "moderate") as any,
-                  assessment_score: i === 0 ? 85 : null,
+                  assessment_score: null,
                   evidence_count: 1,
                 }));
               } else if (isShowcase) {

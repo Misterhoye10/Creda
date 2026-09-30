@@ -70,46 +70,39 @@ def calculate_creda_evidence_score(user: User) -> Dict[str, Any]:
     has_portfolio = bool(user.website_url or any("portfolio" in (e.type or "").lower() or "project" in (e.type or "").lower() for e in evidence_list))
     other_evidence_count = len([e for e in evidence_list if not any(k in (e.type or "").lower() for k in ["github", "cv", "resume", "portfolio"])])
 
-    # Pillar 1: Evidence Coverage (Max 40)
-    evidence_coverage = 0
+    # Pillar 1: Evidence Coverage (Max 40, baseline 20)
+    evidence_coverage = 20
     if has_github:
-        evidence_coverage += 18
+        evidence_coverage += 10
     if has_cv:
-        evidence_coverage += 14
+        evidence_coverage += 6
     if has_portfolio:
-        evidence_coverage += 8
-    evidence_coverage += min(other_evidence_count * 3, 6)
-    
-    # Minimum baseline for registered talent with skills
-    if evidence_coverage < 12 and user.skills and len(user.skills) > 0:
-        evidence_coverage = 12
-    evidence_coverage = min(40, max(0, evidence_coverage))
+        evidence_coverage += 4
+    evidence_coverage += min(other_evidence_count * 2, 4)
+    evidence_coverage = min(40, max(20, evidence_coverage))
 
-    # Pillar 2: Project & Repository Evidence (Max 25)
+    # Pillar 2: Project & Repository Evidence (Max 25, baseline 14)
     skills_list = user.skills or []
     strong_skills = [s for s in skills_list if getattr(s, "evidence_status", "") == "strong"]
     moderate_skills = [s for s in skills_list if getattr(s, "evidence_status", "") == "moderate"]
     
-    project_evidence = (len(strong_skills) * 6) + (len(moderate_skills) * 3) + min(len(evidence_list) * 2, 8)
-    if project_evidence < 8 and len(skills_list) > 0:
-        project_evidence = 8
-    project_evidence = min(25, max(0, project_evidence))
+    project_evidence = 14 + (len(strong_skills) * 4) + (len(moderate_skills) * 2) + min(len(evidence_list) * 2, 5)
+    project_evidence = min(25, max(14, project_evidence))
 
-    # Pillar 3: Practical Assessments (Max 20)
+    # Pillar 3: Practical Assessments (Max 20, baseline 14)
     assessed_skills = [s for s in skills_list if getattr(s, "assessment_score", None) is not None]
     if assessed_skills:
         avg_assessment = sum(s.assessment_score for s in assessed_skills) / len(assessed_skills)
-        assessments_score = round((avg_assessment / 100.0) * 20)
+        assessments_score = max(14, round((avg_assessment / 100.0) * 20))
     else:
-        avg_conf = (sum(s.confidence or 0 for s in skills_list) / len(skills_list)) if skills_list else 50
-        assessments_score = min(8, max(5, round((avg_conf / 100.0) * 8)))
-    assessments_score = min(20, max(0, assessments_score))
+        assessments_score = 14
+    assessments_score = min(20, max(12, assessments_score))
 
-    # Pillar 4: Profile Completeness (Max 15)
-    profile_completeness_score = min(15, max(0, round((completeness / 100.0) * 15)))
+    # Pillar 4: Profile Completeness (Max 15, baseline 10-12)
+    profile_completeness_score = min(15, max(10, round((completeness / 100.0) * 15)))
 
-    # Total Score
-    total_score = min(100, evidence_coverage + project_evidence + assessments_score + profile_completeness_score)
+    # Total Score - Baseline is minimum 60 for any registered talent on Creda
+    total_score = min(100, max(60, evidence_coverage + project_evidence + assessments_score + profile_completeness_score))
 
     # Determine Tier
     if total_score >= 90:
@@ -401,7 +394,7 @@ def get_public_passport_directory(db: Session, limit: int = 50) -> list[Dict[str
             "project_evidence": score_data["project_evidence"],
             "assessments_score": score_data["assessments_score"],
             "profile_completeness_score": score_data["profile_completeness_score"],
-            "skills": [s["name"] for s in skills_data[:6]] if skills_data else ["Software Engineering", "Problem Solving"],
+            "skills": [s["name"] for s in skills_data[:6]] if skills_data else [],
             "skills_detail": skills_data,
             "evidence_count": ev_count,
             "has_github": bool(gh_ev is not None or user.github_url),

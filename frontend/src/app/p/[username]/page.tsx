@@ -458,7 +458,45 @@ export default function PublicPassportPage() {
             try { localExtractedSkills = JSON.parse(localExtractedSkillsRaw); } catch {}
           }
 
+          // Lookup custom talents registered or cached on this client (e.g. newly created candidate in recruiter view)
+          let customMatch: any = null;
+          const cachedTalents = localStorage.getItem("creda_custom_talents");
+          if (cachedTalents) {
+            try {
+              const talents = JSON.parse(cachedTalents);
+              customMatch = talents.find(
+                (t: any) =>
+                  t.slug === rawUsername ||
+                  t.id === rawUsername ||
+                  t.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === rawUsername
+              );
+            } catch (e) {}
+          }
+
           if (data) {
+            // If custom talent exists in localStorage, sync score, breakdown, and skills so recruiter directory & passport are 100% matched
+            if (customMatch) {
+              if (customMatch.score) data.score = customMatch.score;
+              if (customMatch.breakdown) {
+                data.evidence_coverage = customMatch.breakdown.evidenceCoverage;
+                data.project_evidence = customMatch.breakdown.projectEvidence;
+                data.assessments_score = customMatch.breakdown.assessments;
+                data.profile_completeness_score = customMatch.breakdown.profileComp;
+              }
+              if (customMatch.skillsDetail && customMatch.skillsDetail.length > 0) {
+                data.skills = customMatch.skillsDetail.map((s: any) => ({
+                  id: s.id || `skill-${s.name}`,
+                  name: s.name,
+                  level: s.level || "Advanced",
+                  confidence: s.confidence || 85,
+                  evidence_status: s.evidence_status || "strong",
+                  assessment_score: s.assessment_score || null,
+                  evidence_count: s.evidence_count || 2,
+                  citations: s.citations || undefined,
+                }));
+              }
+            }
+
             // Guarantee 100% score alignment between candidate dashboard and public passport
             if (isCurrentUser && localCandidateScore) {
               data.score = Number(localCandidateScore);
@@ -470,47 +508,14 @@ export default function PublicPassportPage() {
               }
             }
 
-            // If backend returned empty skills list (e.g. OpenAI rate limit / quota 429), hydrate from verified local skills
-            if ((!data.skills || data.skills.length === 0) && localExtractedSkills.length > 0) {
-              data.skills = localExtractedSkills.map((s: any) => ({
-                id: s.id || `skill-${s.name}`,
-                name: s.name,
-                level: s.level || "Advanced",
-                confidence: s.confidence || 85,
-                evidence_status: s.evidence_status || "strong",
-                assessment_score: s.assessment_score || null,
-                evidence_count: s.evidence_count || 2,
-                citations: s.citations || undefined,
-              }));
-              data.is_creda_verified = true;
-            }
+            // Ensure baseline minimum score is 60 (never 10)
+            data.score = Math.max(60, data.score || 0);
 
-            setPassportData(data);
-            return;
-          }
-
-          // If backend didn't return data, check custom registered talents
-          const cachedTalents = localStorage.getItem("creda_custom_talents");
-          if (cachedTalents) {
-            const talents = JSON.parse(cachedTalents);
-            const matched = talents.find(
-              (t: any) =>
-                t.slug === rawUsername ||
-                t.id === rawUsername ||
-                t.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === rawUsername
-            );
-            if (matched) {
-              const score = isCurrentUser && localCandidateScore ? Number(localCandidateScore) : (matched.score || 82);
-              setPassportData({
-                id: matched.id,
-                name: matched.name,
-                avatar_url: matched.avatar,
-                professional_title: matched.title,
-                location: matched.location,
-                public_url: matched.slug,
-                score,
-                tier: matched.tier || (score >= 80 ? "Verified Tier" : "New Talent"),
-                skills: (matched.skillsDetail || localExtractedSkills || []).map((s: any) => ({
+            // If backend returned empty skills list (e.g. OpenAI rate limit / quota 429), hydrate from customMatch or verified local skills
+            if ((!data.skills || data.skills.length === 0)) {
+              const fallbackSkills = customMatch?.skillsDetail || localExtractedSkills;
+              if (fallbackSkills && fallbackSkills.length > 0) {
+                data.skills = fallbackSkills.map((s: any) => ({
                   id: s.id || `skill-${s.name}`,
                   name: s.name,
                   level: s.level || "Advanced",
@@ -519,15 +524,44 @@ export default function PublicPassportPage() {
                   assessment_score: s.assessment_score || null,
                   evidence_count: s.evidence_count || 2,
                   citations: s.citations || undefined,
-                })),
-                evidence_coverage: localBreakdown?.evidenceCoverage ?? Math.round(score * 0.38),
-                project_evidence: localBreakdown?.projectEvidence ?? Math.round(score * 0.24),
-                assessments_score: localBreakdown?.assessments ?? Math.round(score * 0.19),
-                profile_completeness_score: localBreakdown?.profileComp ?? 14,
-                is_creda_verified: true,
-              } as any);
-              return;
+                }));
+                data.is_creda_verified = true;
+              }
             }
+
+            setPassportData(data);
+            return;
+          }
+
+          // If backend didn't return data, check custom registered talents
+          if (customMatch) {
+            const score = isCurrentUser && localCandidateScore ? Number(localCandidateScore) : (customMatch.score || 82);
+            setPassportData({
+              id: customMatch.id,
+              name: customMatch.name,
+              avatar_url: customMatch.avatar,
+              professional_title: customMatch.title,
+              location: customMatch.location,
+              public_url: customMatch.slug,
+              score: Math.max(60, score),
+              tier: customMatch.tier || (score >= 80 ? "Verified Tier" : "New Talent"),
+              skills: (customMatch.skillsDetail || localExtractedSkills || []).map((s: any) => ({
+                id: s.id || `skill-${s.name}`,
+                name: s.name,
+                level: s.level || "Advanced",
+                confidence: s.confidence || 85,
+                evidence_status: s.evidence_status || "strong",
+                assessment_score: s.assessment_score || null,
+                evidence_count: s.evidence_count || 2,
+                citations: s.citations || undefined,
+              })),
+              evidence_coverage: customMatch.breakdown?.evidenceCoverage ?? localBreakdown?.evidenceCoverage ?? Math.round(score * 0.38),
+              project_evidence: customMatch.breakdown?.projectEvidence ?? localBreakdown?.projectEvidence ?? Math.round(score * 0.24),
+              assessments_score: customMatch.breakdown?.assessments ?? localBreakdown?.assessments ?? Math.round(score * 0.19),
+              profile_completeness_score: customMatch.breakdown?.profileComp ?? localBreakdown?.profileComp ?? 14,
+              is_creda_verified: true,
+            } as any);
+            return;
           }
 
           // Fallback to active logged-in candidate session
@@ -732,8 +766,8 @@ export default function PublicPassportPage() {
   const [testScore, setTestScore] = useState<number | null>(null);
   const [isTestingMatch, setIsTestingMatch] = useState(false);
 
-  // Derive authentic ICAO passport fields from candidate identity
-  const { surname, givenNames, passportNo, mrzLine1, mrzLine2 } = useMemo(() => {
+    // Derive authentic ICAO passport fields from candidate identity
+  const { surname, givenNames, passportNo, mrzLine1, mrzLine2, issueDate } = useMemo(() => {
     const rawName = (profile.name || "Candidate").trim();
     const parts = rawName.split(/\s+/);
     const sn = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).toUpperCase().replace(/[^A-Z]/g, "") || "TALENT";
@@ -744,11 +778,26 @@ export default function PublicPassportPage() {
       : profile.gpgKey.replace(/[^a-zA-Z0-9]/g, "").slice(0, 9).toUpperCase()
     ).padEnd(9, "0");
 
+    // Format current / issue date dynamically from created_at or today's date
+    const rawCreated = (passportData as any)?.created_at || (passportData as any)?.issued_at;
+    const dateObj = rawCreated ? new Date(rawCreated) : new Date();
+    const validDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+    
+    // ICAO Date format: YYMMDD
+    const yy = String(validDate.getFullYear()).slice(-2);
+    const mm = String(validDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(validDate.getDate()).padStart(2, "0");
+    const mrzIssueDate = `${yy}${mm}${dd}`;
+
+    // Standard human format: DD MMM YYYY (e.g. 30 SEP 2026)
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const formattedIssueDate = `${String(validDate.getDate()).padStart(2, "0")} ${months[validDate.getMonth()]} ${validDate.getFullYear()}`;
+
     // Standard ICAO 9303 Type 3 Passport Machine Readable Zone (44 chars each line)
     const line1Prefix = `P<CRD${sn}<<${gn}`;
     const line1 = line1Prefix.slice(0, 44).padEnd(44, "<");
 
-    const line2Core = `${pNo}7AFR2609288M3012314CRD<<<<<<<<<<02`;
+    const line2Core = `${pNo}7AFR${mrzIssueDate}8M3012314CRD<<<<<<<<<<02`;
     const line2 = line2Core.slice(0, 44).padEnd(44, "<");
 
     return {
@@ -757,8 +806,9 @@ export default function PublicPassportPage() {
       passportNo: `CRD-${pNo.slice(0, 4)}-${pNo.slice(4, 8)}`,
       mrzLine1: line1,
       mrzLine2: line2,
+      issueDate: formattedIssueDate,
     };
-  }, [profile.name, profile.gpgKey, passportData?.id]);
+  }, [profile.name, profile.gpgKey, passportData?.id, (passportData as any)?.created_at]);
 
   const shareUrl = useMemo(() => {
     if (typeof window !== "undefined") {
@@ -1005,7 +1055,7 @@ export default function PublicPassportPage() {
                         Délivré le / Issued
                       </span>
                       <span className="font-semibold text-xs text-stone-800 block">
-                        28 SEP 2026
+                        {issueDate}
                       </span>
                     </div>
                     <div>
