@@ -61,6 +61,11 @@ def create_interview_request(
     """
     talent = db.query(User).filter(User.id == payload.talent_id).first()
     if not talent:
+        talent = db.query(User).filter((User.public_url == payload.talent_id) | (User.email == payload.talent_id)).first()
+    if not talent:
+        clean_target = payload.talent_id.replace("-", " ").strip()
+        talent = db.query(User).filter(User.name.ilike(f"%{clean_target}%")).first()
+    if not talent:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Talent not found."

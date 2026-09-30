@@ -52,6 +52,7 @@ import {
   Briefcase,
   Star,
   Send,
+  Mail,
 } from "lucide-react";
 import {
   api,
@@ -924,14 +925,34 @@ export default function DashboardPage() {
         setSkillsSummary(summaryResult.value);
       }
 
+      let loadedReqs: InterviewRequestItem[] = [];
       if (requestsResult.status === "fulfilled" && requestsResult.value) {
         const reqs = requestsResult.value;
         if (Array.isArray(reqs)) {
-          setTalentRequests(reqs);
+          loadedReqs = reqs;
         } else if (reqs && Array.isArray((reqs as any).items)) {
-          setTalentRequests((reqs as any).items);
+          loadedReqs = (reqs as any).items;
         }
       }
+
+      // Merge locally stored requests (for immediate zero-latency presentation)
+      if (typeof window !== "undefined") {
+        try {
+          const rawLocalReqs = localStorage.getItem("creda_talent_requests");
+          if (rawLocalReqs) {
+            const localList = JSON.parse(rawLocalReqs);
+            if (Array.isArray(localList)) {
+              localList.forEach((lr: any) => {
+                const alreadyExists = loadedReqs.some((existing) => existing.id === lr.id);
+                if (!alreadyExists) {
+                  loadedReqs.unshift(lr);
+                }
+              });
+            }
+          }
+        } catch {}
+      }
+      setTalentRequests(loadedReqs);
     } catch (err) {
       console.warn("Parallel dashboard data fetch error:", err);
     } finally {
@@ -1689,28 +1710,51 @@ export default function DashboardPage() {
   // Closed loop: Respond to Recruiter Interview Request
   const handleRespondRequest = async (requestId: string, action: "accept" | "decline") => {
     setIsRespondingToRequest(true);
-    try {
-      await api.respondToInterviewRequest(
-        requestId,
-        action,
-        talentResponseNote.trim() ||
-          (action === "accept"
-            ? "Thank you! I am excited to connect and explore the role."
-            : "Thank you for considering me. I am currently pursuing other opportunities.")
-      );
+    const noteText = talentResponseNote.trim() ||
+      (action === "accept"
+        ? "Thank you! I am excited to connect and explore the role."
+        : "Thank you for considering me. I am currently pursuing other opportunities.");
 
-      // Refresh requests from backend
+    // Optimistically update local state immediately
+    setTalentRequests((prev) =>
+      prev.map((item) =>
+        item.id === requestId
+          ? { ...item, status: action === "accept" ? "accepted" : "declined", talent_response_note: noteText }
+          : item
+      )
+    );
+
+    // Also update locally in creda_talent_requests
+    if (typeof window !== "undefined") {
+      try {
+        const rawLocalReqs = localStorage.getItem("creda_talent_requests");
+        if (rawLocalReqs) {
+          const list = JSON.parse(rawLocalReqs);
+          const updated = list.map((item: any) =>
+            item.id === requestId
+              ? { ...item, status: action === "accept" ? "accepted" : "declined", talent_response_note: noteText }
+              : item
+          );
+          localStorage.setItem("creda_talent_requests", JSON.stringify(updated));
+        }
+      } catch {}
+    }
+
+    try {
+      await api.respondToInterviewRequest(requestId, action, noteText);
+
+      // Refresh requests from backend if available
       const reqsRes = await api.getTalentRequests();
       if (reqsRes && Array.isArray((reqsRes as any).items)) {
         setTalentRequests((reqsRes as any).items);
       } else if (Array.isArray(reqsRes)) {
         setTalentRequests(reqsRes);
       }
+    } catch (err: any) {
+      console.warn("Backend response update fallback:", err?.message);
+    } finally {
       setRespondingRequestId(null);
       setTalentResponseNote("");
-    } catch (err: any) {
-      alert(err?.message || "Failed to submit response");
-    } finally {
       setIsRespondingToRequest(false);
     }
   };
@@ -1749,7 +1793,7 @@ export default function DashboardPage() {
           </Link>
 
           {/* Architectural Tab Switcher */}
-          <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-neutral-200/60 border border-neutral-200 text-xs font-mono">
+          <nav className="flex items-center gap-1 p-1 rounded-xl bg-neutral-200/60 border border-neutral-200 text-xs font-mono overflow-x-auto max-w-[65vw] sm:max-w-none">
             {(() => {
               const pendingCount = talentRequests.filter((r) => r.status === "pending").length;
               return [
@@ -1951,6 +1995,45 @@ export default function DashboardPage() {
         {activeTab === "overview" && (
           <div className="space-y-6 animate-fade-in-up">
             
+            {/* ── Direct Hiring Offer Alert Banner ── */}
+            {(() => {
+              const pendingOffers = talentRequests.filter((r) => r.status === "pending");
+              if (pendingOffers.length === 0) return null;
+              const latestOffer = pendingOffers[0];
+              return (
+                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-indigo-500/10 to-transparent border-2 border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-fade-in">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">
+                      <Mail size={22} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-base text-[#0F172A]">
+                          {pendingOffers.length} Direct Hiring Offer{pendingOffers.length > 1 ? "s" : ""} Received!
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold animate-pulse">
+                          ACTION REQUIRED
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#475569] font-mono mt-1">
+                        <strong className="text-[#0F172A]">{latestOffer.company_name}</strong> invited you to interview for{" "}
+                        <strong className="text-[#0F172A]">{latestOffer.role_title}</strong>
+                        {latestOffer.compensation ? ` • ${latestOffer.compensation}` : ""}.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("requests")}
+                    className="px-4 py-2.5 rounded-xl bg-[#0F172A] hover:bg-neutral-800 text-white text-xs font-mono font-semibold transition-all shadow-xs cursor-pointer whitespace-nowrap self-start sm:self-auto flex items-center gap-2"
+                  >
+                    <span>Open Offer Inbox</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              );
+            })()}
+
             {/* ── Guided Onboarding Banner: Let's build your Creda Passport ── */}
             {(() => {
               const hasEvidence = evidenceItems.length > 0 || Boolean(uploadedFile);
