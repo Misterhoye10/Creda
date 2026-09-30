@@ -11,3 +11,5 @@ export { MatchGauge } from "./MatchGauge";
 export { EmptyState } from "./EmptyState";
 
 export { ToastProvider, useToast } from "./Toast";
+export { Tooltip } from "./Tooltip";
+export { QRCode } from "./QRCode";

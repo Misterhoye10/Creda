@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useInView, useCountUp, useScrolled } from "@/hooks/useAnimations";
 import { CredaLogo } from "@/components/CredaLogo";
+import { ProtocolStatusTicker } from "@/components/ProtocolStatusTicker";
 import {
   PaystackMark,
   OPayMark,
@@ -47,38 +48,6 @@ import {
   BadgeCheck,
 } from "lucide-react";
 
-// Suppress third-party browser extension errors (e.g. MetaMask inpage.js) from triggering Next.js dev overlay
-if (typeof window !== "undefined") {
-  const isExtensionError = (err: unknown, str?: string) => {
-    const text = `${str || ""} ${err instanceof Error ? `${err.message} ${err.stack}` : String(err || "")}`;
-    return (
-      text.includes("MetaMask") ||
-      text.includes("chrome-extension://") ||
-      text.includes("moz-extension://") ||
-      text.includes("extension not found")
-    );
-  };
-  window.addEventListener(
-    "unhandledrejection",
-    (e) => {
-      if (isExtensionError(e.reason, e.reason?.message)) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-      }
-    },
-    true
-  );
-  window.addEventListener(
-    "error",
-    (e) => {
-      if (isExtensionError(e.error, `${e.filename || ""} ${e.message || ""}`)) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-      }
-    },
-    true
-  );
-}
 
 export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -143,17 +112,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen selection:bg-[#4F46E5] selection:text-white">
-      {/* ── Top Announcement Bar (AgentLab Style) ─────────── */}
-      <div className="w-full bg-[#0F172A] text-white border-b border-neutral-800 py-2.5 px-4 text-center">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-xs font-mono tracking-tight">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
-          <span className="text-[#818CF8] font-semibold">[ PROTOCOL V2.4 ]</span>
-          <span className="text-neutral-300 hidden sm:inline">NOW VERIFYING SOFTWARE ENGINEERING, DEVOPS & CYBERSECURITY TALENT</span>
-          <Link href="#protocol" className="text-white hover:text-[#818CF8] underline ml-1 cursor-pointer transition-colors">
-            LEARN MORE →
-          </Link>
-        </div>
-      </div>
+      {/* ── Top Protocol Status Ticker (Live UTC & Cryptographic Proof) ── */}
+      <ProtocolStatusTicker />
 
       {/* ── Minimalist Architectural Header (Oberon Style) ── */}
       <nav className={`sticky top-0 z-50 w-full bg-[#FAFAF8]/95 backdrop-blur-md border-b border-[#E5E7EB] transition-all duration-300 ${scrolled ? 'nav-scrolled' : ''}`}>
@@ -272,9 +232,9 @@ export default function Home() {
 
           {/* Subheadline */}
           <p className={`text-base sm:text-lg text-[#475569] max-w-2xl mx-auto mb-8 leading-[1.7] font-normal reveal ${hero.inView ? 'revealed' : ''}`} style={{ transitionDelay: '240ms' }}>
-            Traditional CVs are filled with unproven claims. Creda analyzes your real
-            GitHub commits, PR velocity, and repository syntax trees to issue a
-            cryptographically verifiable <strong className="text-[#0F172A] font-semibold">Skill Passport</strong> that
+            Traditional CVs make claims. Creda proves them. We turn your real
+            GitHub commits and code into an authoritative{" "}
+            <strong className="text-[#0F172A] font-semibold">Skill Passport</strong> that
             global recruiters trust.
           </p>
 
@@ -904,7 +864,7 @@ export default function Home() {
                 hash: "4e1b...d309",
                 repos: "22 Pull Requests",
                 timeSaved: "Zero Rejections Across 6 Remote Applications",
-                avatar: "https://ui-avatars.com/api/?name=Zainab+Mwangi&background=4F46E5&color=fff&bold=true",
+                avatar: "/testimonials/amina.jpg",
                 quote:
                   "Applying from East Africa, CVs frequently get blocked by ATS filters. Creda proved my architectural depth with real commit metrics that couldn't be faked.",
                 tags: ["Top 2% Talent", "Zero ATS Friction", "Remote US Rate"],
@@ -982,15 +942,12 @@ export default function Home() {
                   <div className="text-xs font-mono text-[#4F46E5] font-medium mb-3">
                     {outcome.company}
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {outcome.tags.map((tag, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="text-[10px] font-mono px-2 py-0.5 rounded bg-white border border-neutral-200 text-[#64748B]"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  <div className="flex items-center justify-between pt-3 border-t border-neutral-200/60 text-[10.5px] font-mono">
+                    <span className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      AST Audit Confirmed
+                    </span>
+                    <span className="text-neutral-400">Ed25519 CA</span>
                   </div>
                 </div>
               </div>

@@ -415,7 +415,7 @@ select:-webkit-autofill:focus {
 }
 
 .btn-tactile:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.98);
   box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.22);
 }
 
@@ -437,7 +437,7 @@ select:-webkit-autofill:focus {
 }
 
 .btn-tactile-secondary:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.98);
   box-shadow: inset 0 1px 1px 0 rgba(15, 23, 42, 0.06);
 }
 
@@ -675,17 +675,21 @@ input:-webkit-autofill:active {
    PRINT STYLES FOR OFFICIAL CERTIFICATES
    ======================================== */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
   body {
     background: #ffffff !important;
     color: #000000 !important;
   }
-  .no-print, header, footer, nav {
+  .no-print, header, footer, nav, button {
     display: none !important;
   }
   #creda-printable-certificate {
     border: 3px double #4338CA !important;
     margin: 0 !important;
-    padding: 24px !important;
+    padding: 20px !important;
     box-shadow: none !important;
     width: 100% !important;
     page-break-inside: avoid;

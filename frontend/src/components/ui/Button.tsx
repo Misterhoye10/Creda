@@ -52,7 +52,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={`
           inline-flex items-center justify-center font-medium whitespace-nowrap flex-shrink-0
           rounded-[var(--radius-md)] cursor-pointer
-          transition-all duration-[var(--duration-fast)]
+          transition-all duration-[var(--duration-fast)] active:scale-[0.98]
           focus-ring
           disabled:opacity-50 disabled:cursor-not-allowed
           ${variantClasses[variant]}

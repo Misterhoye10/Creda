@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import Script from "next/script";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -62,40 +63,16 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <Script
+          src="/suppress-extensions.js"
+          strategy="beforeInteractive"
+        />
         {/* Instrument Serif loaded via Google Fonts link — not available in next/font */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
           rel="stylesheet"
-        />
-        {/* Suppress third-party Chrome extension errors (MetaMask, etc.) from triggering Next.js dev overlay */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                function isExtensionError(err, str) {
-                  var text = (str || "") + " " + (err && err.message || "") + " " + (err && err.stack || "");
-                  return text.indexOf("MetaMask") !== -1 ||
-                         text.indexOf("chrome-extension://") !== -1 ||
-                         text.indexOf("moz-extension://") !== -1 ||
-                         text.indexOf("extension not found") !== -1;
-                }
-                window.addEventListener("unhandledrejection", function(e) {
-                  if (isExtensionError(e.reason, e.reason && e.reason.message)) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                  }
-                }, true);
-                window.addEventListener("error", function(e) {
-                  if (isExtensionError(e.error, (e.filename || "") + " " + (e.message || ""))) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                  }
-                }, true);
-              })();
-            `,
-          }}
         />
       </head>
       <body suppressHydrationWarning>

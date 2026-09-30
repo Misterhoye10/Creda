@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
 import { api, type SkillPassportResponse } from "@/lib/api";
+import { QRCode, Tooltip } from "@/components/ui";
+import { getMonogramDataUrl } from "@/lib/avatar";
 
 import {
   ShieldCheck,
@@ -63,9 +65,24 @@ function PassportInkStamp({
   trustIndex?: number;
   badge?: string;
 }) {
+  const [stamped, setStamped] = useState(false);
+
+  const handleStampClick = () => {
+    setStamped(true);
+    setTimeout(() => setStamped(false), 700);
+  };
+
   return (
-    <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-[#4F46E5]/80 text-[#4F46E5] flex flex-col items-center justify-center p-2 text-center rotate-[-7deg] bg-indigo-50/70 shadow-xs select-none pointer-events-none transform hover:rotate-0 transition-transform duration-300">
-      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-[#4F46E5]/40 flex flex-col items-center justify-center p-1.5">
+    <div
+      onClick={handleStampClick}
+      title="Official Creda Border Control Ink Stamp — Click to verify stamp seal"
+      className={`relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-dashed border-[#4F46E5]/80 text-[#4F46E5] flex flex-col items-center justify-center p-2 text-center bg-indigo-50/70 shadow-xs select-none cursor-pointer transform transition-all duration-300 ${
+        stamped
+          ? "scale-90 rotate-0 shadow-inner bg-indigo-100/90 ring-4 ring-[#4F46E5]/20"
+          : "rotate-[-7deg] hover:rotate-0 hover:scale-105 active:scale-95 hover:shadow-md"
+      }`}
+    >
+      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-[#4F46E5]/40 flex flex-col items-center justify-center p-1.5 pointer-events-none">
         <span className="text-[7.5px] font-mono tracking-widest font-black uppercase text-[#4F46E5]">
           ★ CREDA PROTOCOL ★
         </span>
@@ -73,7 +90,7 @@ function PassportInkStamp({
           BORDER CONTROL AUDIT
         </span>
         <div className="my-0.5 px-2 py-0.5 rounded bg-[#4F46E5] text-white text-[8px] font-mono font-bold tracking-wider">
-          VERIFIED &amp; SIGNED
+          {stamped ? "AUTHENTICATED ✓" : "VERIFIED & SIGNED"}
         </div>
         <span className="text-[6.5px] font-mono font-bold text-slate-700 tracking-wider">
           {date} • GITHUB AST
@@ -109,7 +126,7 @@ const PROFILES: Record<
 > = {
   "hoye": {
     name: "Verified Candidate",
-    avatar: "https://ui-avatars.com/api/?name=Verified+Candidate&background=4F46E5&color=fff&bold=true",
+    avatar: getMonogramDataUrl("Verified Candidate", "4F46E5"),
     title: "Backend Lead & Distributed Systems Engineer",
     location: "Lagos, Nigeria // Global Remote",
     trustIndex: 98.4,
@@ -156,7 +173,7 @@ const PROFILES: Record<
   },
   "amina-adeleke": {
     name: "Amina Adeleke",
-    avatar: "https://ui-avatars.com/api/?name=Amina+Adeleke&background=4F46E5&color=fff&bold=true",
+    avatar: getMonogramDataUrl("Amina Adeleke", "4F46E5"),
     title: "Senior Backend & Distributed Systems Engineer",
     location: "Lagos, Nigeria // Global Remote",
     trustIndex: 96.4,
@@ -373,7 +390,7 @@ export default function PublicPassportPage() {
   const profile = useMemo(() => {
     if (passportData) {
       const defaultName = passportData.name || rawUsername;
-      const initialsAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`;
+      const initialsAvatar = getMonogramDataUrl(defaultName, "4F46E5");
 
       return {
         name: defaultName,
@@ -410,7 +427,7 @@ export default function PublicPassportPage() {
 
     return {
       name: defaultName,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`,
+      avatar: getMonogramDataUrl(defaultName, "4F46E5"),
       title: "Technical Professional",
       location: "Lagos, Nigeria // Global Remote",
       trustIndex: 90.0,
@@ -459,12 +476,18 @@ export default function PublicPassportPage() {
     };
   }, [profile.name, profile.gpgKey, passportData?.id]);
 
-  const shareUrl = useMemo(() => {
+  const [mountedOrigin, setMountedOrigin] = useState<string>("");
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      return `${window.location.origin}/p/${rawUsername}`;
+      setMountedOrigin(window.location.origin);
     }
-    return `https://creda-khaki.vercel.app/p/${rawUsername}`;
-  }, [rawUsername]);
+  }, []);
+
+  const shareUrl = useMemo(() => {
+    const origin = mountedOrigin || "https://creda-khaki.vercel.app";
+    return `${origin}/p/${rawUsername}`;
+  }, [mountedOrigin, rawUsername]);
 
   useEffect(() => {
     if (profile.title) {
@@ -572,9 +595,11 @@ export default function PublicPassportPage() {
                 </div>
                 <div className="text-xs sm:text-sm font-bold text-white tracking-wide flex items-center gap-2">
                   <span>INTERNATIONAL BIOMETRIC COMPETENCE PASSPORT</span>
-                  <span className="hidden md:inline-block px-2 py-0.5 rounded text-[9px] font-mono uppercase bg-amber-400/20 text-amber-200 border border-amber-400/30">
-                    TYPE: P // ICAO 9303
-                  </span>
+                  <Tooltip content="ICAO 9303 is the UN international travel document standard. Creda models technical competence passports after authentic physical travel documents.">
+                    <span className="hidden md:inline-block px-2 py-0.5 rounded text-[9px] font-mono uppercase bg-amber-400/20 text-amber-200 border border-amber-400/30 cursor-help">
+                      TYPE: P // ICAO 9303 ⓘ
+                    </span>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -589,9 +614,11 @@ export default function PublicPassportPage() {
                 {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                 <span>{copied ? "Link Copied" : "Copy Live Link"}</span>
               </button>
-              <div className="text-[10px] font-mono text-amber-300/70 hidden sm:inline-block border-l border-amber-400/30 pl-2">
-                ED25519 CA
-              </div>
+              <Tooltip content="Ed25519 is an ultra-secure elliptic curve signature system ensuring this passport cannot be forged or tampered with.">
+                <div className="text-[10px] font-mono text-amber-300/70 hidden sm:inline-block border-l border-amber-400/30 pl-2 cursor-help">
+                  ED25519 CA ⓘ
+                </div>
+              </Tooltip>
             </div>
           </div>
 
@@ -858,11 +885,32 @@ export default function PublicPassportPage() {
                 </div>
               </div>
 
-              {/* Cryptographic Key & Live Verification Button */}
-              <div className="relative z-10 mt-4 pt-3 border-t border-stone-300/80 space-y-2.5">
-                <div className="flex items-center justify-between text-[9.5px] font-mono text-stone-600">
-                  <span>GPG KEY ID:</span>
-                  <span className="font-bold text-stone-900">{profile.gpgKey}</span>
+              {/* Cryptographic Key, Optical QR Matrix & Live Verification Button */}
+              <div className="relative z-10 mt-3 pt-3 border-t border-stone-300/80 space-y-2.5">
+                <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-white/90 border border-stone-200">
+                  <div className="flex items-center gap-2.5">
+                    <QRCode
+                      value={shareUrl}
+                      size={44}
+                      className="rounded-md border border-stone-300 bg-white p-0.5 flex-shrink-0"
+                    />
+                    <div className="text-left">
+                      <div className="text-[9.5px] font-mono font-bold text-stone-900 uppercase">
+                        ATTESTATION MATRIX
+                      </div>
+                      <div className="text-[8px] font-mono text-stone-500">
+                        Scan to verify Ed25519 signature
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Tooltip content="GNU Privacy Guard key fingerprint cryptographically proving authentic commit authorship directly from the developer's workstations.">
+                      <div className="cursor-help text-right">
+                        <div className="text-[8px] font-mono text-stone-400 uppercase">GPG KEY ID ⓘ</div>
+                        <div className="text-[9px] font-mono font-bold text-stone-900">{profile.gpgKey}</div>
+                      </div>
+                    </Tooltip>
+                  </div>
                 </div>
 
                 {/* Live Hash Verification Button */}
@@ -908,10 +956,12 @@ export default function PublicPassportPage() {
                 Technical Competence Visas
               </h2>
             </div>
-            <div className="text-xs font-mono text-[#64748B] flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>AST Git Commit Ledgers Active</span>
-            </div>
+            <Tooltip content="Abstract Syntax Tree (AST) analysis parses code grammar to evaluate architecture depth, complexity, and idiomatic patterns—impossible to fake with resume buzzwords.">
+              <div className="text-xs font-mono text-[#64748B] flex items-center gap-2 cursor-help">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>AST Git Commit Ledgers Active ⓘ</span>
+              </div>
+            </Tooltip>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
@@ -1177,10 +1227,10 @@ export default function PublicPassportPage() {
                 </div>
 
                 <div className="flex items-center gap-3 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200 flex-shrink-0">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(shareUrl)}`}
-                    alt="Verification QR Code"
-                    className="w-16 h-16 rounded-lg border border-neutral-200"
+                  <QRCode
+                    value={shareUrl}
+                    size={64}
+                    className="rounded-lg border border-neutral-200"
                   />
                   <div className="text-[10px] text-[#64748B] text-left max-w-[130px] leading-tight">
                     Scan with any smartphone camera to verify live ledger proof.
@@ -1292,8 +1342,42 @@ export default function PublicPassportPage() {
         </div>
       )}
 
+      {/* ── Sticky Mobile Conversion Bar ────────────────────── */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 px-4 py-2.5 flex items-center justify-between gap-3 shadow-lg no-print">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 rounded-full border border-indigo-200 overflow-hidden flex-shrink-0 bg-neutral-100">
+            <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-[#0F172A] truncate flex items-center gap-1">
+              <span>{profile.name}</span>
+              <ShieldCheck size={12} className="text-[#4F46E5] flex-shrink-0" />
+            </div>
+            <div className="text-[10px] font-mono text-emerald-600 truncate">
+              {profile.badge}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => setShowCertificateModal(true)}
+            className="p-2 rounded-lg border border-neutral-200 text-neutral-600 hover:text-[#4F46E5] hover:border-[#4F46E5] transition-colors cursor-pointer"
+            title="Export PDF"
+          >
+            <Printer size={15} />
+          </button>
+          <Link href="/auth/signup">
+            <button className="h-9 px-3.5 rounded-lg text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-xs flex items-center gap-1.5 cursor-pointer">
+              <span>Hire</span>
+              <ArrowRight size={12} />
+            </button>
+          </Link>
+        </div>
+      </div>
+
       {/* ── Minimalist Footer ───────────────────────────────── */}
-      <footer className="border-t border-[#E5E7EB] px-6 sm:px-10 py-5 text-xs font-mono text-[#64748B] bg-white no-print">
+      <footer className="border-t border-[#E5E7EB] px-6 sm:px-10 py-5 pb-16 sm:pb-5 text-xs font-mono text-[#64748B] bg-white no-print">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>Creda Protocol v2.4 // Public Ledger Node {passportHash.slice(0, 10)}</span>
           <span className="text-[#94A3B8] hidden sm:inline">SHA-256 Tamper-Proof Cryptographic Verification</span>
