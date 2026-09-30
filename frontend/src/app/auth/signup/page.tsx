@@ -311,169 +311,113 @@ function SignupContent() {
           team_size: recruiterData.teamSize,
         };
 
+    const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || `talent-${Date.now()}`;
+    const discipline = (
+      selectedDomain.id.includes("design") ? "design"
+      : selectedDomain.id.includes("devops") ? "devops"
+      : selectedDomain.id.includes("data") ? "data"
+      : selectedDomain.id.includes("3d") ? "creative3d"
+      : selectedDomain.id.includes("security") ? "security"
+      : "software"
+    ) as any;
+
+    const newTalent = {
+      id: `talent-${Date.now()}`,
+      name,
+      email,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4F46E5&color=fff&bold=true`,
+      title: talentData.professionalTitle || selectedDomain.label,
+      location,
+      country,
+      city,
+      workPreferences: talentData.workPreferences.join(", "),
+      discipline,
+      score: 60,
+      tier: "New Talent",
+      skills: [],
+      skillsDetail: [],
+      proofHighlight: "Newly registered talent profile ready for CV and repository audit.",
+      reposAudited: 0,
+      commitsCount: "0 commits audited",
+      availability: "Immediately Available",
+      slug: cleanSlug,
+      assessmentsCount: 0,
+      isNew: true,
+    };
+
+    // Immediately cache credentials and initial profile locally for sub-second onboarding
+    localStorage.setItem("creda_user_email", email);
+    localStorage.setItem(
+      "creda_user",
+      JSON.stringify({
+        id: newTalent.id,
+        name,
+        email,
+        account_type: accountType,
+        professional_title: isTalent ? (talentData.professionalTitle || selectedDomain.label) : signupPayload.professional_title,
+        location,
+        country,
+        city,
+        public_url: cleanSlug,
+        score: 60,
+      })
+    );
+    localStorage.removeItem("creda_practical_assessments");
+
+    if (isTalent) {
+      try {
+        const rawTalents = localStorage.getItem("creda_custom_talents");
+        const talents = rawTalents ? JSON.parse(rawTalents) : [];
+        const updated = [newTalent, ...talents.filter((t: any) => t.email !== email && t.slug !== cleanSlug)];
+        localStorage.setItem("creda_custom_talents", JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+    }
+
     try {
-      const response = await api.signup(signupPayload);
+      // 2-second fast race: connect to backend, but never block candidate on Render cold starts
+      const signupPromise = api.signup(signupPayload);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("fast_race_timeout")), 2000)
+      );
+
+      const response: any = await Promise.race([signupPromise, timeoutPromise]);
       if (response?.access_token) {
         localStorage.setItem("creda_token", response.access_token);
       }
       if (response?.user) {
         localStorage.setItem("creda_user", JSON.stringify(response.user));
-      } else {
-        localStorage.setItem(
-          "creda_user",
-          JSON.stringify({
-            name,
-            email,
-            account_type: accountType,
-            professional_title: signupPayload.professional_title,
-            location,
-            country,
-            city,
-          })
-        );
-      }
-      localStorage.setItem("creda_user_email", email);
-
-      if (isTalent) {
-        try {
-          localStorage.removeItem("creda_practical_assessments");
-          const rawTalents = localStorage.getItem("creda_custom_talents");
-          const talents = rawTalents ? JSON.parse(rawTalents) : [];
-          const cleanSlug = (response?.user?.public_url || name.toLowerCase().replace(/[^a-z0-9]+/g, "-")).trim();
-          const isFolarin = cleanSlug === "folarin-thimoteus" || cleanSlug === "folarin-oyewole" || name.toLowerCase().includes("folarin thimoteus");
-          const discipline = (
-            selectedDomain.id.includes("design") ? "design"
-            : selectedDomain.id.includes("devops") ? "devops"
-            : selectedDomain.id.includes("data") ? "data"
-            : selectedDomain.id.includes("3d") ? "creative3d"
-            : selectedDomain.id.includes("security") ? "security"
-            : "software"
-          ) as any;
-
-          const newTalent = {
-            id: response?.user?.id || `talent-${Date.now()}`,
-            name,
-            email,
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4F46E5&color=fff&bold=true`,
-            title: talentData.professionalTitle || selectedDomain.label,
-            location,
-            country,
-            city,
-            workPreferences: talentData.workPreferences.join(", "),
-            discipline,
-            score: isFolarin ? 83 : 60,
-            tier: isFolarin ? "Verified Tier" : "New Talent",
-            skills: isFolarin ? ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"] : [],
-            skillsDetail: isFolarin ? [
-              { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
-              { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
-              { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
-              { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
-            ] : [],
-            proofHighlight: isFolarin
-              ? "AST verified code, commit integrity audit, and practical assessment records on Creda."
-              : "Newly registered talent profile ready for CV and repository audit.",
-            reposAudited: isFolarin ? 4 : 0,
-            commitsCount: isFolarin ? "680 commits" : "0 commits audited",
-            availability: "Immediately Available",
-            slug: cleanSlug,
-            assessmentsCount: isFolarin ? 2 : 0,
-            isNew: !isFolarin,
-          };
-          const updated = [newTalent, ...talents.filter((t: any) => t.email !== email && t.slug !== cleanSlug)];
-          localStorage.setItem("creda_custom_talents", JSON.stringify(updated));
-        } catch {
-          // ignore
-        }
-      }
-
-      setIsSubmitting(false);
-      setSubmitted(true);
-
-      setTimeout(() => {
-        router.push(accountType === "talent" ? "/dashboard" : "/dashboard/recruiter");
-      }, 500);
-    } catch (err: unknown) {
-      const errObj = err as { detail?: string; message?: string; status?: number };
-      if (errObj && (errObj.status === 400 || errObj.status === 422) && errObj.detail) {
-        setErrorMessage(errObj.detail);
-        setIsSubmitting(false);
-      } else {
-        // Fallback offline mock for development resilience
-        localStorage.setItem("creda_user_email", email);
-        localStorage.setItem(
-          "creda_user",
-          JSON.stringify({
-            name,
-            email,
-            account_type: accountType,
-            professional_title: signupPayload.professional_title,
-            location,
-            country,
-            city,
-          })
-        );
-
         if (isTalent) {
           try {
-            localStorage.removeItem("creda_practical_assessments");
             const rawTalents = localStorage.getItem("creda_custom_talents");
-            const talents = rawTalents ? JSON.parse(rawTalents) : [];
-            const cleanSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").trim();
-            const isFolarin = cleanSlug === "folarin-thimoteus" || cleanSlug === "folarin-oyewole" || name.toLowerCase().includes("folarin thimoteus");
-            const discipline = (
-              selectedDomain.id.includes("design") ? "design"
-              : selectedDomain.id.includes("devops") ? "devops"
-              : selectedDomain.id.includes("data") ? "data"
-              : selectedDomain.id.includes("3d") ? "creative3d"
-              : selectedDomain.id.includes("security") ? "security"
-              : "software"
-            ) as any;
-
-            const newTalent = {
-              id: `talent-${Date.now()}`,
-              name,
-              email,
-              avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4F46E5&color=fff&bold=true`,
-              title: talentData.professionalTitle || selectedDomain.label,
-              location,
-              country,
-              city,
-              workPreferences: talentData.workPreferences.join(", "),
-              discipline,
-              score: isFolarin ? 83 : 60,
-              tier: isFolarin ? "Verified Tier" : "New Talent",
-              skills: isFolarin ? ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"] : [],
-              skillsDetail: isFolarin ? [
-                { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
-                { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
-                { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
-                { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate" as const, assessment_score: null, evidence_count: 2 },
-              ] : [],
-              proofHighlight: isFolarin
-                ? "AST verified code, commit integrity audit, and practical assessment records on Creda."
-                : "Newly registered talent profile ready for CV and repository audit.",
-              reposAudited: isFolarin ? 4 : 0,
-              commitsCount: isFolarin ? "680 commits" : "0 commits audited",
-              availability: "Immediately Available",
-              slug: cleanSlug,
-              assessmentsCount: isFolarin ? 2 : 0,
-              isNew: !isFolarin,
-            };
-            const updated = [newTalent, ...talents.filter((t: any) => t.email !== email && t.slug !== cleanSlug)];
-            localStorage.setItem("creda_custom_talents", JSON.stringify(updated));
-          } catch {
-            // ignore
-          }
+            if (rawTalents) {
+              const talents = JSON.parse(rawTalents);
+              const updated = talents.map((t: any) =>
+                t.email === email ? { ...t, id: response.user.id, slug: response.user.public_url || t.slug } : t
+              );
+              localStorage.setItem("creda_custom_talents", JSON.stringify(updated));
+            }
+          } catch {}
         }
-
-        setIsSubmitting(false);
-        setSubmitted(true);
-        setTimeout(() => {
-          router.push(accountType === "talent" ? "/dashboard" : "/dashboard/recruiter");
-        }, 500);
       }
+    } catch (err: unknown) {
+      const errObj = err as { detail?: string; message?: string; status?: number; data?: { detail?: string } };
+      if (errObj && (errObj.status === 400 || errObj.status === 422)) {
+        setErrorMessage(errObj.data?.detail || errObj.detail || errObj.message || "Registration error. Please check your credentials.");
+        setIsSubmitting(false);
+        return;
+      }
+      // If timeout or cold-start, proceed with instant local onboarding while backend syncs
+      console.info("Proceeding with instant local onboarding while backend syncs in background");
     }
+
+    setIsSubmitting(false);
+    setSubmitted(true);
+
+    setTimeout(() => {
+      router.push(accountType === "talent" ? "/dashboard" : "/dashboard/recruiter");
+    }, 150);
   };
 
   const handleGithubSignup = () => {

@@ -673,6 +673,33 @@ export default function DashboardPage() {
 
   // Comprehensive data loader connecting to FastAPI Backend (Parallelized for 4x speedup)
   const loadDashboardData = async () => {
+    // 1. Instant local hydration so candidate never stares at a blank screen or loading skeleton (< 50ms)
+    let userProfile: any = null;
+    if (typeof window !== "undefined") {
+      try {
+        const cachedUser = localStorage.getItem("creda_user");
+        if (cachedUser) {
+          userProfile = JSON.parse(cachedUser);
+          if (userProfile?.account_type === "recruiter") {
+            router.replace("/dashboard/recruiter");
+            return;
+          }
+          setCurrentUser(userProfile as unknown as User);
+          setProfileForm((prev) => ({
+            ...prev,
+            name: userProfile.name || prev.name,
+            professional_title: userProfile.professional_title || prev.professional_title,
+            location: userProfile.location || prev.location,
+            years_experience: userProfile.years_experience || prev.years_experience,
+            bio: userProfile.bio || prev.bio,
+            avatar_url: userProfile.avatar_url || prev.avatar_url,
+            public_url: userProfile.public_url || prev.public_url,
+            is_public: userProfile.is_public ?? true,
+          }));
+        }
+      } catch {}
+    }
+
     setIsLoadingDashboard(true);
 
     try {
@@ -685,7 +712,6 @@ export default function DashboardPage() {
         api.getTalentRequests(),
       ]);
 
-      let userProfile: any = null;
       if (profileResult.status === "fulfilled" && profileResult.value) {
         userProfile = profileResult.value;
         if ((userProfile as any).account_type === "recruiter") {
@@ -706,21 +732,7 @@ export default function DashboardPage() {
           linkedin_url: userProfile.linkedin_url || "",
           website_url: userProfile.website_url || "",
         });
-      } else if (typeof window !== "undefined") {
-        try {
-          const cachedUser = localStorage.getItem("creda_user");
-          if (cachedUser) {
-            userProfile = JSON.parse(cachedUser);
-          }
-        } catch {}
       }
-
-      const DEFAULT_STARTER_SKILLS = [
-        { id: "starter-py", name: "Python Systems & APIs", category: "Technical", level: "Advanced", confidence: 92, evidence_status: "strong", assessment_score: 88, evidence_count: 3 },
-        { id: "starter-react", name: "React & Component Architecture", category: "Technical", level: "Advanced", confidence: 89, evidence_status: "strong", assessment_score: 87, evidence_count: 3 },
-        { id: "starter-ts", name: "TypeScript & Type Integrity", category: "Technical", level: "Intermediate", confidence: 84, evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
-        { id: "starter-sql", name: "SQL & Database Optimization", category: "Technical", level: "Intermediate", confidence: 82, evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
-      ];
 
       let initialSkills: any[] = [];
       if (skillsResult.status === "fulfilled" && skillsResult.value) {
@@ -731,42 +743,31 @@ export default function DashboardPage() {
         }
       }
 
-      // Check if user is the seeded demo account (Folarin)
-      const isFolarin =
-        userProfile?.public_url?.includes("folarin") ||
-        userProfile?.name?.toLowerCase().includes("folarin") ||
-        userProfile?.email?.toLowerCase().includes("folarin") ||
-        userProfile?.email?.toLowerCase().includes("misttterhoye");
-
-      if (initialSkills.length === 0) {
-        if (isFolarin) {
-          initialSkills = DEFAULT_STARTER_SKILLS;
-        } else {
-          // Check if custom talent has saved verified skills stored in localStorage
-          try {
-            const rawCustom = localStorage.getItem("creda_custom_talents");
-            if (rawCustom) {
-              const talents = JSON.parse(rawCustom);
-              const match = talents.find((t: any) =>
-                (t.email && userProfile?.email && t.email.toLowerCase() === userProfile.email.toLowerCase()) ||
-                (t.name && userProfile?.name && t.name.toLowerCase() === userProfile.name.toLowerCase()) ||
-                (t.slug && userProfile?.public_url && t.slug === userProfile.public_url)
-              );
-              if (match && Array.isArray(match.skillsDetail) && match.skillsDetail.length > 0) {
-                initialSkills = match.skillsDetail.map((sd: any, idx: number) => ({
-                  id: `custom-skill-${idx}`,
-                  name: sd.name,
-                  category: sd.category || "Technical",
-                  level: sd.level || "Intermediate",
-                  confidence: sd.confidence || 75,
-                  evidence_status: sd.evidence_status || "self_declared",
-                  assessment_score: sd.assessment_score || null,
-                  evidence_count: sd.evidence_count || 1,
-                }));
-              }
+      // If no backend skills returned, check if candidate has local verified skills from custom talents ledger
+      if (initialSkills.length === 0 && typeof window !== "undefined") {
+        try {
+          const rawCustom = localStorage.getItem("creda_custom_talents");
+          if (rawCustom) {
+            const talents = JSON.parse(rawCustom);
+            const match = talents.find((t: any) =>
+              (t.email && userProfile?.email && t.email.toLowerCase() === userProfile.email.toLowerCase()) ||
+              (t.name && userProfile?.name && t.name.toLowerCase() === userProfile.name.toLowerCase()) ||
+              (t.slug && userProfile?.public_url && t.slug === userProfile.public_url)
+            );
+            if (match && Array.isArray(match.skillsDetail) && match.skillsDetail.length > 0) {
+              initialSkills = match.skillsDetail.map((sd: any, idx: number) => ({
+                id: `custom-skill-${idx}`,
+                name: sd.name,
+                category: sd.category || "Technical",
+                level: sd.level || "Intermediate",
+                confidence: sd.confidence || 75,
+                evidence_status: sd.evidence_status || "self_declared",
+                assessment_score: sd.assessment_score || null,
+                evidence_count: sd.evidence_count || 1,
+              }));
             }
-          } catch {}
-        }
+          }
+        } catch {}
       }
 
       if (typeof window !== "undefined") {

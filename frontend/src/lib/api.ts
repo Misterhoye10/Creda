@@ -213,7 +213,7 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit & { timeout?: number } = {}
   ): Promise<T> {
     const token = this.getAuthToken();
     const headers: Record<string, string> = {
@@ -229,12 +229,17 @@ class ApiClient {
     }
 
     const url = `${API_BASE_URL}${endpoint}`;
+    const timeoutMs = options.timeout ?? 6000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        signal: options.signal || controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         let errorData: any = {};
@@ -253,6 +258,13 @@ class ApiClient {
 
       return await response.json();
     } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === "AbortError") {
+        console.warn(`[Creda API] Request to ${url} timed out after ${timeoutMs}ms`);
+        const timeoutError = new Error(`Request to backend timed out after ${timeoutMs}ms`) as any;
+        timeoutError.status = 408;
+        throw timeoutError;
+      }
       if (!err.status && err.message === "Failed to fetch") {
         console.warn(`[Creda API] Backend unreachable at ${url}`);
       }

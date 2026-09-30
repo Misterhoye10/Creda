@@ -55,6 +55,7 @@ export interface CandidateSkillDetail {
 export interface Candidate {
   id: string;
   name: string;
+  email?: string;
   avatar: string;
   title: string;
   location: string;
@@ -257,7 +258,7 @@ export default function RecruiterDashboardPage() {
           if (Array.isArray(directory) && directory.length > 0) {
             mapped = directory.map((u: any) => {
               const slug = u.slug || u.public_url || u.id;
-              const isFolarin = slug === "folarin-thimoteus" || slug === "folarin-oyewole" || (u.name && u.name.toLowerCase().includes("folarin"));
+              const isShowcase = (u.id === "folarin-demo" || u.email === "folarin.thimoteus@creda.app") && slug === "folarin-thimoteus";
 
               let rawSkillsDetail: CandidateSkillDetail[] = [];
               if (Array.isArray(u.skills_detail) && u.skills_detail.length > 0) {
@@ -279,7 +280,7 @@ export default function RecruiterDashboardPage() {
                   assessment_score: i === 0 ? 85 : null,
                   evidence_count: 1,
                 }));
-              } else if (isFolarin) {
+              } else if (isShowcase) {
                 rawSkillsDetail = [
                   { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong" as const, assessment_score: 88, evidence_count: 3 },
                   { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong" as const, assessment_score: 87, evidence_count: 3 },
@@ -296,7 +297,7 @@ export default function RecruiterDashboardPage() {
                   : "software"
               ) as Candidate["discipline"];
 
-              const score = isFolarin ? 83 : Math.round(u.score ?? u.average_confidence ?? 60);
+              const score = isShowcase ? 83 : Math.round(u.score ?? u.average_confidence ?? 60);
 
               return {
                 id: u.id,
@@ -316,7 +317,7 @@ export default function RecruiterDashboardPage() {
                 reposAudited: typeof u.repos_audited === "number" ? u.repos_audited : (u.evidence_count || 0),
                 commitsCount: u.commits_count || ((u.evidence_count || 0) > 0 ? "420 commits" : "0 commits audited"),
                 availability: u.available_from || "Immediately Available",
-                slug: isFolarin ? "folarin-thimoteus" : slug,
+                slug,
                 githubUrl: u.github_url,
                 linkedinUrl: u.linkedin_url,
                 websiteUrl: u.website_url,
@@ -338,15 +339,16 @@ export default function RecruiterDashboardPage() {
         if (typeof window !== "undefined") {
           try {
             const rawCustom = localStorage.getItem("creda_custom_talents");
+            let customTalents: Candidate[] = [];
             if (rawCustom) {
-              const customTalents: Candidate[] = JSON.parse(rawCustom);
+              customTalents = JSON.parse(rawCustom);
               if (Array.isArray(customTalents)) {
                 customTalents.forEach((ct) => {
                   const existingIdx = mapped.findIndex(
                     (m) => m.id === ct.id || m.slug === ct.slug || (m.name && ct.name && m.name.toLowerCase() === ct.name.toLowerCase())
                   );
                   if (existingIdx >= 0) {
-                    mapped[existingIdx] = { ...mapped[existingIdx], ...ct, score: Math.max(mapped[existingIdx].score, ct.score || 83) };
+                    mapped[existingIdx] = { ...mapped[existingIdx], ...ct, score: ct.score ?? mapped[existingIdx].score ?? 60 };
                   } else {
                     mapped.unshift(ct);
                   }
@@ -359,38 +361,40 @@ export default function RecruiterDashboardPage() {
             if (rawUser) {
               const u = JSON.parse(rawUser);
               if (u && (u.account_type === "talent" || !u.account_type)) {
-                const uSlug = u.public_url || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "folarin-thimoteus");
+                const uSlug = u.public_url || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
                 const existingIdx = mapped.findIndex(
-                  (m) => m.id === u.id || m.slug === uSlug || (m.name && u.name && m.name.toLowerCase() === u.name.toLowerCase())
+                  (m) => m.id === u.id || (uSlug && m.slug === uSlug) || (m.name && u.name && m.name.toLowerCase() === u.name.toLowerCase())
                 );
                 if (existingIdx === -1) {
-                  mapped.unshift({
-                    id: u.id || `local-talent-${Date.now()}`,
-                    name: u.name || "Folarin Thimoteus",
-                    avatar: u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "Talent")}&background=4F46E5&color=fff&bold=true`,
-                    title: u.professional_title || "Senior Full-Stack & Distributed Systems Engineer",
-                    location: u.location || "Lagos, Nigeria",
-                    country: u.country || "Nigeria",
-                    city: u.city || "Lagos",
-                    workPreferences: u.work_preferences || "Remote, Hybrid",
-                    discipline: "software",
-                    score: 83,
-                    tier: "Verified Tier",
-                    skills: ["Python Systems & APIs", "React & Component Architecture", "TypeScript & Type Safety", "SQL & Database Optimization"],
-                    skillsDetail: [
-                      { name: "Python Systems & APIs", level: "Advanced", confidence: 92, evidence_status: "strong", assessment_score: 88, evidence_count: 3 },
-                      { name: "React & Component Architecture", level: "Advanced", confidence: 89, evidence_status: "strong", assessment_score: 87, evidence_count: 3 },
-                      { name: "TypeScript & Type Safety", level: "Intermediate", confidence: 84, evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
-                      { name: "SQL & Database Optimization", level: "Intermediate", confidence: 82, evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
-                    ],
-                    proofHighlight: "AST verified code and practical assessment records on Creda.",
-                    reposAudited: 4,
-                    commitsCount: "680 commits",
-                    availability: "Immediately Available",
-                    slug: uSlug,
-                    assessmentsCount: 2,
-                    isNew: false,
-                  });
+                  const matchInCustom = customTalents.find(
+                    (ct) => (u.id && ct.id === u.id) || (u.email && ct.email === u.email) || (uSlug && ct.slug === uSlug)
+                  );
+                  if (matchInCustom) {
+                    mapped.unshift(matchInCustom);
+                  } else {
+                    mapped.unshift({
+                      id: u.id || `local-talent-${Date.now()}`,
+                      name: u.name || "Registered Candidate",
+                      avatar: u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "Talent")}&background=4F46E5&color=fff&bold=true`,
+                      title: u.professional_title || "Technical Professional",
+                      location: u.location || "Lagos, Nigeria",
+                      country: u.country || "Nigeria",
+                      city: u.city || "Lagos",
+                      workPreferences: u.work_preferences || "Remote, Hybrid",
+                      discipline: "software",
+                      score: u.score ?? 60,
+                      tier: "New Talent",
+                      skills: [],
+                      skillsDetail: [],
+                      proofHighlight: "Newly registered talent profile ready for CV and repository audit.",
+                      reposAudited: 0,
+                      commitsCount: "0 commits audited",
+                      availability: "Immediately Available",
+                      slug: uSlug,
+                      assessmentsCount: 0,
+                      isNew: true,
+                    });
+                  }
                 }
               }
             }
@@ -399,19 +403,10 @@ export default function RecruiterDashboardPage() {
           }
         }
 
-        // Always ensure Folarin Thimoteus is present and top-ranked with score 83
-        const folarinIndex = mapped.findIndex(
-          (c) => c.slug === "folarin-thimoteus" || c.name.toLowerCase().includes("folarin thimoteus")
-        );
-        if (folarinIndex === -1) {
-          mapped.unshift(FOLARIN_CANDIDATE);
-        } else {
-          // Guarantee score is 83
-          mapped[folarinIndex].score = 83;
-          mapped[folarinIndex].slug = "folarin-thimoteus";
-          // Bring to front
-          const [f] = mapped.splice(folarinIndex, 1);
-          mapped.unshift(f);
+        // Ensure showcase candidate exists in backup if not already present
+        const hasFolarinDemo = mapped.some((c) => c.slug === "folarin-thimoteus" || c.id === "folarin-thimoteus");
+        if (!hasFolarinDemo) {
+          mapped.push(FOLARIN_CANDIDATE);
         }
 
         setCandidatesList(mapped);

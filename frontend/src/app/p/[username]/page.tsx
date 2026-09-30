@@ -469,7 +469,27 @@ export default function PublicPassportPage() {
               const u = JSON.parse(cachedUser);
               const uSlug = u.public_url || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
               if (uSlug === rawUsername || u.id === rawUsername || !rawUsername || rawUsername === "talent") {
-                const isFolarin = uSlug.includes("folarin") || u.name?.toLowerCase().includes("folarin");
+                let customMatch: any = null;
+                try {
+                  const rawCustom = localStorage.getItem("creda_custom_talents");
+                  if (rawCustom) {
+                    const talents = JSON.parse(rawCustom);
+                    customMatch = talents.find((t: any) => t.email === u.email || t.slug === uSlug || t.id === u.id);
+                  }
+                } catch {}
+
+                const score = customMatch?.score ?? u.score ?? 60;
+                const tier = customMatch?.tier ?? (score >= 80 ? "Verified Tier" : "New Talent");
+                const skills = customMatch?.skillsDetail?.map((s: any) => ({
+                  id: s.id || `skill-${s.name}`,
+                  name: s.name,
+                  level: s.level || "Advanced",
+                  confidence: s.confidence || 85,
+                  evidence_status: s.evidence_status || "strong",
+                  assessment_score: s.assessment_score || null,
+                  evidence_count: s.evidence_count || 2,
+                })) || [];
+
                 setPassportData({
                   id: u.id || "custom-talent-id",
                   name: u.name,
@@ -477,15 +497,10 @@ export default function PublicPassportPage() {
                   professional_title: u.professional_title,
                   location: u.location,
                   public_url: uSlug,
-                  score: isFolarin ? 83 : 60,
-                  tier: isFolarin ? "Verified Tier" : "New Talent",
-                  skills: isFolarin ? [
-                    { id: "sk-1", name: "Python Systems & APIs", confidence: 92, level: "Advanced", evidence_status: "strong", assessment_score: 88, evidence_count: 3 },
-                    { id: "sk-2", name: "React & Component Architecture", confidence: 89, level: "Advanced", evidence_status: "strong", assessment_score: 87, evidence_count: 3 },
-                    { id: "sk-3", name: "TypeScript & Type Safety", confidence: 84, level: "Intermediate", evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
-                    { id: "sk-4", name: "SQL & Database Optimization", confidence: 82, level: "Intermediate", evidence_status: "moderate", assessment_score: null, evidence_count: 2 },
-                  ] : [],
-                  is_creda_verified: isFolarin,
+                  score,
+                  tier,
+                  skills,
+                  is_creda_verified: score >= 80,
                 } as any);
                 return;
               }
@@ -537,15 +552,9 @@ export default function PublicPassportPage() {
       const defaultName = passportData.name || rawUsername;
       const initialsAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=4F46E5&color=fff&bold=true`;
 
-      // 4-Pillar Deterministic Explainable Evidence Score (Unified across Dashboard, Passport & Recruiter directory)
-      const isFolarin = (
-        passportData.public_url === "folarin-thimoteus" ||
-        passportData.public_url === "folarin-oyewole" ||
-        Boolean(passportData.name && passportData.name.toLowerCase().includes("folarin")) ||
-        rawUsername === "folarin-thimoteus" ||
-        rawUsername === "folarin-oyewole"
-      );
-      const unifiedScore = isFolarin ? 83 : (passportData.score ?? 72);
+      // 4-Pillar Deterministic Explainable Evidence Score
+      const isStaticDemo = rawUsername === "folarin-thimoteus" && (!passportData || passportData.id === "folarin-thimoteus");
+      const unifiedScore = isStaticDemo ? 83 : (passportData.score ?? 60);
       const evidenceCoverage = passportData.evidence_coverage ?? Math.round(unifiedScore * 0.38);
       const projectEvidence = passportData.project_evidence ?? Math.round(unifiedScore * 0.24);
       const assessments = passportData.assessments_score ?? Math.round(unifiedScore * 0.19);
@@ -561,8 +570,8 @@ export default function PublicPassportPage() {
         projectEvidence,
         assessments,
         profileComp,
-        tier: passportData.tier || (unifiedScore >= 90 ? "Code-Proven Tier" : (passportData.is_creda_verified ? "Verified Tier" : "Developing Evidence Tier")),
-        badge: passportData.tier?.toUpperCase() || (unifiedScore >= 90 ? "CODE-PROVEN TIER" : (passportData.is_creda_verified ? "VERIFIED TALENT" : "CANDIDATE")),
+        tier: passportData.tier || (unifiedScore >= 90 ? "Code-Proven Tier" : (unifiedScore >= 80 ? "Verified Tier" : "New Talent")),
+        badge: passportData.tier?.toUpperCase() || (unifiedScore >= 90 ? "CODE-PROVEN TIER" : (unifiedScore >= 80 ? "VERIFIED TALENT" : "NEW TALENT")),
         gpgKey: `0x${(passportData.id || "9B4E38F1C2D90A77").replace(/-/g, "").slice(0, 16).toUpperCase()}`,
         skills: passportData.skills && passportData.skills.length > 0
           ? passportData.skills.map((s) => {
@@ -581,7 +590,7 @@ export default function PublicPassportPage() {
                   : (s.assessment_score ? `Verified AST solution scored ${s.assessment_score}% in practical challenge.` : "Corroborated by verified evidence ledger."),
               };
             })
-          : (isFolarin ? DEFAULT_FALLBACK_SKILLS : []),
+          : (isStaticDemo ? DEFAULT_FALLBACK_SKILLS : []),
       };
     }
 
@@ -605,12 +614,12 @@ export default function PublicPassportPage() {
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
-    const isFolarinFallback = rawUsername.toLowerCase().includes("folarin");
-    const defaultTrust = isFolarinFallback ? 83 : 60; // Uniform deterministic baseline matching initial talent dashboard
-    const evidenceCoverage = isFolarinFallback ? 32 : 20;
-    const projectEvidence = isFolarinFallback ? 22 : 14;
-    const assessments = isFolarinFallback ? 16 : 12;
-    const profileComp = isFolarinFallback ? 13 : 14;
+    const isStaticDemo = rawUsername === "folarin-thimoteus";
+    const defaultTrust = isStaticDemo ? 83 : 60; // Deterministic baseline for candidate
+    const evidenceCoverage = isStaticDemo ? 32 : 20;
+    const projectEvidence = isStaticDemo ? 22 : 14;
+    const assessments = isStaticDemo ? 16 : 12;
+    const profileComp = isStaticDemo ? 13 : 14;
 
     return {
       name: defaultName,
@@ -622,10 +631,10 @@ export default function PublicPassportPage() {
       projectEvidence,
       assessments,
       profileComp,
-      tier: isFolarinFallback ? "Verified Tier" : "New Talent",
-      badge: isFolarinFallback ? "VERIFIED TALENT" : "NEW TALENT",
+      tier: isStaticDemo ? "Verified Tier" : "New Talent",
+      badge: isStaticDemo ? "VERIFIED TALENT" : "NEW TALENT",
       gpgKey: "0x9B4E38F1C2D90A77",
-      skills: isFolarinFallback ? DEFAULT_FALLBACK_SKILLS : [],
+      skills: isStaticDemo ? DEFAULT_FALLBACK_SKILLS : [],
     };
   }, [passportData, rawUsername]);
 
