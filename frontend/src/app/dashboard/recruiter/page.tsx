@@ -482,6 +482,7 @@ export default function RecruiterDashboardPage() {
       talent_avatar: connectCandidate.avatar,
       talent_location: connectCandidate.location,
       talent_slug: connectCandidate.slug,
+      talent_email: (connectCandidate as any).email,
       company_name: introForm.companyName || orgName,
       role_title: introForm.roleTitle,
       work_type: introForm.workType,

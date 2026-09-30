@@ -977,17 +977,36 @@ export default function DashboardPage() {
         }
       }
 
-      // Merge locally stored requests (for immediate zero-latency presentation)
+      // Merge locally stored requests matching THIS talent
       if (typeof window !== "undefined") {
         try {
           const rawLocalReqs = localStorage.getItem("creda_talent_requests");
           if (rawLocalReqs) {
             const localList = JSON.parse(rawLocalReqs);
             if (Array.isArray(localList)) {
+              const myId = userProfile?.id || currentUser?.id;
+              const myEmail = (userProfile?.email || displayEmail || "").toLowerCase().trim();
+              const myName = (userProfile?.name || displayName || "").toLowerCase().trim();
+              const mySlug = (userProfile?.public_url || passportSlug || "").toLowerCase().trim();
+
               localList.forEach((lr: any) => {
-                const alreadyExists = loadedReqs.some((existing) => existing.id === lr.id);
-                if (!alreadyExists) {
-                  loadedReqs.unshift(lr);
+                const reqTalentId = lr.talent_id ? String(lr.talent_id).toLowerCase().trim() : "";
+                const reqEmail = lr.talent_email ? String(lr.talent_email).toLowerCase().trim() : "";
+                const reqSlug = lr.talent_slug ? String(lr.talent_slug).toLowerCase().trim() : "";
+                const reqName = lr.talent_name ? String(lr.talent_name).toLowerCase().trim() : "";
+
+                const matchesMe = Boolean(
+                  (reqTalentId && myId && reqTalentId === String(myId).toLowerCase().trim()) ||
+                  (reqEmail && myEmail && reqEmail === myEmail) ||
+                  (reqSlug && mySlug && (reqSlug === mySlug || reqSlug.includes(mySlug) || mySlug.includes(reqSlug))) ||
+                  (reqName && myName && (reqName === myName || reqName.includes(myName) || myName.includes(reqName)))
+                );
+
+                if (matchesMe) {
+                  const alreadyExists = loadedReqs.some((existing) => existing.id === lr.id);
+                  if (!alreadyExists) {
+                    loadedReqs.unshift(lr);
+                  }
                 }
               });
             }

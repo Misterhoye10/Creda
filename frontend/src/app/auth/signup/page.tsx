@@ -373,6 +373,21 @@ function SignupContent() {
       localStorage.removeItem("creda_candidate_score");
       localStorage.removeItem("creda_score_breakdown");
       localStorage.removeItem("creda_practical_assessments");
+      try {
+        const rawReqs = localStorage.getItem("creda_talent_requests");
+        if (rawReqs) {
+          const reqs = JSON.parse(rawReqs);
+          if (Array.isArray(reqs)) {
+            const filtered = reqs.filter(
+              (r: any) =>
+                r.talent_email !== email &&
+                r.talent_slug !== cleanSlug &&
+                r.talent_name?.toLowerCase() !== name.toLowerCase()
+            );
+            localStorage.setItem("creda_talent_requests", JSON.stringify(filtered));
+          }
+        }
+      } catch {}
     }
 
     if (isTalent) {
