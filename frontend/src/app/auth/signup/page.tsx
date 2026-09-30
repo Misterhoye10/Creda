@@ -358,6 +358,10 @@ function SignupContent() {
         location,
         country,
         city,
+        company_name: !isTalent ? recruiterData.companyName : undefined,
+        company_website: !isTalent ? recruiterData.companyWebsite : undefined,
+        hiring_role: !isTalent ? recruiterData.hiringRole : undefined,
+        team_size: !isTalent ? recruiterData.teamSize : undefined,
         public_url: cleanSlug,
         score: 60,
       })
@@ -394,7 +398,16 @@ function SignupContent() {
         localStorage.setItem("creda_token", response.access_token);
       }
       if (response?.user) {
-        localStorage.setItem("creda_user", JSON.stringify(response.user));
+        const enrichedUser = {
+          ...response.user,
+          company_name: response.user.company_name || (!isTalent ? recruiterData.companyName : undefined),
+          company_website: response.user.company_website || (!isTalent ? recruiterData.companyWebsite : undefined),
+          location: response.user.location || location,
+          country: response.user.country || country,
+          city: response.user.city || city,
+          hiring_role: response.user.hiring_role || (!isTalent ? recruiterData.hiringRole : undefined),
+        };
+        localStorage.setItem("creda_user", JSON.stringify(enrichedUser));
         if (isTalent) {
           try {
             const rawTalents = localStorage.getItem("creda_custom_talents");

@@ -191,7 +191,7 @@ export default function RecruiterDashboardPage() {
   const [pipelineFilter, setPipelineFilter] = useState<"all" | "shortlisted" | "requested">("all");
   const [connectCandidate, setConnectCandidate] = useState<Candidate | null>(null);
   const [introForm, setIntroForm] = useState({
-    companyName: "TechNova Africa",
+    companyName: "",
     roleTitle: "Senior Backend Lead",
     workType: "Full-Time Remote",
     compensation: "$65,000 - $95,000 / year",
@@ -208,16 +208,42 @@ export default function RecruiterDashboardPage() {
 
   // 1. Load Current Authenticated Recruiter
   useEffect(() => {
+    // Immediately read from localStorage for instant, zero-latency rendering
+    if (typeof window !== "undefined") {
+      const rawUser = localStorage.getItem("creda_user");
+      if (rawUser) {
+        try {
+          const u = JSON.parse(rawUser);
+          if (u) {
+            setCurrentUser(u);
+            const initialOrg = u.company_name || u.name;
+            if (initialOrg) {
+              setIntroForm((prev) => ({
+                ...prev,
+                companyName: initialOrg,
+              }));
+            }
+          }
+        } catch {}
+      }
+    }
+
     const loadUser = async () => {
       try {
         const user = await api.getCurrentUser();
         if (user) {
-          setCurrentUser(user);
-          if (user.company_name || user.name) {
+          setCurrentUser((prev) => ({ ...(prev || {}), ...user }));
+          const org = user.company_name || user.name;
+          if (org) {
             setIntroForm((prev) => ({
               ...prev,
-              companyName: user.company_name || `${user.name} Engineering`,
+              companyName: org,
             }));
+          }
+          if (typeof window !== "undefined") {
+            const rawUser = localStorage.getItem("creda_user");
+            const existing = rawUser ? JSON.parse(rawUser) : {};
+            localStorage.setItem("creda_user", JSON.stringify({ ...existing, ...user }));
           }
         }
       } catch {
@@ -522,7 +548,16 @@ export default function RecruiterDashboardPage() {
     setCustomJobText("");
   };
 
-  const orgName = currentUser?.company_name || currentUser?.name || "TechNova Africa Workspace";
+  const orgName = currentUser?.company_name || (currentUser?.name ? `${currentUser.name}'s Team` : "Creda Hiring Team");
+  const orgLocation = currentUser?.location || (currentUser?.city && currentUser?.country ? `${currentUser.city}, ${currentUser.country}` : (currentUser?.city || currentUser?.country || "Lagos, Nigeria"));
+
+  const handleOpenConnect = (candidate: Candidate) => {
+    setIntroForm((prev) => ({
+      ...prev,
+      companyName: prev.companyName || orgName,
+    }));
+    setConnectCandidate(candidate);
+  };
 
   // Derive candidate IDs that have had requests sent
   const sentTalentIds = new Set(sentRequests.map((r) => r.talent_id));
@@ -669,9 +704,17 @@ export default function RecruiterDashboardPage() {
             <span className="whitespace-nowrap">Export to ATS</span>
           </button>
 
-          <div className="flex items-center gap-2 pl-3 border-l border-neutral-200 text-xs font-mono text-[#64748B]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="hidden sm:inline font-semibold text-[#0F172A]">{orgName}</span>
+          <div className="flex items-center gap-2.5 pl-3 border-l border-neutral-200 text-xs font-mono text-[#64748B]">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100 flex-shrink-0" />
+            <div className="hidden sm:flex flex-col text-left">
+              <span className="font-bold text-xs text-[#0F172A] leading-tight truncate max-w-[200px] sm:max-w-[260px]">
+                {orgName}
+              </span>
+              <span className="text-[10px] text-stone-500 flex items-center gap-1 mt-0.5 truncate max-w-[200px] sm:max-w-[260px]">
+                <MapPin size={10} className="text-stone-400 flex-shrink-0" />
+                <span>{orgLocation}</span>
+              </span>
+            </div>
             <button
               onClick={handleLogout}
               className="p-2 hover:text-rose-600 transition-colors ml-1 cursor-pointer"
@@ -690,6 +733,35 @@ export default function RecruiterDashboardPage() {
         <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-sm space-y-5 relative overflow-hidden">
           <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
           <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
+
+          {/* Active Hiring Workspace Identity Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-stone-50 to-indigo-50/40 border border-stone-200/90 font-mono text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-[#4F46E5] font-bold text-base shadow-2xs flex-shrink-0">
+                <Building2 size={20} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-bold text-base text-[#0F172A] tracking-tight">{orgName}</h1>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                    HIRING WORKSPACE
+                  </span>
+                </div>
+                <div className="text-[11px] text-[#64748B] flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="flex items-center gap-1 text-stone-700 font-medium">
+                    <MapPin size={12} className="text-[#4F46E5] flex-shrink-0" />
+                    <span>{orgLocation}</span>
+                  </span>
+                  <span>•</span>
+                  <span>{currentUser?.professional_title || (currentUser?.hiring_role ? `${currentUser.hiring_role}` : "Verified Hiring Team")}</span>
+                </div>
+              </div>
+            </div>
+            <div className="text-[11px] text-stone-500 flex items-center gap-2 self-start sm:self-auto font-mono">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Real-Time Talent Ledger Active</span>
+            </div>
+          </div>
 
           {/* Transparent Hiring Loop Indicator */}
           <div className="flex items-center gap-2 p-3 bg-stone-50 rounded-2xl border border-stone-200/80 text-[11px] font-mono text-[#64748B] overflow-x-auto whitespace-nowrap">
@@ -1198,7 +1270,7 @@ export default function RecruiterDashboardPage() {
 
                     <button
                       type="button"
-                      onClick={() => setConnectCandidate(candidate)}
+                      onClick={() => handleOpenConnect(candidate)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0 ${
                         sentTalentIds.has(candidate.id)
                           ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -1443,7 +1515,7 @@ export default function RecruiterDashboardPage() {
                 onClick={() => {
                   const target = selectedCandidate;
                   setSelectedCandidate(null);
-                  setConnectCandidate(target);
+                  handleOpenConnect(target);
                 }}
                 className="w-full h-11 rounded-xl text-xs font-mono uppercase font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0"
               >
@@ -1526,7 +1598,7 @@ export default function RecruiterDashboardPage() {
                   <input
                     type="text"
                     required
-                    value={introForm.companyName}
+                    value={introForm.companyName || orgName}
                     onChange={(e) => setIntroForm({ ...introForm, companyName: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-[#0F172A] focus:border-[#4F46E5] outline-none"
                   />
@@ -1679,7 +1751,7 @@ export default function RecruiterDashboardPage() {
       {/* ── Recruiter Footer ───────────────────────────────── */}
       <footer className="border-t border-[#E5E7EB] px-6 sm:px-10 py-5 text-xs font-mono text-[#64748B] bg-white">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>Creda Hiring Team Engine // {orgName}</span>
+          <span>Creda Hiring Team Engine // {orgName} ({orgLocation})</span>
           <span className="text-[#94A3B8] hidden sm:inline">Transparent 4-Pillar Evidence &amp; Disintermediated Recruiting</span>
         </div>
       </footer>

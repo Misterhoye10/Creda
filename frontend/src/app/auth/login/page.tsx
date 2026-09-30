@@ -72,7 +72,19 @@ export default function LoginPage() {
         localStorage.setItem("creda_token", response.access_token);
       }
       if (response?.user) {
-        localStorage.setItem("creda_user", JSON.stringify(response.user));
+        let cachedExisting: any = {};
+        try {
+          const raw = localStorage.getItem("creda_user");
+          if (raw) cachedExisting = JSON.parse(raw);
+        } catch {}
+        const merged = {
+          ...response.user,
+          company_name: response.user.company_name || cachedExisting.company_name,
+          location: response.user.location || cachedExisting.location,
+          country: response.user.country || cachedExisting.country,
+          city: response.user.city || cachedExisting.city,
+        };
+        localStorage.setItem("creda_user", JSON.stringify(merged));
       }
       localStorage.setItem("creda_user_email", email);
       setIsSubmitting(false);
@@ -100,14 +112,29 @@ export default function LoginPage() {
         const namePart = email.split("@")[0];
         const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
         const isRecruiter = email.toLowerCase().includes("recruiter") || email.toLowerCase().includes("hiring");
+        const domainPart = email.includes("@") ? email.split("@")[1].toLowerCase() : "";
+        const isCommonEmail = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"].includes(domainPart);
+        const derivedCompany = !isCommonEmail && domainPart
+          ? domainPart.split(".")[0].charAt(0).toUpperCase() + domainPart.split(".")[0].slice(1)
+          : `${formattedName} Hiring Team`;
+
+        let cachedExisting: any = {};
+        try {
+          const raw = localStorage.getItem("creda_user");
+          if (raw) cachedExisting = JSON.parse(raw);
+        } catch {}
+
         localStorage.setItem(
           "creda_user",
           JSON.stringify({
-            name: formattedName,
+            name: cachedExisting.name || formattedName,
             email: email,
             account_type: isRecruiter ? "recruiter" : "talent",
             professional_title: isRecruiter ? "Talent Acquisition Partner" : "Backend Lead & Systems Engineer",
-            location: "Lagos, Nigeria",
+            company_name: cachedExisting.company_name || (isRecruiter ? derivedCompany : undefined),
+            location: cachedExisting.location || "Lagos, Nigeria",
+            country: cachedExisting.country || "Nigeria",
+            city: cachedExisting.city || "Lagos",
           })
         );
         setTimeout(() => {
