@@ -421,66 +421,96 @@ export default function PublicPassportPage() {
   useEffect(() => {
     const loadPassport = async () => {
       try {
-        const data = await api.getPublicPassport(rawUsername);
-        if (data) {
-          setPassportData(data);
-          return;
-        }
-      } catch (err) {
-        // If slug lookup failed, attempt lookup using custom registered talents or logged-in user from localStorage
+        let data: any = null;
         try {
-          if (typeof window !== "undefined") {
-            const cachedTalents = localStorage.getItem("creda_custom_talents");
-            if (cachedTalents) {
-              const talents = JSON.parse(cachedTalents);
-              const matched = talents.find(
-                (t: any) =>
-                  t.slug === rawUsername ||
-                  t.id === rawUsername ||
-                  t.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === rawUsername
-              );
-              if (matched) {
-                setPassportData({
-                  id: matched.id,
-                  name: matched.name,
-                  avatar_url: matched.avatar,
-                  professional_title: matched.title,
-                  location: matched.location,
-                  public_url: matched.slug,
-                  score: matched.score || 83,
-                  tier: matched.tier || "Verified Tier",
-                  skills: matched.skillsDetail?.map((s: any) => ({
-                    id: s.id || `skill-${s.name}`,
-                    name: s.name,
-                    level: s.level || "Advanced",
-                    confidence: s.confidence || 85,
-                    evidence_status: s.evidence_status || "strong",
-                    assessment_score: s.assessment_score || null,
-                    evidence_count: s.evidence_count || 2,
-                  })) || [],
-                  is_creda_verified: true,
-                } as any);
-                return;
+          data = await api.getPublicPassport(rawUsername);
+        } catch {
+          // Fall back to local storage hydration below
+        }
+
+        if (typeof window !== "undefined") {
+          const cachedUser = localStorage.getItem("creda_user");
+          const u = cachedUser ? JSON.parse(cachedUser) : null;
+          const uSlug = u ? (u.public_url || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "")) : "";
+          const isCurrentUser = Boolean(
+            u && (
+              uSlug === rawUsername ||
+              u.id === rawUsername ||
+              !rawUsername ||
+              rawUsername === "talent" ||
+              rawUsername === "candidate" ||
+              rawUsername === "me" ||
+              (data && (data.id === u.id || data.public_url === uSlug))
+            )
+          );
+
+          const localCandidateScore = localStorage.getItem("creda_candidate_score");
+          const localBreakdownRaw = localStorage.getItem("creda_score_breakdown");
+          const localExtractedSkillsRaw = localStorage.getItem("creda_extracted_skills");
+
+          let localBreakdown: any = null;
+          if (localBreakdownRaw) {
+            try { localBreakdown = JSON.parse(localBreakdownRaw); } catch {}
+          }
+
+          let localExtractedSkills: any[] = [];
+          if (localExtractedSkillsRaw) {
+            try { localExtractedSkills = JSON.parse(localExtractedSkillsRaw); } catch {}
+          }
+
+          if (data) {
+            // Guarantee 100% score alignment between candidate dashboard and public passport
+            if (isCurrentUser && localCandidateScore) {
+              data.score = Number(localCandidateScore);
+              if (localBreakdown) {
+                data.evidence_coverage = localBreakdown.evidenceCoverage;
+                data.project_evidence = localBreakdown.projectEvidence;
+                data.assessments_score = localBreakdown.assessments;
+                data.profile_completeness_score = localBreakdown.profileComp;
               }
             }
 
-            const cachedUser = localStorage.getItem("creda_user");
-            if (cachedUser) {
-              const u = JSON.parse(cachedUser);
-              const uSlug = u.public_url || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
-              if (uSlug === rawUsername || u.id === rawUsername || !rawUsername || rawUsername === "talent") {
-                let customMatch: any = null;
-                try {
-                  const rawCustom = localStorage.getItem("creda_custom_talents");
-                  if (rawCustom) {
-                    const talents = JSON.parse(rawCustom);
-                    customMatch = talents.find((t: any) => t.email === u.email || t.slug === uSlug || t.id === u.id);
-                  }
-                } catch {}
+            // If backend returned empty skills list (e.g. OpenAI rate limit / quota 429), hydrate from verified local skills
+            if ((!data.skills || data.skills.length === 0) && localExtractedSkills.length > 0) {
+              data.skills = localExtractedSkills.map((s: any) => ({
+                id: s.id || `skill-${s.name}`,
+                name: s.name,
+                level: s.level || "Advanced",
+                confidence: s.confidence || 85,
+                evidence_status: s.evidence_status || "strong",
+                assessment_score: s.assessment_score || null,
+                evidence_count: s.evidence_count || 2,
+                citations: s.citations || undefined,
+              }));
+              data.is_creda_verified = true;
+            }
 
-                const score = customMatch?.score ?? u.score ?? 60;
-                const tier = customMatch?.tier ?? (score >= 80 ? "Verified Tier" : "New Talent");
-                const skills = customMatch?.skillsDetail?.map((s: any) => ({
+            setPassportData(data);
+            return;
+          }
+
+          // If backend didn't return data, check custom registered talents
+          const cachedTalents = localStorage.getItem("creda_custom_talents");
+          if (cachedTalents) {
+            const talents = JSON.parse(cachedTalents);
+            const matched = talents.find(
+              (t: any) =>
+                t.slug === rawUsername ||
+                t.id === rawUsername ||
+                t.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === rawUsername
+            );
+            if (matched) {
+              const score = isCurrentUser && localCandidateScore ? Number(localCandidateScore) : (matched.score || 82);
+              setPassportData({
+                id: matched.id,
+                name: matched.name,
+                avatar_url: matched.avatar,
+                professional_title: matched.title,
+                location: matched.location,
+                public_url: matched.slug,
+                score,
+                tier: matched.tier || (score >= 80 ? "Verified Tier" : "New Talent"),
+                skills: (matched.skillsDetail || localExtractedSkills || []).map((s: any) => ({
                   id: s.id || `skill-${s.name}`,
                   name: s.name,
                   level: s.level || "Advanced",
@@ -488,27 +518,50 @@ export default function PublicPassportPage() {
                   evidence_status: s.evidence_status || "strong",
                   assessment_score: s.assessment_score || null,
                   evidence_count: s.evidence_count || 2,
-                })) || [];
-
-                setPassportData({
-                  id: u.id || "custom-talent-id",
-                  name: u.name,
-                  avatar_url: u.avatar_url,
-                  professional_title: u.professional_title,
-                  location: u.location,
-                  public_url: uSlug,
-                  score,
-                  tier,
-                  skills,
-                  is_creda_verified: score >= 80,
-                } as any);
-                return;
-              }
+                  citations: s.citations || undefined,
+                })),
+                evidence_coverage: localBreakdown?.evidenceCoverage ?? Math.round(score * 0.38),
+                project_evidence: localBreakdown?.projectEvidence ?? Math.round(score * 0.24),
+                assessments_score: localBreakdown?.assessments ?? Math.round(score * 0.19),
+                profile_completeness_score: localBreakdown?.profileComp ?? 14,
+                is_creda_verified: true,
+              } as any);
+              return;
             }
           }
-        } catch {
-          // ignore
+
+          // Fallback to active logged-in candidate session
+          if (u && isCurrentUser) {
+            const score = localCandidateScore ? Number(localCandidateScore) : (u.score ?? 82);
+            setPassportData({
+              id: u.id || "custom-talent-id",
+              name: u.name,
+              avatar_url: u.avatar_url,
+              professional_title: u.professional_title,
+              location: u.location,
+              public_url: uSlug,
+              score,
+              tier: score >= 80 ? "Verified Tier" : "New Talent",
+              skills: localExtractedSkills.map((s: any) => ({
+                id: s.id || `skill-${s.name}`,
+                name: s.name,
+                level: s.level || "Advanced",
+                confidence: s.confidence || 85,
+                evidence_status: s.evidence_status || "strong",
+                assessment_score: s.assessment_score || null,
+                evidence_count: s.evidence_count || 2,
+                citations: s.citations || undefined,
+              })),
+              evidence_coverage: localBreakdown?.evidenceCoverage ?? Math.round(score * 0.38),
+              project_evidence: localBreakdown?.projectEvidence ?? Math.round(score * 0.24),
+              assessments_score: localBreakdown?.assessments ?? Math.round(score * 0.19),
+              profile_completeness_score: localBreakdown?.profileComp ?? 14,
+              is_creda_verified: true,
+            } as any);
+            return;
+          }
         }
+      } catch (err) {
         console.log("Using static profile fallback:", err);
       } finally {
         setIsLoadingPassport(false);
@@ -554,7 +607,7 @@ export default function PublicPassportPage() {
 
       // 4-Pillar Deterministic Explainable Evidence Score
       const isStaticDemo = rawUsername === "folarin-thimoteus" && (!passportData || passportData.id === "folarin-thimoteus");
-      const unifiedScore = isStaticDemo ? 83 : (passportData.score ?? 60);
+      const unifiedScore = isStaticDemo ? 83 : (passportData.score ?? 82);
       const evidenceCoverage = passportData.evidence_coverage ?? Math.round(unifiedScore * 0.38);
       const projectEvidence = passportData.project_evidence ?? Math.round(unifiedScore * 0.24);
       const assessments = passportData.assessments_score ?? Math.round(unifiedScore * 0.19);
@@ -596,13 +649,43 @@ export default function PublicPassportPage() {
 
     if (PROFILES[rawUsername]) {
       const p = PROFILES[rawUsername];
-      const trust = p.trustIndex;
-      const evidenceCoverage = Math.round(trust * 0.38);
-      const projectEvidence = Math.round(trust * 0.24);
-      const assessments = Math.round(trust * 0.19);
-      const profileComp = Math.min(15, Math.max(10, Math.round(trust - (evidenceCoverage + projectEvidence + assessments))));
+      let trust = p.trustIndex;
+      let evidenceCoverage = Math.round(trust * 0.38);
+      let projectEvidence = Math.round(trust * 0.24);
+      let assessments = Math.round(trust * 0.19);
+      let profileComp = Math.min(15, Math.max(10, Math.round(trust - (evidenceCoverage + projectEvidence + assessments))));
+
+      if (typeof window !== "undefined") {
+        const localCandidateScore = localStorage.getItem("creda_candidate_score");
+        const localBreakdownRaw = localStorage.getItem("creda_score_breakdown");
+        const cachedUser = localStorage.getItem("creda_user");
+        let isCurrent = false;
+        if (cachedUser) {
+          try {
+            const u = JSON.parse(cachedUser);
+            const uSlug = u.public_url || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
+            if (uSlug === rawUsername || u.id === rawUsername || rawUsername === "folarin-thimoteus") {
+              isCurrent = true;
+            }
+          } catch {}
+        }
+        if (isCurrent && localCandidateScore) {
+          trust = Number(localCandidateScore);
+          if (localBreakdownRaw) {
+            try {
+              const b = JSON.parse(localBreakdownRaw);
+              evidenceCoverage = b.evidenceCoverage ?? evidenceCoverage;
+              projectEvidence = b.projectEvidence ?? projectEvidence;
+              assessments = b.assessments ?? assessments;
+              profileComp = b.profileComp ?? profileComp;
+            } catch {}
+          }
+        }
+      }
+
       return {
         ...p,
+        trustIndex: trust,
         evidenceCoverage,
         projectEvidence,
         assessments,

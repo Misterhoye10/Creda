@@ -362,7 +362,14 @@ function SignupContent() {
         score: 60,
       })
     );
-    localStorage.removeItem("creda_practical_assessments");
+    if (isTalent) {
+      localStorage.removeItem("creda_uploaded_cv");
+      localStorage.removeItem("creda_local_evidence");
+      localStorage.removeItem("creda_extracted_skills");
+      localStorage.removeItem("creda_candidate_score");
+      localStorage.removeItem("creda_score_breakdown");
+      localStorage.removeItem("creda_practical_assessments");
+    }
 
     if (isTalent) {
       try {
@@ -376,10 +383,10 @@ function SignupContent() {
     }
 
     try {
-      // 2-second fast race: connect to backend, but never block candidate on Render cold starts
+      // 1.5-second fast race: connect to backend, but never block candidate on Render cold starts
       const signupPromise = api.signup(signupPayload);
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("fast_race_timeout")), 2000)
+        setTimeout(() => reject(new Error("fast_race_timeout")), 1500)
       );
 
       const response: any = await Promise.race([signupPromise, timeoutPromise]);
