@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
 import { api, type User, type InterviewRequestItem } from "@/lib/api";
+import { getMonogramDataUrl } from "@/lib/avatar";
 import {
   Search,
   Filter,
@@ -115,7 +116,7 @@ const DEFAULT_BACKUP_CANDIDATES: Candidate[] = [
   {
     id: "david-adeyemi",
     name: "David Adeyemi",
-    avatar: "https://ui-avatars.com/api/?name=David+Adeyemi&background=4F46E5&color=fff&bold=true",
+    avatar: getMonogramDataUrl("David Adeyemi", "4F46E5"),
     title: "Full Stack Lead & Distributed Systems Engineer",
     location: "Lagos, Nigeria",
     country: "Nigeria",
@@ -144,7 +145,7 @@ const DEFAULT_BACKUP_CANDIDATES: Candidate[] = [
   {
     id: "sarah-okafor",
     name: "Sarah Okafor",
-    avatar: "https://ui-avatars.com/api/?name=Sarah+Okafor&background=4F46E5&color=fff&bold=true",
+    avatar: getMonogramDataUrl("Sarah Okafor", "4F46E5"),
     title: "Product & UI/UX Designer",
     location: "Lagos, Nigeria",
     country: "Nigeria",
@@ -167,6 +168,62 @@ const DEFAULT_BACKUP_CANDIDATES: Candidate[] = [
     linkedinUrl: "https://linkedin.com",
     websiteUrl: "https://sarahokafor.design",
     assessmentsCount: 1,
+    isNew: false,
+  },
+  {
+    id: "c4",
+    name: "Fatima Al-Hassan",
+    avatar: getMonogramDataUrl("Fatima Al-Hassan", "059669"),
+    title: "Senior Data & ML Pipeline Engineer",
+    location: "Cairo, Egypt",
+    country: "Egypt",
+    city: "Cairo",
+    workPreferences: "Remote",
+    discipline: "data",
+    score: 91.2,
+    tier: "Code-Proven Tier",
+    skills: ["Python", "dbt", "Snowflake", "PyTorch", "Airflow"],
+    skillsDetail: [
+      { name: "Python", level: "Expert", confidence: 95, evidence_status: "strong", assessment_score: 93, evidence_count: 4 },
+      { name: "Snowflake & dbt", level: "Advanced", confidence: 90, evidence_status: "strong", assessment_score: 88, evidence_count: 3 },
+    ],
+    proofHighlight: "Validated 12 ETL pipelines handling 40M+ events daily.",
+    reposAudited: 11,
+    commitsCount: "1,150 commits",
+    availability: "2 Weeks Notice",
+    slug: "fatima-al-hassan",
+    githubUrl: "https://github.com/fatima-alhassan",
+    linkedinUrl: "https://linkedin.com",
+    websiteUrl: null,
+    assessmentsCount: 1,
+    isNew: false,
+  },
+  {
+    id: "c5",
+    name: "Kofi Mensah",
+    avatar: getMonogramDataUrl("Kofi Mensah", "4F46E5"),
+    title: "Lead 3D Web & Creative Systems Engineer",
+    location: "Accra, Ghana",
+    country: "Ghana",
+    city: "Accra",
+    workPreferences: "Remote, Hybrid",
+    discipline: "creative3d",
+    score: 95.2,
+    tier: "Code-Proven Tier",
+    skills: ["React Three Fiber", "Three.js", "GLSL Shaders", "WebGL", "TypeScript"],
+    skillsDetail: [
+      { name: "Three.js & WebGL", level: "Expert", confidence: 97, evidence_status: "strong", assessment_score: 96, evidence_count: 4 },
+      { name: "React Three Fiber", level: "Expert", confidence: 94, evidence_status: "strong", assessment_score: 92, evidence_count: 3 },
+    ],
+    proofHighlight: "12 WebGL pipelines audited; zero GPU memory leaks; 60fps locked on mobile.",
+    reposAudited: 12,
+    commitsCount: "1,180 commits",
+    availability: "Immediately Available",
+    slug: "kofi-mensah",
+    githubUrl: "https://github.com/kofi-mensah",
+    linkedinUrl: "https://linkedin.com",
+    websiteUrl: null,
+    assessmentsCount: 2,
     isNew: false,
   },
 ];
@@ -328,7 +385,7 @@ export default function RecruiterDashboardPage() {
               return {
                 id: u.id,
                 name: u.name || "Verified Candidate",
-                avatar: u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "Candidate")}&background=4F46E5&color=fff&bold=true`,
+                avatar: u.avatar_url || getMonogramDataUrl(u.name || "Candidate", "4F46E5"),
                 title: u.professional_title || "Technical Professional",
                 location: u.location || "Lagos, Nigeria",
                 country: u.country || "Nigeria",
@@ -760,66 +817,31 @@ export default function RecruiterDashboardPage() {
       {/* ── Main Architectural Content ──────────────────────── */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 space-y-6">
         
-        {/* Top Control Bar: Search & Discipline Filters */}
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 sm:p-8 shadow-sm space-y-5 relative overflow-hidden">
-          <span className="absolute top-3 left-3 text-xs font-mono text-neutral-300 select-none">+</span>
-          <span className="absolute top-3 right-3 text-xs font-mono text-neutral-300 select-none">+</span>
-
-          {/* Active Hiring Workspace Identity Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-stone-50 to-indigo-50/40 border border-stone-200/90 font-mono text-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-[#4F46E5] font-bold text-base shadow-2xs flex-shrink-0">
-                <Building2 size={20} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="font-bold text-base text-[#0F172A] tracking-tight">{orgName}</h1>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
-                    HIRING WORKSPACE
-                  </span>
-                </div>
-                <div className="text-[11px] text-[#64748B] flex items-center gap-2 mt-0.5 flex-wrap">
-                  <span className="flex items-center gap-1 text-stone-700 font-medium">
-                    <MapPin size={12} className="text-[#4F46E5] flex-shrink-0" />
-                    <span>{orgLocation}</span>
-                  </span>
-                  <span>•</span>
-                  <span>{currentUser?.professional_title || (currentUser?.hiring_role ? `${currentUser.hiring_role}` : "Verified Hiring Team")}</span>
-                </div>
-              </div>
+        {/* Workspace Title & Pipeline Stage Filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A] font-serif">
+                Engineering Talent Pipeline
+              </h1>
+              <span className="text-[11px] font-mono text-[#4F46E5] font-semibold bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full">
+                AST Deterministic
+              </span>
             </div>
-            <div className="text-[11px] text-stone-500 flex items-center gap-2 self-start sm:self-auto font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Real-Time Talent Ledger Active</span>
-            </div>
+            <p className="text-xs font-mono text-[#64748B] mt-1">
+              Direct-hire African engineers with cryptographically audited code records. Zero agency fees.
+            </p>
           </div>
 
-          {/* Transparent Hiring Loop Indicator */}
-          <div className="flex items-center gap-2 p-3 bg-stone-50 rounded-2xl border border-stone-200/80 text-[11px] font-mono text-[#64748B] overflow-x-auto whitespace-nowrap">
-            <span className="font-bold text-[#4F46E5] uppercase tracking-wider flex items-center gap-1.5 flex-shrink-0">
-              <Sparkles size={12} />
-              Core Hiring Loop:
-            </span>
-            <span className="text-[#0F172A] font-semibold flex-shrink-0">1. Discover Talent in DB</span>
-            <span className="text-stone-400 flex-shrink-0">→</span>
-            <span className="text-[#0F172A] font-semibold flex-shrink-0">2. Filter by 3-Tier Proof</span>
-            <span className="text-stone-400 flex-shrink-0">→</span>
-            <span className="text-[#0F172A] font-semibold flex-shrink-0">3. Inspect Explainable Evidence</span>
-            <span className="text-stone-400 flex-shrink-0">→</span>
-            <span className="text-[#0F172A] font-semibold flex-shrink-0">4. Send Direct Interview Offer</span>
-            <span className="text-stone-400 flex-shrink-0">→</span>
-            <span className="text-emerald-700 font-bold flex-shrink-0">5. Talent Responds &amp; Unlocks Contact</span>
-          </div>
-
-          {/* Pipeline Stage Tabs */}
-          <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-neutral-100">
+          {/* Segmented Pipeline Stage Filter */}
+          <div className="inline-flex items-center p-1 rounded-xl bg-neutral-200/60 border border-neutral-200 text-xs font-mono self-start sm:self-auto flex-shrink-0">
             <button
               type="button"
               onClick={() => setPipelineFilter("all")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 pipelineFilter === "all"
-                  ? "bg-[#4F46E5] text-white font-bold shadow-xs"
-                  : "text-[#64748B] hover:text-[#0F172A] bg-[#FAFAF8] border border-[#E5E7EB]"
+                  ? "bg-white text-[#0F172A] font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
               }`}
             >
               <Users size={13} />
@@ -828,117 +850,209 @@ export default function RecruiterDashboardPage() {
             <button
               type="button"
               onClick={() => setPipelineFilter("shortlisted")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 pipelineFilter === "shortlisted"
-                  ? "bg-amber-500 text-white font-bold shadow-xs"
-                  : "text-[#64748B] hover:text-[#0F172A] bg-[#FAFAF8] border border-[#E5E7EB]"
+                  ? "bg-white text-[#0F172A] font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
               }`}
             >
-              <Star size={13} className={shortlistedIds.length > 0 ? "fill-amber-300 text-amber-300" : ""} />
+              <Star size={13} className={shortlistedIds.length > 0 ? "fill-amber-400 text-amber-500" : ""} />
               <span>Shortlisted ({shortlistedIds.length})</span>
             </button>
             <button
               type="button"
               onClick={() => setPipelineFilter("requested")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 pipelineFilter === "requested"
-                  ? "bg-emerald-600 text-white font-bold shadow-xs"
-                  : "text-[#64748B] hover:text-[#0F172A] bg-[#FAFAF8] border border-[#E5E7EB]"
+                  ? "bg-white text-[#0F172A] font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
               }`}
             >
               <Send size={13} />
               <span>Interview Offers Sent ({sentRequests.length})</span>
             </button>
           </div>
+        </div>
 
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        {/* Active Hiring Workspace Identity Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-stone-50 to-indigo-50/40 border border-stone-200/90 font-mono text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-[#4F46E5] font-bold text-base shadow-2xs flex-shrink-0">
+              <Building2 size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-bold text-base text-[#0F172A] tracking-tight">{orgName}</h1>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                  HIRING WORKSPACE
+                </span>
+              </div>
+              <div className="text-[11px] text-[#64748B] flex items-center gap-2 mt-0.5 flex-wrap">
+                <span className="flex items-center gap-1 text-stone-700 font-medium">
+                  <MapPin size={12} className="text-[#4F46E5] flex-shrink-0" />
+                  <span>{orgLocation}</span>
+                </span>
+                <span>•</span>
+                <span>{currentUser?.professional_title || (currentUser?.hiring_role ? `${currentUser.hiring_role}` : "Verified Hiring Team")}</span>
+              </div>
+            </div>
+          </div>
+          <div className="text-[11px] text-stone-500 flex items-center gap-2 self-start sm:self-auto font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Real-Time Talent Ledger Active</span>
+          </div>
+        </div>
+
+        {/* Transparent Hiring Loop Indicator */}
+        <div className="flex items-center gap-2 p-3 bg-stone-50 rounded-2xl border border-stone-200/80 text-[11px] font-mono text-[#64748B] overflow-x-auto whitespace-nowrap">
+          <span className="font-bold text-[#4F46E5] uppercase tracking-wider flex items-center gap-1.5 flex-shrink-0">
+            <Sparkles size={12} />
+            Core Hiring Loop:
+          </span>
+          <span className="text-[#0F172A] font-semibold flex-shrink-0">1. Discover Talent in DB</span>
+          <span className="text-stone-400 flex-shrink-0">→</span>
+          <span className="text-[#0F172A] font-semibold flex-shrink-0">2. Filter by 3-Tier Proof</span>
+          <span className="text-stone-400 flex-shrink-0">→</span>
+          <span className="text-[#0F172A] font-semibold flex-shrink-0">3. Inspect Explainable Evidence</span>
+          <span className="text-stone-400 flex-shrink-0">→</span>
+          <span className="text-[#0F172A] font-semibold flex-shrink-0">4. Send Direct Interview Offer</span>
+          <span className="text-stone-400 flex-shrink-0">→</span>
+          <span className="text-emerald-700 font-bold flex-shrink-0">5. Talent Responds &amp; Unlocks Contact</span>
+        </div>
+
+        {/* Unified Search & Architectural Filter Bar */}
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 sm:p-5 shadow-2xs space-y-3.5 relative overflow-hidden">
+          <span className="absolute top-2.5 left-2.5 text-xs font-mono text-neutral-300 select-none">+</span>
+          <span className="absolute top-2.5 right-2.5 text-xs font-mono text-neutral-300 select-none">+</span>
+
+          {/* Row 1: High-Precision Search + Min Score Slider + AI JD Match Toggle */}
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative flex-1 group">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] group-focus-within:text-[#4F46E5] transition-colors">
-                <Search size={16} />
+                <Search size={15} />
               </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search database by name, location (Nigeria, Kenya, Ghana...), or skills (FastAPI, React, Kubernetes)..."
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
+                className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] hover:border-neutral-400 focus:border-[#4F46E5] focus:bg-white text-xs font-mono text-[#0F172A] placeholder:text-[#94A3B8] transition-all outline-none"
               />
-            </div>
-
-            {/* Minimum Score Threshold Slider */}
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-xs font-mono text-[#64748B]">
-              <SlidersHorizontal size={14} className="text-[#4F46E5]" />
-              <span>Min Score:</span>
-              <span className="font-bold text-[#0F172A]">{minScore === 0 ? "Any (All Profiles)" : `${minScore}%`}</span>
-              <input
-                type="range"
-                min="0"
-                max="95"
-                step="5"
-                value={minScore}
-                onChange={(e) => setMinScore(Number(e.target.value))}
-                className="w-20 accent-[#4F46E5] cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Discipline Filter Chips */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-neutral-100">
-            {[
-              { id: "all", label: `All Disciplines (${candidatesList.length})` },
-              { id: "software", label: `Software Eng (${candidatesList.filter((c) => c.discipline === "software").length})` },
-              { id: "devops", label: `DevOps & Cloud (${candidatesList.filter((c) => c.discipline === "devops").length})` },
-              { id: "data", label: `Data & AI (${candidatesList.filter((c) => c.discipline === "data").length})` },
-              { id: "design", label: `UI/UX Design (${candidatesList.filter((c) => c.discipline === "design").length})` },
-              { id: "creative3d", label: `3D Web (${candidatesList.filter((c) => c.discipline === "creative3d").length})` },
-            ].map((chip) => (
-              <button
-                key={chip.id}
-                onClick={() => setSelectedDiscipline(chip.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
-                  selectedDiscipline === chip.id
-                    ? "bg-[#0F172A] text-white font-semibold shadow-xs"
-                    : "bg-[#FAFAF8] text-[#64748B] border border-[#E5E7EB] hover:border-neutral-400 hover:text-[#0F172A]"
-                }`}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-
-          {/* AI Custom Role Auditor & Match Gap Toggle */}
-          <div className="pt-3 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => setShowRoleAuditor(!showRoleAuditor)}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100/60 text-[#4F46E5] text-xs font-mono font-semibold transition-all cursor-pointer"
-            >
-              <Sparkles size={14} />
-              <span>{showRoleAuditor ? "Hide Match Gap Analyzer" : "Analyze Fit Against Job Spec (AI Match Gap)"}</span>
-              <ChevronDown size={14} className={`transform transition-transform ${showRoleAuditor ? "rotate-180" : ""}`} />
-            </button>
-
-            {matchRankings && (
-              <div className="flex items-center gap-2 text-xs font-mono">
-                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-semibold flex items-center gap-1.5">
-                  <CheckCircle2 size={13} />
-                  Ranked by 3-Tier Proof Alignment
-                </span>
+              {searchQuery && (
                 <button
                   type="button"
-                  onClick={handleResetAudit}
-                  className="text-[#64748B] hover:text-[#0F172A] underline cursor-pointer"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8] hover:text-[#0F172A] cursor-pointer"
+                  title="Clear search"
                 >
-                  Reset
+                  <X size={14} />
                 </button>
+              )}
+            </div>
+
+            {/* Precision Controls: Score Slider + AI JD Matcher */}
+            <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+              {/* Minimum Score Threshold Slider */}
+              <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-xs font-mono text-[#64748B] flex-shrink-0">
+                <SlidersHorizontal size={13} className="text-[#4F46E5]" />
+                <span className="whitespace-nowrap">Min Score:</span>
+                <span className="font-bold text-[#0F172A] w-7 text-right">{minScore}%</span>
+                <input
+                  type="range"
+                  min="75"
+                  max="95"
+                  step="5"
+                  value={minScore}
+                  onChange={(e) => setMinScore(Number(e.target.value))}
+                  className="w-16 accent-[#4F46E5] cursor-pointer"
+                  title={`Filter candidates with score >= ${minScore}%`}
+                />
               </div>
-            )}
+
+              {/* AI Custom Role Auditor Button */}
+              <button
+                type="button"
+                onClick={() => setShowRoleAuditor(!showRoleAuditor)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-mono font-semibold transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                  showRoleAuditor || matchRankings
+                    ? "border-[#4F46E5] bg-indigo-50/80 text-[#4F46E5]"
+                    : "border-[#E5E7EB] bg-[#FAFAF8] hover:border-neutral-400 text-[#0F172A]"
+                }`}
+              >
+                <Sparkles size={13} className="text-[#4F46E5]" />
+                <span>Match with JD</span>
+                <ChevronDown size={13} className={`transform transition-transform ${showRoleAuditor ? "rotate-180" : ""}`} />
+              </button>
+            </div>
           </div>
 
-          {/* AI Custom Role Matcher Panel */}
+          {/* Row 2: Discipline Filter Chips & Active Filter Meta */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-neutral-100">
+            {/* Discipline Pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: "all", label: "All Disciplines", count: candidatesList.length },
+                { id: "software", label: "Software", count: candidatesList.filter((c) => c.discipline === "software").length },
+                { id: "devops", label: "DevOps & Cloud", count: candidatesList.filter((c) => c.discipline === "devops").length },
+                { id: "data", label: "Data & AI", count: candidatesList.filter((c) => c.discipline === "data").length },
+                { id: "design", label: "UI/UX", count: candidatesList.filter((c) => c.discipline === "design").length },
+                { id: "creative3d", label: "3D Web", count: candidatesList.filter((c) => c.discipline === "creative3d").length },
+              ].map((chip) => {
+                const isActive = selectedDiscipline === chip.id;
+                return (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={() => setSelectedDiscipline(chip.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      isActive
+                        ? "bg-[#0F172A] text-white font-semibold shadow-2xs"
+                        : "bg-[#FAFAF8] text-[#64748B] hover:text-[#0F172A] hover:bg-neutral-100 border border-[#E5E7EB]"
+                    }`}
+                  >
+                    <span>{chip.label}</span>
+                    <span className={`text-[10.5px] ${isActive ? "text-neutral-300 font-normal" : "text-[#94A3B8]"}`}>
+                      ({chip.count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Filter Meta & Reset */}
+            <div className="flex items-center gap-3 text-xs font-mono">
+              {matchRankings && (
+                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200 font-semibold flex items-center gap-1 text-[11px]">
+                  <CheckCircle2 size={12} />
+                  Ranked by JD AST Fit
+                </span>
+              )}
+              
+              <span className="text-[#64748B] text-[11px]">
+                Showing <strong className="text-[#0F172A]">{filteredCandidates.length}</strong> of {candidatesList.length}
+              </span>
+
+              {(searchQuery || selectedDiscipline !== "all" || minScore !== 85 || matchRankings) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedDiscipline("all");
+                    setMinScore(85);
+                    handleResetAudit();
+                  }}
+                  className="text-[#4F46E5] hover:text-[#4338CA] hover:underline text-[11px] cursor-pointer"
+                >
+                  Reset filters
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* AI Custom Role Matcher Panel (Collapsible) */}
           {showRoleAuditor && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-[#FAFAF8] border border-indigo-100 space-y-3 animate-fade-in-up">
+            <div className="pt-3 border-t border-neutral-100 space-y-3 animate-fade-in-up">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="font-bold text-[#0F172A] flex items-center gap-1.5">
                   <FileText size={14} className="text-[#4F46E5]" />
@@ -951,7 +1065,7 @@ export default function RecruiterDashboardPage() {
                 onChange={(e) => setCustomJobText(e.target.value)}
                 placeholder="e.g. Senior Backend Lead with Python, FastAPI, PostgreSQL, and distributed financial ledgers. Must have proven AST-backed repos and practical assessment verification..."
                 rows={3}
-                className="w-full p-3 rounded-xl bg-white border border-neutral-200 focus:border-[#4F46E5] text-xs font-mono text-[#0F172A] outline-none transition-all placeholder:text-neutral-400"
+                className="w-full p-3 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] focus:border-[#4F46E5] focus:bg-white text-xs font-mono text-[#0F172A] outline-none transition-all placeholder:text-neutral-400"
               />
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                 {/* Benchmark Templates */}
@@ -974,24 +1088,35 @@ export default function RecruiterDashboardPage() {
                   ))}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleAuditRole}
-                  disabled={isAuditingRole || !customJobText.trim()}
-                  className="px-5 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
-                >
-                  {isAuditingRole ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Auditing Fit &amp; Gaps...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={14} />
-                      <span>Run Match Gap Audit →</span>
-                    </>
+                <div className="flex items-center gap-2">
+                  {matchRankings && (
+                    <button
+                      type="button"
+                      onClick={handleResetAudit}
+                      className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-xs font-mono text-[#64748B] cursor-pointer"
+                    >
+                      Clear Match
+                    </button>
                   )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleAuditRole}
+                    disabled={isAuditingRole || !customJobText.trim()}
+                    className="px-4 py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-mono uppercase font-semibold flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    {isAuditingRole ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Ranking...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={13} />
+                        <span>Rank Candidates →</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}

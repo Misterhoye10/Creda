@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CredaLogo } from "@/components/CredaLogo";
+import { getMonogramDataUrl } from "@/lib/avatar";
 import {
   ShieldCheck,
   Key,
@@ -54,7 +55,7 @@ const SAMPLE_RECORDS: Record<string, VerificationRecord> = {
     hash: "crd_live_8f3a92b1",
     name: "Verified Candidate",
     githubUsername: "creda-protocol",
-    avatar: "https://ui-avatars.com/api/?name=Verified+Candidate&background=4F46E5&color=fff&bold=true",
+    avatar: getMonogramDataUrl("Verified Candidate", "4F46E5"),
     role: "Senior Distributed Systems & Backend Architect",
     location: "Lagos, Nigeria",
     issuedAt: "2026-09-15 08:34:22 UTC",
