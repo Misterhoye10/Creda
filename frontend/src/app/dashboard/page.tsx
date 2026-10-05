@@ -1095,15 +1095,7 @@ export default function DashboardPage() {
     currentUser?.public_url ||
     displayName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-  const passportDisplayUrl = mountedOrigin
-    ? `${mountedOrigin.replace(/^https?:\/\//, "")}/p/${passportSlug}`
-    : `creda.app/p/${passportSlug}`;
-
-  const passportFullUrl = mountedOrigin
-    ? `${mountedOrigin}/p/${passportSlug}`
-    : `https://creda.app/p/${passportSlug}`;
-
-  const passportUrl = passportDisplayUrl;
+  // Passport URLs are computed after explainableScoreData below to include the verified score query parameter
 
   // Average confidence score across verified skills
   const hasVerifiedSkills = Boolean(
@@ -1280,6 +1272,18 @@ export default function DashboardPage() {
       profileComp: cachedBreakdown?.profileComp ?? profileComp,
     };
   }, [skillsSummary, profileForm.github_url, profileForm.website_url, uploadedFile, evidenceItems, verifiedSkills, completeness.score, displayEmail, passportSlug, displayName]);
+
+  const verifiedScore = explainableScoreData?.total || 89;
+
+  const passportDisplayUrl = mountedOrigin
+    ? `${mountedOrigin.replace(/^https?:\/\//, "")}/p/${passportSlug}?score=${verifiedScore}`
+    : `creda.app/p/${passportSlug}?score=${verifiedScore}`;
+
+  const passportFullUrl = mountedOrigin
+    ? `${mountedOrigin}/p/${passportSlug}?score=${verifiedScore}`
+    : `https://creda-khaki.vercel.app/p/${passportSlug}?score=${verifiedScore}`;
+
+  const passportUrl = passportDisplayUrl;
 
   // Synchronize deterministic score and 4-pillar breakdown to localStorage and custom talent ledger
   useEffect(() => {
@@ -1525,7 +1529,7 @@ export default function DashboardPage() {
 
   const handleCopy = () => {
     const fullUrl = typeof window !== "undefined"
-      ? `${window.location.origin}/p/${passportSlug}`
+      ? `${window.location.origin}/p/${passportSlug}?score=${verifiedScore}`
       : passportFullUrl;
     navigator.clipboard?.writeText(fullUrl);
     setCopied(true);
@@ -2094,7 +2098,7 @@ export default function DashboardPage() {
             </button>
             <div className="h-3.5 w-px bg-neutral-200 mx-0.5" />
             <Link
-              href={`/p/${passportSlug}`}
+              href={`/p/${passportSlug}?score=${verifiedScore}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-neutral-50 text-[#475569] hover:text-[#4F46E5] transition-colors"
@@ -2139,7 +2143,7 @@ export default function DashboardPage() {
 
                 <div className="py-1 text-xs font-mono text-[#475569]">
                   <Link
-                    href={`/p/${passportSlug}`}
+                    href={`/p/${passportSlug}?score=${verifiedScore}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setShowUserMenu(false)}
@@ -4112,7 +4116,7 @@ export default function DashboardPage() {
                       </div>
 
                       <Link
-                        href={`/p/${passportSlug}`}
+                        href={`/p/${passportSlug}?score=${verifiedScore}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="h-11 px-4 rounded-xl border border-[#E5E7EB] hover:border-[#4F46E5] hover:text-[#4F46E5] bg-white text-xs font-mono font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0"

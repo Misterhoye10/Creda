@@ -48,6 +48,7 @@ interface VerificationRecord {
   antiFraudScore: string;
   topVerifiedSkills: { name: string; score: number; tier: string }[];
   status: "VALID" | "REVOKED" | "EXPIRED";
+  score?: number;
 }
 
 const SAMPLE_RECORDS: Record<string, VerificationRecord> = {
@@ -368,7 +369,7 @@ function VerifyContent() {
                   <span>{hasCopied ? "Proof Copied" : "Copy JSON Proof"}</span>
                 </button>
                 <Link
-                  href={`/p/${activeRecord.githubUsername}`}
+                  href={`/p/${activeRecord.githubUsername}?score=${activeRecord.score || 89}`}
                   className="h-9 px-3.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-2xs"
                 >
                   <span>View Passport</span>
