@@ -265,6 +265,100 @@ const PROFILES: Record<
       },
     ],
   },
+  "tosin-oluyide": {
+    name: "Tosin Oluyide",
+    avatar: getMonogramDataUrl("Tosin Oluyide", "4F46E5"),
+    title: "Senior Full-Stack & Distributed Systems Engineer",
+    location: "Lagos, Nigeria // Global Remote",
+    trustIndex: 89,
+    badge: "VERIFIED TALENT",
+    gpgKey: "0x4F9DE21AC8F19A42",
+    skills: [
+      {
+        name: "Python Systems & Async APIs",
+        score: 94,
+        repos: "18 Repositories",
+        commits: "1,840 commits",
+        tier: "Code-Proven Tier",
+        icon: Terminal,
+        auditNote: "AST validated high-concurrency async endpoints, Pydantic schemas & JWT security.",
+      },
+      {
+        name: "Distributed Ledger & Cryptographic Proofs",
+        score: 92,
+        repos: "12 Systems",
+        commits: "960 commits",
+        tier: "Code-Proven Tier",
+        icon: Server,
+        auditNote: "Cryptographic hash verification, concurrency controls, and Redis state management.",
+      },
+      {
+        name: "React, Next.js & UI Architecture",
+        score: 89,
+        repos: "14 Repositories",
+        commits: "910 commits",
+        tier: "Advanced Tier",
+        icon: Box,
+        auditNote: "Component lifecycle optimization, clean state trees, and zero layout shift.",
+      },
+      {
+        name: "PostgreSQL & Database Optimization",
+        score: 88,
+        repos: "Production Schemas",
+        commits: "42 migrations",
+        tier: "Advanced Tier",
+        icon: Database,
+        auditNote: "ACID transactions, indexed relationship queries, and automated SQLAlchemy migrations.",
+      },
+    ],
+  },
+  "tosin": {
+    name: "Tosin Oluyide",
+    avatar: getMonogramDataUrl("Tosin Oluyide", "4F46E5"),
+    title: "Senior Full-Stack & Distributed Systems Engineer",
+    location: "Lagos, Nigeria // Global Remote",
+    trustIndex: 89,
+    badge: "VERIFIED TALENT",
+    gpgKey: "0x4F9DE21AC8F19A42",
+    skills: [
+      {
+        name: "Python Systems & Async APIs",
+        score: 94,
+        repos: "18 Repositories",
+        commits: "1,840 commits",
+        tier: "Code-Proven Tier",
+        icon: Terminal,
+        auditNote: "AST validated high-concurrency async endpoints, Pydantic schemas & JWT security.",
+      },
+      {
+        name: "Distributed Ledger & Cryptographic Proofs",
+        score: 92,
+        repos: "12 Systems",
+        commits: "960 commits",
+        tier: "Code-Proven Tier",
+        icon: Server,
+        auditNote: "Cryptographic hash verification, concurrency controls, and Redis state management.",
+      },
+      {
+        name: "React, Next.js & UI Architecture",
+        score: 89,
+        repos: "14 Repositories",
+        commits: "910 commits",
+        tier: "Advanced Tier",
+        icon: Box,
+        auditNote: "Component lifecycle optimization, clean state trees, and zero layout shift.",
+      },
+      {
+        name: "PostgreSQL & Database Optimization",
+        score: 88,
+        repos: "Production Schemas",
+        commits: "42 migrations",
+        tier: "Advanced Tier",
+        icon: Database,
+        auditNote: "ACID transactions, indexed relationship queries, and automated SQLAlchemy migrations.",
+      },
+    ],
+  },
   "david-adeyemi": {
     name: "David Adeyemi",
     avatar: getMonogramDataUrl("David Adeyemi", "4F46E5"),
@@ -915,8 +1009,8 @@ export default function PublicPassportPage() {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
     const isStaticDemo = rawUsername === "folarin-thimoteus";
-    const isHoye = rawUsername.toLowerCase().includes("hoye");
-    const defaultTrust = queryScore || (isHoye ? 89 : (isStaticDemo ? 83 : 89));
+    const isKnownCandidate = rawUsername.toLowerCase().includes("hoye") || rawUsername.toLowerCase().includes("tosin") || rawUsername.toLowerCase().includes("oluyide");
+    const defaultTrust = queryScore || (isKnownCandidate ? 89 : (isStaticDemo ? 83 : 89));
     const balanced = calculateBalancedPillars(defaultTrust);
 
     return {
